@@ -130,6 +130,7 @@ write_with() {
 }
 
 @test "kakikomi stopped mid-run leaves the first sectors blank" {
+  [[ -z "${DISK_COVERAGE:-}" ]] || skip "kcov changes process names and stderr order; the shell matrices run this test"
   # Arrange
   local big="${WORK}/random.img"
   local log="${WORK}/run.log"
@@ -145,7 +146,7 @@ write_with() {
 
   # Assert
   [[ "${status_code}" -ne 0 ]]
-  grep -q "STOPPED: interrupted during write chunk" "${log}"
+  grep -q "STOPPED: interrupted during write chunk" "${log}" || { cat "${log}"; false; }
   local head_bytes
   head_bytes="$(disk_test_range_bytes "${TARGET_IMG}" 0 1048576)"
   [[ "${head_bytes}" == "00" ]] || { printf "found bytes: %s\n" "${head_bytes}"; false; }
@@ -179,6 +180,7 @@ write_with() {
 }
 
 @test "kakikomi moves the image to the Trash after it validated with DELETE=y" {
+  [[ -z "${DISK_COVERAGE:-}" ]] || skip "kcov changes process names and stderr order; the shell matrices run this test"
   # Arrange
   local settings="DELETE=y"
 
@@ -205,6 +207,7 @@ write_with() {
 }
 
 @test "kakikomi reports a mount that happened while it held the disk" {
+  [[ -z "${DISK_COVERAGE:-}" ]] || skip "kcov changes process names and stderr order; the shell matrices run this test"
   # Arrange
   disk_test_fat_image "${WORK}/mountable.img" 8 BREACH
   local mountable
