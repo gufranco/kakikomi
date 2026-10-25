@@ -6,31 +6,31 @@ case "${disk_self}" in
   */*) ;;
   *) disk_self="$(command -v -- "${disk_self}")" ;;
 esac
-DISK_LIB="$(cd "${disk_self%/*}/../lib/disk" && pwd)" || exit 1
+DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 
-# shellcheck source=SCRIPTDIR/../lib/disk/core.sh
+# shellcheck source=SCRIPTDIR/../lib/core.sh
 . "${DISK_LIB}/core.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/io.sh
+# shellcheck source=SCRIPTDIR/../lib/io.sh
 . "${DISK_LIB}/io.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/calibrate.sh
+# shellcheck source=SCRIPTDIR/../lib/calibrate.sh
 . "${DISK_LIB}/calibrate.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/wipe.sh
+# shellcheck source=SCRIPTDIR/../lib/wipe.sh
 . "${DISK_LIB}/wipe.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/source.sh
+# shellcheck source=SCRIPTDIR/../lib/source.sh
 . "${DISK_LIB}/source.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/guard.sh
+# shellcheck source=SCRIPTDIR/../lib/guard.sh
 . "${DISK_LIB}/guard.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/ui.sh
+# shellcheck source=SCRIPTDIR/../lib/ui.sh
 . "${DISK_LIB}/ui.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/write.sh
+# shellcheck source=SCRIPTDIR/../lib/write.sh
 . "${DISK_LIB}/write.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/after.sh
+# shellcheck source=SCRIPTDIR/../lib/after.sh
 . "${DISK_LIB}/after.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/boot.sh
+# shellcheck source=SCRIPTDIR/../lib/boot.sh
 . "${DISK_LIB}/boot.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/flow.sh
+# shellcheck source=SCRIPTDIR/../lib/flow.sh
 . "${DISK_LIB}/flow.sh"
-# shellcheck source=SCRIPTDIR/../lib/disk/format.sh
+# shellcheck source=SCRIPTDIR/../lib/format.sh
 . "${DISK_LIB}/format.sh"
 
 disk_write_usage() {
@@ -72,6 +72,10 @@ disk_write_main() {
       ;;
     -h | --help)
       disk_write_usage
+      return 0
+      ;;
+    -V | --version)
+      disk_version kakikomi
       return 0
       ;;
     '')
