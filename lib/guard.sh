@@ -210,7 +210,8 @@ disk_guard_probe() {
   rm -f "${disk_gp_probe}"
   dd if=/dev/zero of="${disk_gp_probe}" bs=1 count=0 seek="$3" 2>/dev/null || return 1
   dd if="$2" of="${disk_gp_probe}" conv=notrunc 2>/dev/null || return 1
-  disk_gp_starts="$(disk_partition_starts "$2" "$1")"
+  disk_partition_starts "$2" "$1" >"${DISK_TMPDIR}/starts" || return 1
+  disk_gp_starts="$(cat "${DISK_TMPDIR}/starts")"
   if [ -n "${DISK_GUARD_UNSUPPORTED}" ]; then
     disk_error "STOPPED: this image holds an ${DISK_GUARD_UNSUPPORTED} partition, whose volume identity cannot be read from its header alone."
     return 1
