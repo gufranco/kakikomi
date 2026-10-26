@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは1つ、テストは52件、シェルのモジュールは14個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
+コマンドは1つ、テストは209件、シェルのモジュールは14個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
 
 ---
 
@@ -169,7 +169,7 @@ WindowsのISOはそのまま書いてもUSBからは起動しません。kakikom
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプトにShellCheck |
-| `make test` | システムの`sh`で40件の`bats`テスト |
+| `make test` | システムの`sh`で209件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
 | `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |
