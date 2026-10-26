@@ -102,3 +102,22 @@ teardown() {
   disk_test_same_prefix "${IMAGE}" "${WORK}/t1.img"
   disk_test_same_prefix "${IMAGE}" "${WORK}/t3.img"
 }
+
+@test "kakikomi keeps every disk's guard when three write at once" {
+  # Arrange
+  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
+  local names="${DEV1##*/} ${DEV2##*/} ${DEV3##*/}"
+  export KEEP_GUARD=y
+
+  # Act
+  run answer_and_write "${names}\n" "${IMAGE}" "${DEV1}" "${DEV2}" "${DEV3}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  local blocks
+  blocks="$(grep -c '^# kakikomi .* begin$' "${DISK_FSTAB}")"
+  [[ "${blocks}" -eq 3 ]]
+  grep -q "^# kakikomi ${DEV1##*/} begin$" "${DISK_FSTAB}"
+  grep -q "^# kakikomi ${DEV2##*/} begin$" "${DISK_FSTAB}"
+  grep -q "^# kakikomi ${DEV3##*/} begin$" "${DISK_FSTAB}"
+}

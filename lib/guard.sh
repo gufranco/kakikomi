@@ -96,7 +96,38 @@ disk_fstab_path() {
   printf '%s\n' "${DISK_FSTAB:-/etc/fstab}"
 }
 
+disk_fstab_lock() {
+  disk_fl_lock="${TMPDIR:-/tmp}/kakikomi-fstab.lock"
+  disk_fl_tries=0
+  while ! mkdir "${disk_fl_lock}" 2>/dev/null; do
+    disk_fl_holder="$(cat "${disk_fl_lock}/pid" 2>/dev/null || true)"
+    if [ -n "${disk_fl_holder}" ] && ! kill -0 "${disk_fl_holder}" 2>/dev/null; then
+      rm -rf "${disk_fl_lock}"
+      continue
+    fi
+    disk_fl_tries=$((disk_fl_tries + 1))
+    if [ "${disk_fl_tries}" -ge 600 ]; then
+      disk_error "Another kakikomi held ${disk_fl_lock} for a minute, so the fstab was left untouched."
+      return 1
+    fi
+    sleep 0.1
+  done
+  printf '%s\n' "$$" >"${disk_fl_lock}/pid"
+}
+
+disk_fstab_unlock() {
+  rm -rf "${TMPDIR:-/tmp}/kakikomi-fstab.lock"
+}
+
 disk_fstab_strip() {
+  disk_fstab_lock || return 1
+  disk_fstab_strip_locked "$1"
+  disk_fsl_status="$?"
+  disk_fstab_unlock
+  return "${disk_fsl_status}"
+}
+
+disk_fstab_strip_locked() {
   disk_fsp_path="$(disk_fstab_path)"
   [ -f "${disk_fsp_path}" ] || return 0
   disk_fsp_tmp="${DISK_TMPDIR}/fstab.new"
@@ -110,6 +141,14 @@ disk_fstab_strip() {
 }
 
 disk_fstab_append() {
+  disk_fstab_lock || return 1
+  disk_fstab_append_locked "$1" "$2"
+  disk_fal_status="$?"
+  disk_fstab_unlock
+  return "${disk_fal_status}"
+}
+
+disk_fstab_append_locked() {
   disk_fa_path="$(disk_fstab_path)"
   disk_fa_tmp="${DISK_TMPDIR}/fstab.new"
   if [ -f "${disk_fa_path}" ]; then
@@ -126,8 +165,18 @@ disk_fstab_append() {
   sudo cp -f "${disk_fa_tmp}" "${disk_fa_path}"
 }
 
+disk_attach_probe() {
+  disk_ap_tries=0
+  while [ "${disk_ap_tries}" -lt 3 ]; do
+    hdiutil attach -nomount -readonly -imagekey diskimage-class=CRawDiskImage "$1" 2>/dev/null && return 0
+    disk_ap_tries=$((disk_ap_tries + 1))
+    sleep 1
+  done
+  return 1
+}
+
 disk_volume_lines() {
-  disk_vl_attach="$(hdiutil attach -nomount -readonly -imagekey diskimage-class=CRawDiskImage "$1" 2>/dev/null)" || return 1
+  disk_vl_attach="$(disk_attach_probe "$1")" || return 1
   disk_vl_devices="$(printf '%s\n' "${disk_vl_attach}" | awk '/^\/dev\// { print $1 }')"
   disk_vl_whole="$(printf '%s\n' "${disk_vl_devices}" | sed -n '1p')"
   disk_vl_lines=""
@@ -297,6 +346,14 @@ disk_udev_release_all() {
 
 disk_fstab_release_all() {
   disk_udev_release_all || return 1
+  disk_fstab_lock || return 1
+  disk_fstab_release_locked
+  disk_frl_status="$?"
+  disk_fstab_unlock
+  return "${disk_frl_status}"
+}
+
+disk_fstab_release_locked() {
   disk_fr_path="$(disk_fstab_path)"
   [ -f "${disk_fr_path}" ] || return 0
   disk_fr_tmp="${TMPDIR:-/tmp}/kakikomi.fstab.$$"
