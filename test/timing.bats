@@ -1,0 +1,231 @@
+#!/usr/bin/env bats
+
+# shellcheck source=test/helpers.bash
+source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
+# shellcheck source=test/fakes.bash
+source "${BATS_TEST_DIRNAME:-.}/fakes.bash"
+
+setup() {
+  WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/kakikomi-timing.XXXXXX")"
+  disk_test_setup_env
+  SHIMS="${WORK}/shims"
+  export SHIMS
+  DEVICE=""
+}
+
+teardown() {
+  [[ -z "${DEVICE}" ]] || disk_test_detach "${DEVICE}"
+  rm -rf "${WORK}"
+}
+
+attach() {
+  local bytes="$1"
+  local image_bytes="$2"
+  { head -c "${bytes}" /dev/zero || true; } | LC_ALL=C tr '\000' '\252' >"${WORK}/target.img"
+  DEVICE="$(disk_test_attach "${WORK}/target.img")"
+  NAME="$(disk_test_name "${DEVICE}")"
+  head -c "${image_bytes}" /dev/urandom >"${WORK}/payload.img"
+  fake_install
+}
+
+writing() {
+  printf '%s\n' "${NAME}" | disk_test_run_env "${1:-}" kakikomi "${WORK}/payload.img" "${DEVICE}"
+}
+
+fail_dd() {
+  local match="$1"
+  local action="$2"
+  disk_test_shim dd "case \"\$*\" in ${match}) ${action} ;; esac
+exec \"\$REAL\" \"\$@\""
+}
+
+pass_write="*head-[0-9]*of=* | */chunk\\ of=*"
+io_error="printf 'dd: error reading: Input/output error\\n' >&2; exit 1"
+bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
+
+@test "a failed read probe leaves the write running unwatched" {
+  # Arrange
+  attach 2097152 1572864
+  fail_dd "*of=*calibration*bs=65536*" "${io_error}"
+
+  # Act
+  run writing
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"The read probe failed on the first sectors of"* ]]
+  [[ "${output}" == *"That was a read of data this write is about to overwrite"* ]]
+  [[ "${output}" == *"Speed is not being watched on this disk. Only the byte-for-byte verify decides."* ]]
+}
+
+@test "a read probe that loses the bus stops the write" {
+  # Arrange
+  attach 2097152 1572864
+  fail_dd "*of=*calibration*bs=65536*" "${bus_error}"
+
+  # Act
+  run writing
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"stopped answering the bus, so this is the drive or the cartridge, not the data."* ]]
+}
+
+@test "a Zip disk that cannot be read during the probe is already failing" {
+  # Arrange
+  attach 2097152 1572864
+  fake_identity_as "ZIP 100"
+  fail_dd "*of=*calibration*bs=65536*" "${io_error}"
+
+  # Act
+  run writing
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"disk that cannot be read during a light probe is already failing."* ]]
+}
+
+@test "a short probe failing past the first stride is reported at its offset" {
+  # Arrange
+  attach 2097152 2097152
+  fail_dd "*of=*calibration*bs=4096\ skip=256\ count=1*" "${io_error}"
+
+  # Act
+  run writing "CALIBRATION_PROBES=2"
+
+  # Assert
+  [[ "${output}" == *"The read probe failed at offset 1048576 of"* ]]
+}
+
+@test "a long probe failing is reported at its offset" {
+  # Arrange
+  attach 2097152 2097152
+  fail_dd "*of=*calibration*bs=4096\ skip=1\ count=128*" "${io_error}"
+
+  # Act
+  run writing "CALIBRATION_PROBES=2"
+
+  # Assert
+  [[ "${output}" == *"The read probe failed at offset 4096 of"* ]]
+}
+
+@test "a disk that leaves the bus while being measured stops the write" {
+  # Arrange
+  attach 2097152 1572864
+  local gone
+  gone="$(fake_dir)/gone"
+  fail_dd "*of=*calibration*skip=1\ *" "\"\$REAL\" \"\$@\"; : >'${gone}'; exit 0"
+
+  # Act
+  run writing "CALIBRATION_PROBES=1"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"left the bus while it was being measured."* ]]
+}
+
+@test "a disk too small to time is written with only the verify watching" {
+  # Arrange
+  attach 12288 8192
+
+  # Act
+  run writing
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"is too small to time, so only the byte-for-byte verify will judge it."* ]]
+  [[ "${output}" == *"Speed is not being watched on this disk."* ]]
+}
+
+@test "a Zip disk that cannot be timed is not written blind" {
+  # Arrange
+  attach 12288 8192
+  fake_identity_as "ZIP 100"
+
+  # Act
+  run writing
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"STOPPED: this disk could not be timed, so nothing would be watching for a stall."* ]]
+}
+
+@test "a disk that answers too fast to time is written with only the verify watching" {
+  # Arrange
+  attach 2097152 1572864
+  disk_test_shim perl "printf '1000000\\n'"
+
+  # Act
+  run writing
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"answered too fast to time, so only the byte-for-byte verify will judge it."* ]]
+}
+
+@test "a clock running backwards is not taken as a measurement" {
+  # Arrange
+  attach 2097152 1572864
+  local counter="${WORK}/clock"
+  printf '100000000\n' >"${counter}"
+  disk_test_shim perl "now=\$(cat '${counter}'); printf '%s\\n' \$((now - 1000)) >'${counter}'; printf '%s\\n' \"\${now}\""
+
+  # Act
+  run writing
+
+  # Assert
+  [[ "${output}" == *"the clock went backwards while timing"* ]]
+}
+
+@test "a Zip probe slower than the ceiling is a head retrying a seek" {
+  # Arrange
+  attach 2097152 1572864
+  fake_identity_as "ZIP 100"
+  local counter="${WORK}/clock"
+  printf '100000000\n' >"${counter}"
+  disk_test_shim perl "now=\$(cat '${counter}'); printf '%s\\n' \$((now + 1000)) >'${counter}'; printf '%s\\n' \"\${now}\""
+
+  # Act
+  run writing "PROBE_CEILING_MS=300"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"which is a drive retrying a seek rather than reading"* ]]
+}
+
+@test "a chunk past the stall limit you set stops the write" {
+  # Arrange
+  export STALL_SECONDS=1
+
+  # Act
+  run disk_test_call call_watch write write 3 9 1048576 2000
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "write chunk 3 of 9 took 2s, over the 1s limit you set" ]]
+}
+
+@test "a chunk slower than this disk measured stops the write" {
+  # Arrange
+  attach 2097152 1572864
+  fail_dd "${pass_write}" "sleep 1"
+
+  # Act
+  run writing "SLOW_FACTOR=1"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"allowed by what this disk measured"* ]]
+}
+
+@test "a write that settles at a slower speed is stopped" {
+  # Arrange
+  export DISK_MEASURED=1 DISK_RATE_WRITE=1048576 DISK_OVERHEAD_WRITE=100 DISK_FACTOR_WRITE=300 DISK_DRIFT_WRITE=400 DISK_SLACK=50
+
+  # Act
+  run disk_test_call call_watch write write 3 9 1048576 5000
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "write has settled at 4x the speed this disk measured on itself, which it held for the last chunks" ]]
+}

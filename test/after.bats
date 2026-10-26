@@ -6,6 +6,8 @@ source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/disk-after.XXXXXX")"
   disk_test_setup_env
+  SHIMS="${WORK}/shims"
+  export SHIMS
   IMAGE="${WORK}/fat.img"
   disk_test_fat_image "${IMAGE}" 8 AFTER
   disk_test_fill "${WORK}/t1.img" 16 '\252'
@@ -28,6 +30,13 @@ answer_and_write() {
   local settings="$2"
   shift 2
   printf '%b' "${answers}" | disk_test_run_env "${settings}" kakikomi "$@"
+}
+
+write_on_path() {
+  local search_path="$1"
+  local answers="$2"
+  shift 2
+  printf '%b' "${answers}" | disk_test_run_path "${search_path}" kakikomi "$@"
 }
 
 @test "kakikomi AGAIN=y writes the same image to the next disk" {
@@ -73,4 +82,44 @@ answer_and_write() {
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == *"Move the image to the Trash once every disk validated?"* ]]
   [[ -f "${WORK}/Trash/fat.img" ]]
+}
+
+@test "kakikomi moves the image with the trash command on the PATH" {
+  # Arrange
+  disk_test_shim trash "mkdir -p '${WORK}/Bin' && mv -f \"\$1\" '${WORK}/Bin/'"
+
+  # Act
+  run answer_and_write "${DEV1##*/}\n" "DELETE=y DISK_TRASH=" "${IMAGE}" "${DEV1}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Moved ${IMAGE} to the Trash."* ]]
+  [[ -f "${WORK}/Bin/fat.img" ]]
+}
+
+@test "kakikomi moves the image with gio when there is no trash command" {
+  # Arrange
+  disk_test_shim gio "[ \"\$1\" = trash ] || exit 1
+mkdir -p '${WORK}/Gio' && mv -f \"\$2\" '${WORK}/Gio/'"
+  local farm
+  farm="$(disk_test_farm trash)"
+  export DELETE=y DISK_TRASH=""
+
+  # Act
+  run write_on_path "${farm}" "${DEV1##*/}\n" "${IMAGE}" "${DEV1}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ -f "${WORK}/Gio/fat.img" ]]
+}
+
+@test "kakikomi checks only one disk again when it writes several" {
+  # Arrange
+  local answers="${DEV1##*/} ${DEV2##*/}\n"
+
+  # Act
+  run answer_and_write "${answers}" "REINSERT=y" "${IMAGE}" "${DEV1}" "${DEV2}"
+
+  # Assert
+  [[ "${output}" == *"REINSERT=y checks one disk at a time, so it is skipped when writing several."* ]]
 }

@@ -49,13 +49,20 @@ picking() {
   printf '%s\nn\n' "$1" | DISK_INTERACTIVE=1 disk_test_run kakikomi "$2"
 }
 
+on_terminal() {
+  case "${DISK_TEST_OS}" in
+  Darwin) script -q /dev/null "$@" </dev/null ;;
+  *) script -qec "$(printf '%q ' "$@")" /dev/null </dev/null ;;
+  esac
+}
+
 real_timeout() {
   command -v timeout || command -v gtimeout
 }
 
 wait_for_node() {
   local tries=0
-  until [[ -b "$1" || "${tries}" -ge 50 ]]; do
+  until [[ -b "$1" || "${tries}" -ge 200 ]]; do
     sleep 0.1
     tries=$((tries + 1))
   done
@@ -264,7 +271,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi resolves a mount point to its whole disk" {
   # Arrange
-  disk_test_fat_image "${WORK}/fat.img" 8 KAKIKOMIMNT
+  disk_test_fat_image "${WORK}/fat.img" 8 KKMOUNT
   local mount_point
   case "${DISK_TEST_OS}" in
   Darwin)
@@ -295,7 +302,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi resolves a partition to its whole disk" {
   # Arrange
-  disk_test_fat_image "${WORK}/fat.img" 8 KAKIKOMIPART
+  disk_test_fat_image "${WORK}/fat.img" 8 KKPART
   DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
   disk_test_partition_nodes_start
   local partition
@@ -316,7 +323,7 @@ exec \"\$REAL\" \"\$@\""
 @test "kakikomi writes a disk the system had mounted without calling it a breach" {
   # Arrange
   [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux mounts are covered by the partition and whole-disk tests"
-  disk_test_fat_image "${WORK}/fat.img" 8 KAKIKOMIAUTO
+  disk_test_fat_image "${WORK}/fat.img" 8 KKAUTO
   local listing
   listing="$(hdiutil attach "${WORK}/fat.img")"
   DEVICE="${listing%%[[:space:]]*}"
@@ -333,7 +340,7 @@ exec \"\$REAL\" \"\$@\""
 @test "kakikomi unmounts each volume when the whole disk will not unmount on macOS" {
   # Arrange
   [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux unmounts each partition already"
-  disk_test_fat_image "${WORK}/fat.img" 8 KAKIKOMISLICE
+  disk_test_fat_image "${WORK}/fat.img" 8 KKSLICE
   local listing
   listing="$(hdiutil attach "${WORK}/fat.img")"
   DEVICE="${listing%%[[:space:]]*}"
@@ -352,7 +359,7 @@ exec \"\$REAL\" \"\$@\""
 @test "kakikomi unmounts a mounted partition before it writes on Linux" {
   # Arrange
   [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
-  disk_test_fat_image "${WORK}/fat.img" 8 KAKIKOMIPART
+  disk_test_fat_image "${WORK}/fat.img" 8 KKPART
   DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
   disk_test_partition_nodes_start
   mkdir -p "${WORK}/mnt"
@@ -372,7 +379,7 @@ exec \"\$REAL\" \"\$@\""
   # Arrange
   [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
   disk_test_image "${WORK}/whole.img" 8
-  mkfs.fat -F 16 -s 1 -n KAKIKOMIALL "${WORK}/whole.img" >/dev/null
+  mkfs.fat -F 16 -s 1 -n KKWHOLE "${WORK}/whole.img" >/dev/null
   DEVICE="$(disk_test_attach "${WORK}/whole.img")"
   mkdir -p "${WORK}/mnt"
   sudo mount "${DEVICE}" "${WORK}/mnt"
@@ -451,4 +458,86 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
+}
+
+@test "an unmeasured disk expects no time for a transfer" {
+  # Arrange
+  export DISK_RATE_WRITE=0
+
+  # Act
+  run disk_test_call disk_expected_ms write 4096
+
+  # Assert
+  [[ "${output}" == "0" ]]
+}
+
+@test "MATSHITA LS-120 is superdisk" {
+  # Arrange
+  local identity="MATSHITA LS-120"
+
+  # Act
+  run disk_test_call disk_family_of "${identity}"
+
+  # Assert
+  [[ "${output}" == "superdisk" ]]
+}
+
+@test "IOMEGA JAZ 2GB is jaz" {
+  # Arrange
+  local identity="IOMEGA JAZ 2GB"
+
+  # Act
+  run disk_test_call disk_family_of "${identity}"
+
+  # Assert
+  [[ "${output}" == "jaz" ]]
+}
+
+@test "IOMEGA POCKETZIP is pocketzip" {
+  # Arrange
+  local identity="IOMEGA POCKETZIP"
+
+  # Act
+  run disk_test_call disk_family_of "${identity}"
+
+  # Assert
+  [[ "${output}" == "pocketzip" ]]
+}
+
+@test "progress redraws one line on a terminal" {
+  # Arrange
+  local -a shell_words
+  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  local search_path
+  search_path="$(disk_test_path)"
+
+  # Act
+  run on_terminal env PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" disk_progress Writing 1048576 1048576 0
+
+  # Assert
+  [[ "${output}" == *"Writing 100%"* ]]
+}
+
+@test "the last error is read from memory when no error file is kept" {
+  # Arrange
+  export DISK_LAST_ERROR="dd: error reading: Input/output error"
+
+  # Act
+  run disk_test_call disk_get_error
+
+  # Assert
+  [[ "${output}" == "dd: error reading: Input/output error" ]]
+}
+
+@test "a chunk is not judged once a stop is pending" {
+  # Arrange
+  : >"${WORK}/stop"
+  export DISK_STOP_FILE="${WORK}/stop" STALL_SECONDS=1
+
+  # Act
+  run disk_test_call call_watch write write 3 9 1048576 5000
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "" ]]
 }

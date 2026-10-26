@@ -70,6 +70,9 @@ esac
 exec \"\$REAL\" \"\$@\""
   disk_test_shim eject "[ -e '${fake}/eject-fails' ] && exit 1
 exec \"\$REAL\" \"\$@\""
+  disk_test_shim mount "\"\$REAL\" \"\$@\"
+[ -f '${fake}/mounts' ] && cat '${fake}/mounts'
+exit 0"
 }
 
 fake_identity_as() {
