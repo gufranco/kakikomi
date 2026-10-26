@@ -199,6 +199,25 @@ exec \"\$REAL\" \"\$@\""
   [[ "${status}" -eq 0 ]]
 }
 
+@test "the disk picker leaves out an internal disk" {
+  # Arrange
+  export DISK_OS=Linux
+  unset ALLOW_INTERNAL
+  disk_test_shim findmnt "exit 1"
+  disk_test_shim lsblk "case \"\$*\" in
+  *NAME,TYPE,SIZE*) printf 'sdy disk 1000\\nsdz disk 1000\\n' ;;
+  */dev/sdy*) printf '0 0 sata\\n' ;;
+  *) printf '1 1 usb\\n' ;;
+esac"
+
+  # Act
+  run disk_test_call disk_eligible
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "/dev/sdz" ]]
+}
+
 @test "a working directory that cannot be made stops with a message" {
   # Arrange
   export TMPDIR="${BATS_TMPDIR:-/tmp}/kakikomi-missing-${RANDOM}/deeper"

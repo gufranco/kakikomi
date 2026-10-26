@@ -19,7 +19,7 @@
 
 </div>
 
-一個指令，209 個測試，14 個 shell 模組，除咗 POSIX 系統之外冇任何執行時依賴。`kakikomi` 係日文「書き込み」，即係將資料寫入磁碟。佢嘅姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用嚟抹乾淨磁碟同檢查出錯嘅位線。
+一個指令，211 個測試，14 個 shell 模組，除咗 POSIX 系統之外冇任何執行時依賴。`kakikomi` 係日文「書き込み」，即係將資料寫入磁碟。佢嘅姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用嚟抹乾淨磁碟同檢查出錯嘅位線。
 
 ---
 
@@ -169,7 +169,7 @@ graph LR
 | 指令 | 說明 |
 |:--------|:------------|
 | `make lint` | 對每個腳本執行 ShellCheck |
-| `make test` | 喺系統 `sh` 之下執行 209 個 `bats` 測試 |
+| `make test` | 喺系統 `sh` 之下執行 211 個 `bats` 測試 |
 | `make test-all` | 喺每個已安裝嘅 shell 之下執行相同測試 |
 | `make test-linux` | 由 Mac 喺特權 Ubuntu 容器入面執行相同測試 |
 | `make coverage` | 喺呢部 Mac 同同一個容器用 bashcov 量度行覆蓋率並合併，CI 要求 100% |
