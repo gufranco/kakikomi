@@ -6,11 +6,46 @@ DISK_TEST_OS="$(uname -s)"
 export DISK_TESTS_DIR REPO_DIR DISK_TEST_OS
 
 disk_test_path() {
+  local base="${PATH}"
+  if [[ "${DISK_TEST_OS}" == "Darwin" ]]; then
+    base="${DISK_TESTS_DIR}/shim:${PATH}"
+  fi
+  if [[ -n "${SHIMS:-}" && -d "${SHIMS}" ]]; then
+    printf '%s:%s\n' "${SHIMS}" "${base}"
+  else
+    printf '%s\n' "${base}"
+  fi
+}
+
+disk_test_shim() {
+  local name="$1"
+  local body="$2"
+  local real
+  SHIMS="${SHIMS:-${WORK:?}/shims}"
+  mkdir -p "${SHIMS}"
+  real="$(PATH="$(disk_test_path_without_shims)" command -v "${name}" || true)"
+  printf '#!/bin/sh\nREAL=%q\n%s\n' "${real}" "${body}" >"${SHIMS}/${name}"
+  chmod +x "${SHIMS}/${name}"
+  if [[ "${DISK_TEST_OS}" == "Linux" && ! -e "${SHIMS}/sudo" ]]; then
+    disk_test_sudo_passthrough
+  fi
+  export SHIMS
+}
+
+disk_test_path_without_shims() {
   if [[ "${DISK_TEST_OS}" == "Darwin" ]]; then
     printf '%s:%s\n' "${DISK_TESTS_DIR}/shim" "${PATH}"
   else
     printf '%s\n' "${PATH}"
   fi
+}
+
+disk_test_sudo_passthrough() {
+  local real
+  real="$(command -v sudo)"
+  # shellcheck disable=SC2016
+  printf '#!/bin/sh\ncase "${1:-}" in\n  -*) exec %q "$@" ;;\nesac\nexec %q env "PATH=$PATH" "$@"\n' "${real}" "${real}" >"${SHIMS}/sudo"
+  chmod +x "${SHIMS}/sudo"
 }
 
 disk_test_run() {
@@ -37,6 +72,45 @@ disk_test_call() {
   PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" "$@"
 }
 
+disk_test_farm() {
+  local farm="${WORK:?}/farm"
+  local dir tool name excluded
+  mkdir -p "${farm}"
+  local -a dirs
+  local search_path
+  search_path="$(disk_test_path)"
+  IFS=: read -r -a dirs <<<"${search_path}"
+  for dir in "${dirs[@]}"; do
+    [[ -d "${dir}" ]] || continue
+    for tool in "${dir}"/*; do
+      name="${tool##*/}"
+      [[ -x "${tool}" && ! -e "${farm}/${name}" ]] || continue
+      for excluded in "$@"; do
+        [[ "${name}" == "${excluded}" ]] && continue 2
+      done
+      ln -s "${tool}" "${farm}/${name}"
+    done
+  done
+  printf '%s\n' "${farm}"
+}
+
+disk_test_call_path() {
+  local search_path="$1"
+  local -a shell_words
+  shift
+  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" "$@"
+}
+
+disk_test_run_path() {
+  local search_path="$1"
+  local program="$2"
+  local -a shell_words
+  shift 2
+  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  PATH="${search_path}" "${shell_words[@]}" "${REPO_DIR}/bin/${program}" "$@"
+}
+
 disk_test_attach() {
   local image="$1"
   local listing
@@ -54,6 +128,40 @@ disk_test_attach() {
     return 1
     ;;
   esac
+}
+
+disk_test_attach_partitioned() {
+  local image="$1"
+  case "${DISK_TEST_OS}" in
+  Linux) sudo losetup -f -P --show "${image}" ;;
+  *) disk_test_attach "${image}" ;;
+  esac
+}
+
+disk_test_partition_nodes_start() {
+  [[ "${DISK_TEST_OS}" == "Linux" ]] || return 0
+  (
+    tries=0
+    while [[ "${tries}" -lt 600 ]]; do
+      for part in /sys/block/loop*/loop*p*; do
+        [[ -e "${part}/dev" ]] || continue
+        node="/dev/${part##*/}"
+        [[ -b "${node}" ]] && continue
+        IFS=: read -r major minor <"${part}/dev"
+        sudo mknod -m 660 "${node}" b "${major}" "${minor}" 2>/dev/null || true
+      done
+      sleep 0.2
+      tries=$((tries + 1))
+    done
+  ) &
+  PARTITION_NODES_PID="$!"
+}
+
+disk_test_partition_nodes_stop() {
+  [[ -n "${PARTITION_NODES_PID:-}" ]] || return 0
+  kill "${PARTITION_NODES_PID}" 2>/dev/null || true
+  wait "${PARTITION_NODES_PID}" 2>/dev/null || true
+  PARTITION_NODES_PID=""
 }
 
 disk_test_detach() {

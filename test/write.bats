@@ -139,7 +139,7 @@ write_with() {
   disk_test_wait_for "${log}" "Writing  [4-6]0%" 1200 || cat "${log}"
 
   # Act
-  pkill -TERM -f "bin/kakikomi ${big}"
+  pkill -TERM -f "^[^ ]*(sh|bash|dash|zsh)( --posix)? ${REPO_DIR}/bin/kakikomi ${big}"
   local status_code=0
   wait "${runner}" || status_code="$?"
 
