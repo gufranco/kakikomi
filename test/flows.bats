@@ -331,11 +331,7 @@ exec \"\$REAL\" \"\$@\""
     disk_test_partition_nodes_start
     folder="${WORK}/mnt"
     mkdir -p "${folder}"
-    local tries=0
-    until [[ -b "${DEVICE}p1" || "${tries}" -ge 200 ]]; do
-      sleep 0.1
-      tries=$((tries + 1))
-    done
+    disk_test_wait_partition "${DEVICE}p1"
     sudo mount "${DEVICE}p1" "${folder}"
     disk_test_random_file "${WORK}/payload.img" 1
     sudo cp -f "${WORK}/payload.img" "${folder}/payload.img"

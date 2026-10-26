@@ -60,14 +60,6 @@ real_timeout() {
   command -v timeout || command -v gtimeout
 }
 
-wait_for_node() {
-  local tries=0
-  until [[ -b "$1" || "${tries}" -ge 200 ]]; do
-    sleep 0.1
-    tries=$((tries + 1))
-  done
-}
-
 @test "a bounded command past its limit is stopped without timeout" {
   # Arrange
   local farm
@@ -286,7 +278,7 @@ exec \"\$REAL\" \"\$@\""
     disk_test_partition_nodes_start
     mount_point="${WORK}/mnt"
     mkdir -p "${mount_point}"
-    wait_for_node "${DEVICE}p1"
+    disk_test_wait_partition "${DEVICE}p1"
     sudo mount "${DEVICE}p1" "${mount_point}"
     MOUNTED="${mount_point}"
     ;;
@@ -310,7 +302,7 @@ exec \"\$REAL\" \"\$@\""
   Darwin) partition="${DEVICE}s1" ;;
   *) partition="${DEVICE}p1" ;;
   esac
-  wait_for_node "${partition}"
+  disk_test_wait_partition "${partition}"
 
   # Act
   run declining "${partition}"
@@ -363,7 +355,7 @@ exec \"\$REAL\" \"\$@\""
   DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
   disk_test_partition_nodes_start
   mkdir -p "${WORK}/mnt"
-  wait_for_node "${DEVICE}p1"
+  disk_test_wait_partition "${DEVICE}p1"
   sudo mount "${DEVICE}p1" "${WORK}/mnt"
   MOUNTED="${WORK}/mnt"
 
