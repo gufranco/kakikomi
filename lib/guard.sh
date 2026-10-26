@@ -323,13 +323,14 @@ disk_breach_stop() {
     wait "${DISK_BREACH_PID}" 2>/dev/null
     DISK_BREACH_PID=""
   fi
-  if [ -n "${DISK_BREACH_LOG}" ] && [ -s "${DISK_BREACH_LOG}" ]; then
-    disk_error "STOPPED: $1 was mounted, so the system may have written to it."
-    disk_bs_log="$(cat "${DISK_BREACH_LOG}")"
-    disk_log_lines disk_error "${disk_bs_log}"
-    return 1
-  fi
-  return 0
+  disk_bs_log=""
+  [ -n "${DISK_BREACH_LOG}" ] && [ -s "${DISK_BREACH_LOG}" ] && disk_bs_log="$(cat "${DISK_BREACH_LOG}")"
+  DISK_BREACH_FLAG=""
+  DISK_BREACH_LOG=""
+  [ -n "${disk_bs_log}" ] || return 0
+  disk_error "STOPPED: $1 was mounted, so the system may have written to it."
+  disk_log_lines disk_error "${disk_bs_log}"
+  return 1
 }
 
 disk_udev_release_all() {

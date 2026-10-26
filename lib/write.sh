@@ -200,6 +200,7 @@ disk_write_prepare() {
     return 1
   fi
   disk_unmount_for_write "$1" || return 1
+  disk_breach_start "$1"
   disk_wpp_io="$(disk_io_device "$1")"
   disk_probe_cache_bypass "${disk_wpp_io}" "${DISK_SECTOR}"
   disk_reset_measurements
@@ -230,7 +231,6 @@ disk_write_target() {
     disk_drop_tmpdir
     return 1
   }
-  disk_breach_start "${disk_wt_disk}"
   disk_write_prepare "${disk_wt_disk}" "$2" || disk_wt_status=1
   if [ "${disk_wt_status}" -eq 0 ]; then
     disk_wt_size="$(cat "${DISK_TMPDIR}/size")"
