@@ -85,7 +85,7 @@ disk_place() {
 }
 
 disk_zero_range() {
-  disk_zr_zero="$(disk_pattern_file "${DISK_CHUNK}" 0x00)" || return 1
+  disk_zr_zero="$(disk_zero_file "${DISK_CHUNK}")" || return 1
   disk_zr_offset="$2"
   while [ "${disk_zr_offset}" -lt "$3" ]; do
     disk_zr_piece=$(($3 - disk_zr_offset))

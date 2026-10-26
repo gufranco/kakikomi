@@ -72,10 +72,6 @@ disk_format_prefix() {
   disk_fp_end=$(((disk_fp_end + 1048575) / 1048576 * 1048576))
   [ "${disk_fp_end}" -gt "$4" ] && disk_fp_end="$4"
   dd if="${disk_fp_volume}" of="${disk_fp_prefix}" bs=1048576 count=$((disk_fp_end / 1048576)) 2>/dev/null || return 1
-  if [ $((disk_fp_end % 1048576)) -ne 0 ]; then
-    dd if="${disk_fp_volume}" of="${disk_fp_prefix}" bs=1 skip=$((disk_fp_end / 1048576 * 1048576)) \
-      seek=$((disk_fp_end / 1048576 * 1048576)) count=$((disk_fp_end % 1048576)) conv=notrunc 2>/dev/null || return 1
-  fi
   rm -f "${disk_fp_volume}"
   printf '%s\n' "${disk_fp_prefix}" >"${DISK_SRC_WORK}/prefix-path"
   return 0

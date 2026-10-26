@@ -62,17 +62,11 @@ disk_set_ceiling() {
   return 0
 }
 
-disk_pattern_file() {
-  disk_pf_target="${DISK_TMPDIR}/pattern-$2"
+disk_zero_file() {
+  disk_pf_target="${DISK_TMPDIR}/pattern-0x00"
   disk_pf_size="$(disk_file_size "${disk_pf_target}")"
   if [ ! -f "${disk_pf_target}" ] || [ "${disk_pf_size}" -ne "$1" ]; then
-    case "$2" in
-      0x00) head -c "$1" /dev/zero >"${disk_pf_target}" || return 1 ;;
-      0xFF) head -c "$1" /dev/zero | tr '\000' '\377' >"${disk_pf_target}" || return 1 ;;
-      0xAA) head -c "$1" /dev/zero | tr '\000' '\252' >"${disk_pf_target}" || return 1 ;;
-      0x55) head -c "$1" /dev/zero | tr '\000' '\125' >"${disk_pf_target}" || return 1 ;;
-      *) return 1 ;;
-    esac
+    head -c "$1" /dev/zero >"${disk_pf_target}" || return 1
   fi
   disk_pf_size="$(disk_file_size "${disk_pf_target}")"
   [ "${disk_pf_size}" -eq "$1" ] || return 1
@@ -99,7 +93,7 @@ disk_time_move() {
   disk_tm_io="$2"
   disk_tm_bytes="$4"
   if [ "${disk_tm_direction}" = "write" ]; then
-    disk_tm_source="$(disk_pattern_file "${disk_tm_bytes}" 0x00)" || return 1
+    disk_tm_source="$(disk_zero_file "${disk_tm_bytes}")" || return 1
     disk_tm_target="${disk_tm_io}"
   else
     disk_tm_source="${disk_tm_io}"
