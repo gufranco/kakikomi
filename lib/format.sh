@@ -4,11 +4,33 @@
 . "${DISK_LIB:?}/state.sh"
 
 disk_format_usage() {
-  disk_info "Usage: kakikomi format <device|mount_point> [fat32|exfat|fat|floppy] [LABEL]"
-  disk_info "       kakikomi format /dev/disk4                  (FAT32 up to 32 GiB, exFAT above)"
-  disk_info "       kakikomi format /dev/disk4 exfat MEDIA"
-  disk_info "       kakikomi format /dev/disk5 floppy GAMES     (a 1.44 MB disk with no partition table)"
-  disk_info "A quick format: only the new filesystem structures are written, then read back."
+  cat <<'USAGE'
+kakikomi format - quick format a disk: write only the new filesystem's structures
+
+usage:
+  kakikomi format                              ask for the disk, filesystem and label
+  kakikomi format <target> [fat32|exfat|fat|floppy] [label]
+
+notes:
+  Without a filesystem, disks up to 32 GiB get FAT32 and larger ones exFAT.
+  floppy writes a 1.44 MB filesystem with no partition table. Labels are
+  upper-cased and cut to 11 characters.
+
+examples:
+  kakikomi format /dev/disk4
+  kakikomi format /dev/disk4 exfat MEDIA
+  kakikomi format /dev/disk5 floppy GAMES
+USAGE
+}
+
+disk_format_ask() {
+  disk_fa_disk="$(disk_pick_single "Format which disk? Number or name: ")" || return 1
+  disk_fa_size="$(disk_size_bytes "${disk_fa_disk}")"
+  disk_is_uint "${disk_fa_size}" || disk_fa_size=0
+  disk_fa_default="$(disk_default_fs "${disk_fa_size}")"
+  disk_fa_fs="$(disk_prompt "Filesystem: fat32, exfat, fat or floppy" "${disk_fa_default}")" || return 1
+  disk_fa_label="$(disk_prompt "Label" UNTITLED)" || return 1
+  disk_format_run "${disk_fa_disk}" "${disk_fa_fs}" "${disk_fa_label}"
 }
 
 disk_format_fs() {
@@ -61,17 +83,24 @@ disk_format_prefix() {
 
 disk_format_main() {
   case "${1:-}" in
-    -h | --help)
-      disk_format_usage
-      return 0
-      ;;
+    help | -h | --help) disk_format_usage ;;
     '')
-      disk_error "No device specified"
-      disk_format_usage
+      if disk_cli_interactive; then
+        disk_format_ask
+        return "$?"
+      fi
+      disk_cli_hint "no disk given to format"
       return 1
       ;;
-    *) ;;
+    -*)
+      disk_cli_hint "unknown option '$1'"
+      return 1
+      ;;
+    *) disk_format_run "$@" ;;
   esac
+}
+
+disk_format_run() {
   disk_fm_disk="$(disk_resolve "$1")" || return 1
   disk_fm_size="$(disk_size_bytes "${disk_fm_disk}")"
   if ! disk_is_uint "${disk_fm_size}" || [ "${disk_fm_size}" -eq 0 ]; then

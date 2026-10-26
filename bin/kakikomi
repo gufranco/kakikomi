@@ -8,8 +8,11 @@ case "${disk_self}" in
 esac
 DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 
+DISK_PROG=kakikomi
 # shellcheck source=SCRIPTDIR/../lib/core.sh
 . "${DISK_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/cli.sh
+. "${DISK_LIB}/cli.sh"
 # shellcheck source=SCRIPTDIR/../lib/io.sh
 . "${DISK_LIB}/io.sh"
 # shellcheck source=SCRIPTDIR/../lib/calibrate.sh
@@ -34,17 +37,61 @@ DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 . "${DISK_LIB}/format.sh"
 
 disk_write_usage() {
-  disk_info "Usage: kakikomi <image|url|device> [target...]"
-  disk_info "       kakikomi debian.img.xz /dev/disk4"
-  disk_info "       kakikomi https://example.org/os.img.gz"
-  disk_info "       kakikomi /dev/disk4 /dev/disk5 /dev/disk6   (clone disk4 onto two drives)"
-  disk_info "       kakikomi --release                         (remove guards left by a run)"
-  disk_info "       kakikomi format <device> [fat32|exfat|fat|floppy] [LABEL]   (quick format)"
-  disk_info "Leave the target out to pick from attached removable disks."
-  disk_info "VERIFY=n skips the read-back, DELETE=y removes the image after it validated,"
-  disk_info "AGAIN=y writes the same image to the next disk you insert, ZERO_TAIL=y blanks"
-  disk_info "the rest of a larger disk, SHA256=<hash> checks the image, ALLOW_INTERNAL=y"
-  disk_info "permits internal disks, KEEP_GUARD=y keeps macOS from mounting it later too."
+  cat <<'USAGE'
+kakikomi - write disk images to removable media, verified chunk by chunk, never mounted
+
+usage:
+  kakikomi                                  ask what to do, step by step
+  kakikomi <image|url|device> [target...]   write an image to one or more disks
+  kakikomi format [target] [fat32|exfat|fat|floppy] [label]
+  kakikomi --release                        remove mount guards a run left behind
+  kakikomi doctor
+  kakikomi version
+  kakikomi help
+
+environment:
+  VERIFY=n          skip the whole-disk SHA-256 comparison at the end
+  DELETE=y          move the image to the Trash once every disk validated
+  AGAIN=y           write the same image to the next disk you insert
+  REINSERT=y        after ejecting, wait for the disk to return and compare again
+  ZERO_TAIL=y       blank the space past the image on a larger disk
+  SHA256=<hash>     stop unless the image matches. a sibling .sha256 is read too
+  ALLOW_INTERNAL=y  allow an internal disk. the system disk is always refused
+  KEEP_GUARD=y      keep macOS from ever mounting that disk again
+  MODE=raw          write a Windows ISO as is instead of as a FAT32 installer
+
+notes:
+  Leave the target out to pick from the attached removable disks. The target
+  is never mounted, not even for a moment. A file named help, doctor, version
+  or format is written by giving its path, such as ./help.
+
+examples:
+  kakikomi debian.img.xz /dev/disk4
+  kakikomi https://example.org/os.img.gz
+  kakikomi debian.img.xz /dev/disk4 /dev/disk5
+  kakikomi /dev/disk4 /dev/disk5
+  AGAIN=y kakikomi game.ima
+  kakikomi format /dev/disk4 exfat MEDIA
+USAGE
+}
+
+disk_write_menu() {
+  printf '%s\n' "What would you like to do?" "  1) write an image to a disk" "  2) quick format a disk" "  3) check this machine" >&2
+  disk_wn_choice="$(disk_prompt "Choice" 1)" || return 1
+  case "${disk_wn_choice}" in
+    1) disk_write_ask_image ;;
+    2) disk_format_main ;;
+    3) disk_doctor ;;
+    *)
+      disk_cli_hint "unknown choice '${disk_wn_choice}'"
+      return 1
+      ;;
+  esac
+}
+
+disk_write_ask_image() {
+  disk_wa_image="$(disk_ask_required "Image file, URL or source disk" "no image given")" || return 1
+  disk_write_start "${disk_wa_image}"
 }
 
 disk_write_windows_mode() {
@@ -58,33 +105,7 @@ disk_write_windows_mode() {
   return 0
 }
 
-disk_write_main() {
-  case "${1:-}" in
-    format)
-      shift
-      disk_format_main "$@"
-      return "$?"
-      ;;
-    --release)
-      DISK_TMPDIR="${TMPDIR:-/tmp}"
-      disk_fstab_release_all
-      return "$?"
-      ;;
-    -h | --help)
-      disk_write_usage
-      return 0
-      ;;
-    -V | --version)
-      disk_version kakikomi
-      return 0
-      ;;
-    '')
-      disk_error "No image specified"
-      disk_write_usage
-      return 1
-      ;;
-    *) ;;
-  esac
+disk_write_start() {
   disk_wm_source="$1"
   shift
   DISK_SRC_WORK="$(mktemp -d "${TMPDIR:-/tmp}/disk_write_src.XXXXXX")" || return 1
@@ -97,6 +118,35 @@ disk_write_main() {
   disk_wm_status=0
   disk_write_once "$@" || disk_wm_status=1
   disk_after_write "${disk_wm_status}"
+}
+
+disk_write_main() {
+  case "${1:-}" in
+    format)
+      shift
+      disk_format_main "$@"
+      ;;
+    --release)
+      DISK_TMPDIR="${TMPDIR:-/tmp}"
+      disk_fstab_release_all
+      ;;
+    help | -h | --help) disk_write_usage ;;
+    version | -V | --version) disk_cli_version ;;
+    doctor) disk_doctor ;;
+    '')
+      if disk_cli_interactive; then
+        disk_write_menu
+        return "$?"
+      fi
+      disk_cli_hint "no image given"
+      return 1
+      ;;
+    -*)
+      disk_cli_hint "unknown option '$1'"
+      return 1
+      ;;
+    *) disk_write_start "$@" ;;
+  esac
 }
 
 disk_write_main "$@"
