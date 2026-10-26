@@ -133,10 +133,17 @@ write_with() {
   # Arrange
   local big="${WORK}/random.img"
   local log="${WORK}/run.log"
+  local inside="${WORK}/inside-chunk"
   disk_test_random_file "${big}" 2
+  disk_test_shim dd "case \"\$*\" in */chunk\\ of=*${NAME}*) : >'${inside}'; sleep 1 ;; esac
+exec \"\$REAL\" \"\$@\""
   printf '%s\n' "${NAME}" | disk_test_run_env "CHUNK_TARGET_MS=1 SLOW_FACTOR=100" kakikomi "${big}" "${DEVICE}" >"${log}" 2>&1 &
   local runner="$!"
-  disk_test_wait_for "${log}" "Writing  [4-6]0%" 1200 || cat "${log}"
+  local tries=0
+  until [[ -e "${inside}" || "${tries}" -ge 6000 ]]; do
+    sleep 0.1
+    tries=$((tries + 1))
+  done
 
   # Act
   pkill -TERM -f "^[^ ]*(sh|bash|dash|zsh)( --posix)? ${REPO_DIR}/bin/kakikomi ${big}"
