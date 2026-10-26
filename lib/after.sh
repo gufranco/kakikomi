@@ -34,8 +34,8 @@ disk_trash() {
     "${DISK_TRASH}" "$1" && return 0
     return 1
   fi
-  if [ -x /usr/bin/trash ]; then
-    /usr/bin/trash "$1" && return 0
+  if disk_cmd_exists trash; then
+    trash "$1" && return 0
   fi
   if disk_cmd_exists gio; then
     gio trash "$1" && return 0
