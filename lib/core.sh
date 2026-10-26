@@ -396,10 +396,18 @@ disk_resolve() {
   printf '%s\n' "${disk_rs_disk}"
 }
 
+disk_mount_hits() {
+  disk_mh_table="$(mount)"
+  printf '%s\n' "${disk_mh_table}" | awk -v dev="$1" '
+    index($1, dev) != 1 { next }
+    { rest = substr($1, length(dev) + 1) }
+    rest == "" || (dev ~ /[0-9]$/ && rest ~ /^[ps][0-9]+$/) || (dev !~ /[0-9]$/ && rest ~ /^[0-9]+$/) { print $1 "\t" $3 }
+  '
+}
+
 disk_is_mounted() {
-  disk_im_table="$(mount)"
-  printf '%s\n' "${disk_im_table}" |
-    awk -v dev="$1" '$1 == dev || index($1, dev "s") == 1 { found = 1 } END { exit found ? 0 : 1 }'
+  disk_im_hits="$(disk_mount_hits "$1")"
+  [ -n "${disk_im_hits}" ]
 }
 
 disk_require_sudo() {

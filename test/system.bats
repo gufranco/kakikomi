@@ -419,3 +419,36 @@ exec \"\$REAL\" \"\$@\""
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"kakikomi: No external or removable disk is attached."* ]]
 }
+
+@test "a mounted partition of a disk named with letters counts as mounted" {
+  # Arrange
+  disk_test_shim mount "printf '/dev/sdz1 on /media/usb type vfat (rw)\\n'"
+
+  # Act
+  run disk_test_call disk_is_mounted /dev/sdz
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "a mounted partition after a trailing digit counts as mounted" {
+  # Arrange
+  disk_test_shim mount "printf '/dev/loop7p1 on /mnt/usb type vfat (rw)\\n'"
+
+  # Act
+  run disk_test_call disk_is_mounted /dev/loop7
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "a disk whose name extends the target's does not count as mounted" {
+  # Arrange
+  disk_test_shim mount "printf '/dev/disk41s1 on /Volumes/OTHER (msdos, local)\\n'"
+
+  # Act
+  run disk_test_call disk_is_mounted /dev/disk4
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+}

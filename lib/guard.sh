@@ -294,8 +294,7 @@ disk_breach_artifacts() {
 disk_watch_mounts() {
   disk_wm_ticks=0
   while [ -f "$2" ] && [ "${disk_wm_ticks}" -lt 432000 ]; do
-    disk_wm_table="$(mount)"
-    disk_wm_hits="$(printf '%s\n' "${disk_wm_table}" | awk -v dev="$1" '$1 == dev || index($1, dev "s") == 1 || index($1, dev "p") == 1 { print $1 "\t" $3 }')"
+    disk_wm_hits="$(disk_mount_hits "$1")"
     if [ -n "${disk_wm_hits}" ]; then
       printf '%s\n' "${disk_wm_hits}" | while IFS="$(printf '\t')" read -r disk_wm_dev disk_wm_dir; do
         printf 'mounted %s on %s\n' "${disk_wm_dev}" "${disk_wm_dir}"
