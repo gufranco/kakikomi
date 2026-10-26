@@ -90,15 +90,17 @@ disk_find_returned() {
 disk_reinsert_check() {
   [ "${REINSERT:-}" = "y" ] || return 0
   disk_rc_waited=0
+  disk_rc_limit="${REINSERT_WAIT_SECONDS:-300}"
+  disk_rc_shown="$(disk_duration $((disk_rc_limit * 1000)))"
   disk_rc_before="$(disk_eligible)"
-  disk_info "Unplug ${1}, plug it back in, and leave it alone. Waiting up to 5 minutes."
-  while [ "${disk_rc_waited}" -lt 300 ]; do
+  disk_info "Unplug ${1}, plug it back in, and leave it alone. Waiting up to ${disk_rc_shown}."
+  while [ "${disk_rc_waited}" -lt "${disk_rc_limit}" ]; do
     disk_rc_disk="$(disk_find_returned "$2" "$3" "${disk_rc_before}")" && break
     sleep 1
     disk_rc_waited=$((disk_rc_waited + 1))
   done
   if [ -z "${disk_rc_disk:-}" ]; then
-    disk_warning "The disk did not come back within 5 minutes, so the reinsertion check was skipped."
+    disk_warning "The disk did not come back within ${disk_rc_shown}, so the reinsertion check was skipped."
     return 0
   fi
   sleep 5

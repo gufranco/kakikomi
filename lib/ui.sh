@@ -226,8 +226,9 @@ disk_progress() {
   disk_pg_eta=0
   [ "${disk_pg_rate}" -gt 0 ] && disk_pg_eta=$(((disk_pg_total - disk_pg_done) / disk_pg_rate))
   disk_pg_speed="$(disk_human "${disk_pg_rate}")"
-  disk_pg_line="$(printf '%s %3d%%  %s/s  %dm%02ds left' "$1" "${disk_pg_percent}" \
-    "${disk_pg_speed}" $((disk_pg_eta / 60)) $((disk_pg_eta % 60)))"
+  disk_pg_minutes=$((disk_pg_eta / 60))
+  disk_pg_seconds=$((disk_pg_eta % 60))
+  disk_pg_line="$(printf '%s %3d%%  %s/s  %dm%02ds left' "$1" "${disk_pg_percent}" "${disk_pg_speed}" "${disk_pg_minutes}" "${disk_pg_seconds}")"
   if [ -t 2 ] && [ -z "${DISK_LOG_TAG}" ]; then
     printf '\r%s   ' "${disk_pg_line}" >&2
     [ "${disk_pg_done}" -ge "${disk_pg_total}" ] && printf '\n' >&2

@@ -99,6 +99,7 @@ disk_fstab_path() {
 disk_fstab_lock() {
   disk_fl_lock="${TMPDIR:-/tmp}/kakikomi-fstab.lock"
   disk_fl_tries=0
+  disk_fl_limit=$((${FSTAB_LOCK_SECONDS:-60} * 10))
   while ! mkdir "${disk_fl_lock}" 2>/dev/null; do
     disk_fl_holder="$(cat "${disk_fl_lock}/pid" 2>/dev/null || true)"
     if [ -n "${disk_fl_holder}" ] && ! kill -0 "${disk_fl_holder}" 2>/dev/null; then
@@ -106,8 +107,8 @@ disk_fstab_lock() {
       continue
     fi
     disk_fl_tries=$((disk_fl_tries + 1))
-    if [ "${disk_fl_tries}" -ge 600 ]; then
-      disk_error "Another kakikomi held ${disk_fl_lock} for a minute, so the fstab was left untouched."
+    if [ "${disk_fl_tries}" -ge "${disk_fl_limit}" ]; then
+      disk_error "Another kakikomi held ${disk_fl_lock} for $((disk_fl_limit / 10))s, so the fstab was left untouched."
       return 1
     fi
     sleep 0.1
@@ -157,11 +158,7 @@ disk_fstab_append_locked() {
   else
     : >"${disk_fa_tmp}"
   fi
-  {
-    printf '# kakikomi %s begin\n' "$1"
-    printf '%s\n' "$2"
-    printf '# kakikomi %s end\n' "$1"
-  } >>"${disk_fa_tmp}" || return 1
+  printf '# kakikomi %s begin\n%s\n# kakikomi %s end\n' "$1" "$2" "$1" >>"${disk_fa_tmp}" || return 1
   sudo cp -f "${disk_fa_tmp}" "${disk_fa_path}"
 }
 
@@ -179,7 +176,8 @@ disk_volume_lines() {
   disk_vl_attach="$(disk_attach_probe "$1")" || return 1
   disk_vl_devices="$(printf '%s\n' "${disk_vl_attach}" | awk '/^\/dev\// { print $1 }')"
   disk_vl_whole="$(printf '%s\n' "${disk_vl_devices}" | sed -n '1p')"
-  disk_vl_lines=""
+  disk_vl_list="${DISK_TMPDIR}/volume-lines"
+  : >"${disk_vl_list}"
   disk_vl_status=0
   for disk_vl_dev in ${disk_vl_devices}; do
     disk_vl_type="$(disk_plist_value "${disk_vl_dev}" FilesystemType)"
@@ -193,16 +191,14 @@ disk_volume_lines() {
         continue
       fi
       disk_vl_name="$(printf '%s' "${disk_vl_name}" | sed 's/ /\\040/g')"
-      disk_vl_lines="${disk_vl_lines}LABEL=${disk_vl_name} none ${disk_vl_type} rw,noauto
-"
+      printf 'LABEL=%s none %s rw,noauto\n' "${disk_vl_name}" "${disk_vl_type}" >>"${disk_vl_list}"
     else
-      disk_vl_lines="${disk_vl_lines}UUID=${disk_vl_uuid} none ${disk_vl_type} rw,noauto
-"
+      printf 'UUID=%s none %s rw,noauto\n' "${disk_vl_uuid}" "${disk_vl_type}" >>"${disk_vl_list}"
     fi
   done
   hdiutil detach "${disk_vl_whole}" >/dev/null 2>&1
   [ "${disk_vl_status}" -eq 0 ] || return 1
-  printf '%s' "${disk_vl_lines}"
+  cat "${disk_vl_list}"
 }
 
 disk_guard_probe() {
@@ -223,8 +219,9 @@ disk_guard_probe() {
     [ "${disk_gp_from}" -lt "${disk_gp_head}" ] && disk_gp_from="${disk_gp_head}"
     [ "${disk_gp_until}" -gt "$3" ] && disk_gp_until="$3"
     [ "${disk_gp_from}" -lt "${disk_gp_until}" ] || continue
-    sudo dd if="$1" of="${disk_gp_probe}" bs=512 skip=$((disk_gp_from / 512)) seek=$((disk_gp_from / 512)) \
-      count=$(((disk_gp_until - disk_gp_from) / 512)) conv=notrunc 2>/dev/null || return 1
+    disk_gp_count=$(((disk_gp_until - disk_gp_from) / 512))
+    disk_gp_at=$((disk_gp_from / 512))
+    sudo dd if="$1" of="${disk_gp_probe}" bs=512 skip="${disk_gp_at}" seek="${disk_gp_at}" count="${disk_gp_count}" conv=notrunc 2>/dev/null || return 1
   done
   printf '%s\n' "${disk_gp_probe}"
 }
