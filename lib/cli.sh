@@ -80,10 +80,7 @@ disk_doctor_formats() {
 disk_doctor() {
   disk_dr_status=0
   disk_doctor_core || disk_dr_status=1
-  case "${DISK_PROG}" in
-  kiyome) disk_doctor_tool openssl required "builds the per-chunk unique pattern" || disk_dr_status=1 ;;
-  *) disk_doctor_formats ;;
-  esac
+  disk_doctor_formats
   return "${disk_dr_status}"
 }
 

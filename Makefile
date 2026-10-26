@@ -14,7 +14,7 @@ help:
 	@echo "  install     copy bin/ and lib/ under PREFIX (default ~/.local)"
 
 lint:
-	shellcheck -x -s sh -o all bin/kakikomi bin/kiyome lib/*.sh scripts/*.sh
+	shellcheck -x -s sh -o all bin/kakikomi lib/*.sh scripts/*.sh
 	sh scripts/check-names.sh
 	shellcheck -x -o all test/*.sh test/*.bash test/*.bats test/shim/sudo
 
@@ -30,7 +30,7 @@ test-linux:
 coverage:
 	sh scripts/coverage.sh 0 && cp -f coverage/.resultset.json coverage-macos.json
 	sh test/linux-container.sh sh scripts/linux-coverage.sh
-	python3 scripts/coverage-gate.py '/(bin/(kakikomi|kiyome)|lib/[a-z]+\.sh)\Z' 100 coverage-macos.json coverage-linux.json
+	python3 scripts/coverage-gate.py '/(bin/kakikomi|lib/[a-z]+\.sh)\Z' 100 coverage-macos.json coverage-linux.json
 
 check: lint test
 
@@ -38,5 +38,4 @@ install:
 	mkdir -p "$(PREFIX)/share/kakikomi" "$(PREFIX)/bin"
 	cp -R bin lib "$(PREFIX)/share/kakikomi/"
 	printf '#!/bin/sh\nexec "%s/share/kakikomi/bin/kakikomi" "$$@"\n' "$(PREFIX)" > "$(PREFIX)/bin/kakikomi"
-	printf '#!/bin/sh\nexec "%s/share/kakikomi/bin/kiyome" "$$@"\n' "$(PREFIX)" > "$(PREFIX)/bin/kiyome"
-	chmod 755 "$(PREFIX)/bin/kakikomi" "$(PREFIX)/bin/kiyome"
+	chmod 755 "$(PREFIX)/bin/kakikomi"

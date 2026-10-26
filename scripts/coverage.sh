@@ -26,4 +26,4 @@ chmod 0755 "${wrapper}"
 DISK_SHELL="${wrapper}" bats "${root}/test"
 
 cd "${root}"
-python3 scripts/coverage-gate.py '/(bin/(kakikomi|kiyome)|lib/[a-z]+\.sh)\Z' "${minimum}" coverage/.resultset.json
+python3 scripts/coverage-gate.py '/(bin/kakikomi|lib/[a-z]+\.sh)\Z' "${minimum}" coverage/.resultset.json

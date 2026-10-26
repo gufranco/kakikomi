@@ -14,13 +14,12 @@
 <p align="center">
   <a href="#quick-start"><strong>クイックスタート</strong></a> |
   <a href="#never-mounted">マウントさせない仕組み</a> |
-  <a href="#kiyome">kiyome</a> |
   <a href="#development">開発</a>
 </p>
 
 </div>
 
-コマンドは2つ、テストは40件、シェルのモジュールは13個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」、`kiyome`は「清め」で、ディスクをきれいに消去します。
+コマンドは1つ、テストは52件、シェルのモジュールは14個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
 
 ---
 
@@ -47,7 +46,6 @@ Ejected. /dev/disk4 is safe to remove.
 | ツール | 用途 | インストール |
 |:-----|:----|:--------|
 | POSIX `sh`、`dd`、`cmp`、`od` | ツール本体 | macOSとLinuxにプリインストールされています。`bash`は不要です |
-| `openssl` | kiyomeのチャンクごとのランダムパターン | プリインストールされています |
 | `gzip`、`xz`、`zstd`、`bzip2` | 圧縮イメージ | 書き込む形式の分だけ必要です |
 | `bsdtar`または`7z` | `.zip`イメージとWindowsのISO | Linuxでは`libarchive-tools`または`p7zip-full` |
 | `qemu-img` | `.vhd`、`.vhdx`、`.vmdk`、`.qcow2` | `brew install qemu`または`apt install qemu-utils` |
@@ -67,7 +65,7 @@ cd kakikomi
 make install
 ```
 
-`make install`はツールを`~/.local`の下にコピーし、`kakikomi`と`kiyome`を`~/.local/bin`に置きます。場所は`PREFIX`で変えられます。
+`make install`はツールを`~/.local`の下にコピーし、`kakikomi`を`~/.local/bin`に置きます。場所は`PREFIX`で変えられます。
 
 ### 確認
 
@@ -84,10 +82,9 @@ kakikomi 1.0.0
 | `kakikomi <windows.iso> <target>` | WindowsのインストールISOを、UEFIで起動できるFAT32のUSBメモリとして配置します |
 | `kakikomi format <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | クイックフォーマット。新しいファイルシステムの構造だけを書き込みます |
 | `kakikomi --release` | 実行時に残ったマウント防止の設定を取り除きます |
-| `kiyome <target>` | 検証付きの5つのパターンでディスクを上書きします |
-| 引数なしの`kakikomi`または`kiyome` | ターミナルで実行すると、必要な値を順に尋ねます |
-| `kakikomi doctor`、`kiyome doctor` | それぞれが必要とするツールと、インストール状況を一覧表示します |
-| `kakikomi version`、`kakikomi help` | バージョンまたは使い方の全文を表示します。kiyomeも同じです |
+| 引数なしの`kakikomi` | ターミナルで実行すると、何をするかを尋ね、続けて必要な値を順に尋ねます |
+| `kakikomi doctor` | kakikomiが必要とするツールと、インストール状況を一覧表示します |
+| `kakikomi version`、`kakikomi help` | バージョンまたは使い方の全文を表示します |
 
 | 入力 | 読み方 |
 |:-------|:---------------|
@@ -158,25 +155,6 @@ graph LR
 ## Windowsのインストーラー
 
 WindowsのISOはそのまま書いてもUSBからは起動しません。kakikomiはそれを検出し、すべてのファイルを含むFAT32パーティション1つのMBRディスクを作り、4GiBを超える`install.wim`は`wimlib`で分割します。ファイルは`mtools`でコピーするので書き込み先はマウントされず、ボリュームを書き込む前に全ファイルを読み戻して比較します。できたものはUEFIのマシンで起動します。
-
-<a id="kiyome"></a>
-
-## kiyome
-
-```console
-$ kiyome /dev/disk4
-This will ERASE all data on /dev/disk4. Continue? (y/N): y
-Pass 1 of 1
-Writing per-chunk unique data over 4 chunks, timing every chunk
-Verify per-chunk unique data completed
-Verify 0xAA completed
-Verify 0x55 completed
-Verify 0xFF completed
-Verify 0x00 completed
-Device ejected successfully
-```
-
-1回のパスで5つのパターンを書き込んで読み戻します。チャンクごとに異なるAES-CTRのデータ、続いて`0xAA`、`0x55`、`0xFF`、`0x00`です。誤ったバイトは関係するビット線とともに報告され、ケーブルやアダプターのデータ線の固着と、媒体の劣化を見分けられます。`PASSES=N`で繰り返し、`CREATE=y`で新しいFATかexFATのファイルシステムを残します。
 
 <a id="portability"></a>
 

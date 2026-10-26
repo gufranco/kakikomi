@@ -14,13 +14,12 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 <p align="center">
   <a href="#quick-start"><strong>Quick start</strong></a> |
   <a href="#never-mounted">Never mounted</a> |
-  <a href="#kiyome">kiyome</a> |
   <a href="#development">Development</a>
 </p>
 
 </div>
 
-Two commands, 40 tests, 13 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk; `kiyome` is 清め, purification, and wipes one clean.
+One command, 52 tests, 14 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
 
 ---
 
@@ -47,7 +46,6 @@ Ejected. /dev/disk4 is safe to remove.
 | Tool | Why | Install |
 |:-----|:----|:--------|
 | POSIX `sh`, `dd`, `cmp`, `od` | The tools themselves | Preinstalled on macOS and Linux. `bash` is not required |
-| `openssl` | kiyome's per-chunk random pattern | Preinstalled |
 | `gzip`, `xz`, `zstd`, `bzip2` | Compressed images | Only for the formats you write |
 | `bsdtar` or `7z` | `.zip` images and Windows ISOs | `libarchive-tools` or `p7zip-full` on Linux |
 | `qemu-img` | `.vhd`, `.vhdx`, `.vmdk`, `.qcow2` | `brew install qemu` or `apt install qemu-utils` |
@@ -67,7 +65,7 @@ cd kakikomi
 make install
 ```
 
-`make install` copies the tools under `~/.local` and puts `kakikomi` and `kiyome` in `~/.local/bin`; set `PREFIX` to change that.
+`make install` copies the tool under `~/.local` and puts `kakikomi` in `~/.local/bin`; set `PREFIX` to change that.
 
 ### Verify
 
@@ -84,10 +82,9 @@ kakikomi 1.0.0
 | `kakikomi <windows.iso> <target>` | Lay a Windows installer ISO out as a UEFI-bootable FAT32 stick |
 | `kakikomi format <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | Quick format: write only the new filesystem's structures |
 | `kakikomi --release` | Remove the mount guards a run left behind |
-| `kiyome <target>` | Overwrite a disk with five verified patterns |
-| `kakikomi` or `kiyome` with no arguments | Ask for each value in turn when run in a terminal |
-| `kakikomi doctor`, `kiyome doctor` | List the tools each one needs and whether they are installed |
-| `kakikomi version`, `kakikomi help` | Print the version or the full usage page; kiyome takes the same |
+| `kakikomi` with no arguments | Ask what to do, then for each value, when run in a terminal |
+| `kakikomi doctor` | List the tools kakikomi needs and whether they are installed |
+| `kakikomi version`, `kakikomi help` | Print the version or the full usage page |
 
 | Source | How it is read |
 |:-------|:---------------|
@@ -158,25 +155,6 @@ With several targets, each disk is written by its own worker, and a fault on one
 ## Windows installers
 
 A Windows ISO written byte for byte does not boot from USB. kakikomi detects one and builds an MBR disk with a single FAT32 partition holding every file, splitting an `install.wim` over 4 GiB with `wimlib`. The files are copied with `mtools`, so the target is never mounted, and every file is read back and compared before the volume is written. The result boots on UEFI machines.
-
-<a id="kiyome"></a>
-
-## kiyome
-
-```console
-$ kiyome /dev/disk4
-This will ERASE all data on /dev/disk4. Continue? (y/N): y
-Pass 1 of 1
-Writing per-chunk unique data over 4 chunks, timing every chunk
-Verify per-chunk unique data completed
-Verify 0xAA completed
-Verify 0x55 completed
-Verify 0xFF completed
-Verify 0x00 completed
-Device ejected successfully
-```
-
-Each pass writes and reads back five patterns: AES-CTR data unique to every chunk, then `0xAA`, `0x55`, `0xFF` and `0x00`. A wrong byte is reported with the bit lines involved, which tells a stuck data line in a cable or adapter apart from worn media. `PASSES=N` repeats it and `CREATE=y` leaves a fresh FAT or exFAT filesystem behind.
 
 <a id="portability"></a>
 

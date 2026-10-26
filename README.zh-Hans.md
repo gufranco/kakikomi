@@ -14,13 +14,12 @@
 <p align="center">
   <a href="#quick-start"><strong>快速开始</strong></a> |
   <a href="#never-mounted">绝不挂载</a> |
-  <a href="#kiyome">kiyome</a> |
   <a href="#development">开发</a>
 </p>
 
 </div>
 
-两个命令，40 个测试，13 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据；`kiyome` 是"清め"，意为净化，用来把磁盘擦干净。
+一个命令，52 个测试，14 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
 
 ---
 
@@ -47,7 +46,6 @@ Ejected. /dev/disk4 is safe to remove.
 | 工具 | 用途 | 安装 |
 |:-----|:----|:--------|
 | POSIX `sh`、`dd`、`cmp`、`od` | 工具本身 | macOS 和 Linux 已预装，不需要 `bash` |
-| `openssl` | kiyome 的逐块随机图案 | 已预装 |
 | `gzip`、`xz`、`zstd`、`bzip2` | 压缩镜像 | 仅在写入对应格式时需要 |
 | `bsdtar` 或 `7z` | `.zip` 镜像和 Windows ISO | Linux 上为 `libarchive-tools` 或 `p7zip-full` |
 | `qemu-img` | `.vhd`、`.vhdx`、`.vmdk`、`.qcow2` | `brew install qemu` 或 `apt install qemu-utils` |
@@ -67,7 +65,7 @@ cd kakikomi
 make install
 ```
 
-`make install` 把工具复制到 `~/.local` 下，并把 `kakikomi` 和 `kiyome` 放进 `~/.local/bin`；设置 `PREFIX` 可以改变位置。
+`make install` 把工具复制到 `~/.local` 下，并把 `kakikomi` 放进 `~/.local/bin`；设置 `PREFIX` 可以改变位置。
 
 ### 验证
 
@@ -84,10 +82,9 @@ kakikomi 1.0.0
 | `kakikomi <windows.iso> <target>` | 把 Windows 安装 ISO 布置成可 UEFI 启动的 FAT32 U 盘 |
 | `kakikomi format <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | 快速格式化：只写入新文件系统的结构 |
 | `kakikomi --release` | 移除某次运行遗留的挂载防护 |
-| `kiyome <target>` | 用五种经过校验的图案覆盖磁盘 |
-| 不带参数的 `kakikomi` 或 `kiyome` | 在终端中运行时，依次询问每个需要的值 |
-| `kakikomi doctor`、`kiyome doctor` | 列出各自需要的工具以及是否已安装 |
-| `kakikomi version`、`kakikomi help` | 显示版本或完整用法；kiyome 同样支持 |
+| 不带参数的 `kakikomi` | 在终端中运行时，先询问要做什么，再依次询问每个值 |
+| `kakikomi doctor` | 列出 kakikomi 需要的工具以及是否已安装 |
+| `kakikomi version`、`kakikomi help` | 显示版本或完整用法 |
 
 | 来源 | 读取方式 |
 |:-------|:---------------|
@@ -158,25 +155,6 @@ graph LR
 ## Windows 安装盘
 
 按字节原样写入的 Windows ISO 无法从 USB 启动。kakikomi 会识别它，构建一个 MBR 磁盘，其中只有一个容纳全部文件的 FAT32 分区，并用 `wimlib` 拆分超过 4 GiB 的 `install.wim`。文件用 `mtools` 复制，目标从不被挂载，写入卷之前每个文件都会回读比对。结果可以在 UEFI 机器上启动。
-
-<a id="kiyome"></a>
-
-## kiyome
-
-```console
-$ kiyome /dev/disk4
-This will ERASE all data on /dev/disk4. Continue? (y/N): y
-Pass 1 of 1
-Writing per-chunk unique data over 4 chunks, timing every chunk
-Verify per-chunk unique data completed
-Verify 0xAA completed
-Verify 0x55 completed
-Verify 0xFF completed
-Verify 0x00 completed
-Device ejected successfully
-```
-
-每一轮写入并回读五种图案：每块各不相同的 AES-CTR 数据，然后是 `0xAA`、`0x55`、`0xFF` 和 `0x00`。错误的字节会连同相关位线一起报告，从而区分线缆或转接器中卡住的数据线和老化的介质。`PASSES=N` 重复执行，`CREATE=y` 在最后留下一个全新的 FAT 或 exFAT 文件系统。
 
 <a id="portability"></a>
 
