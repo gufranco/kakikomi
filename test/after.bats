@@ -61,3 +61,16 @@ answer_and_write() {
   [[ "${status_code}" -eq 0 ]] || cat "${log}"
   grep -q "still matches the image byte for byte" "${log}"
 }
+
+@test "kakikomi asks what to do after the write when run in a terminal" {
+  # Arrange
+  local answers="y\ny\nn\n${DEV1##*/}\n"
+
+  # Act
+  run answer_and_write "${answers}" "DISK_INTERACTIVE=1" "${IMAGE}" "${DEV1}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Move the image to the Trash once every disk validated?"* ]]
+  [[ -f "${WORK}/Trash/fat.img" ]]
+}

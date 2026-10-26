@@ -5,7 +5,7 @@
 
 disk_ask() {
   disk_ak_answer=""
-  printf '%s ' "$1"
+  printf '%s ' "$1" >&2
   IFS= read -r disk_ak_answer || disk_ak_answer=""
   case "${disk_ak_answer}" in
     y | Y | yes | YES) printf 'y\n' ;;
@@ -15,7 +15,7 @@ disk_ask() {
 }
 
 disk_ask_options() {
-  [ -t 0 ] || return 0
+  disk_cli_interactive || return 0
   if [ -z "${VERIFY:-}" ]; then
     VERIFY="$(disk_ask 'Read everything back and compare it with the image when done? [Y/n]' y)"
   fi
