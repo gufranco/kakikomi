@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは1つ、テストは224件、シェルのモジュールは14個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
+コマンドは1つ、テストは237件、シェルのモジュールは14個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
 
 ---
 
@@ -86,13 +86,13 @@ make install
 
 ```console
 $ kakikomi doctor
-dd                 ok       /bin/dd
-cmp                ok       /usr/bin/cmp
-od                 ok       /usr/bin/od
-awk                ok       /usr/bin/awk
-sed                ok       /usr/bin/sed
+dd                 ok       /bin/dd, bsd
+cmp                ok       /usr/bin/cmp, bsd
+od                 ok       /usr/bin/od, bsd
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
 sudo               ok       /usr/bin/sudo
-sha256sum|shasum   ok       /sbin/sha256sum
+sha256sum|shasum   ok       /sbin/sha256sum, bsd 1.0
 diskutil           ok       /usr/sbin/diskutil
 hdiutil            ok       /usr/bin/hdiutil
 curl               ok       /usr/bin/curl
@@ -202,6 +202,8 @@ WindowsのISOはそのまま書いてもUSBからは起動しません。kakikom
 
 すべてPOSIX `sh`で書かれ、ShellCheckの`-o all`で指摘ゼロ、無効化したチェックもありません。テストはmacOSの`/bin/sh`、`dash`、`bash`、`bash --posix`、`zsh`と、特権コンテナ内のUbuntuの同じシェルで実行します。
 
+Linux の GNU coreutils と uutils coreutils、macOS 標準の BSD ツール、Homebrew の GNU ツール、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。CI はそれぞれで全テストを実行し、`kakikomi doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
+
 <a id="development"></a>
 
 ## 開発
@@ -209,7 +211,7 @@ WindowsのISOはそのまま書いてもUSBからは起動しません。kakikom
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプトと補完にShellCheck、manページにmandocを実行し、関数が二重に定義されていないことを確認します |
-| `make test` | システムの`sh`で224件の`bats`テスト |
+| `make test` | システムの`sh`で237件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
 | `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |

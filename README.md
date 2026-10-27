@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 224 tests, 14 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
+One command, 237 tests, 14 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
 
 ---
 
@@ -86,13 +86,13 @@ make install
 
 ```console
 $ kakikomi doctor
-dd                 ok       /bin/dd
-cmp                ok       /usr/bin/cmp
-od                 ok       /usr/bin/od
-awk                ok       /usr/bin/awk
-sed                ok       /usr/bin/sed
+dd                 ok       /bin/dd, bsd
+cmp                ok       /usr/bin/cmp, bsd
+od                 ok       /usr/bin/od, bsd
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
 sudo               ok       /usr/bin/sudo
-sha256sum|shasum   ok       /sbin/sha256sum
+sha256sum|shasum   ok       /sbin/sha256sum, bsd 1.0
 diskutil           ok       /usr/sbin/diskutil
 hdiutil            ok       /usr/bin/hdiutil
 curl               ok       /usr/bin/curl
@@ -202,6 +202,8 @@ A Windows ISO written byte for byte does not boot from USB. kakikomi detects one
 
 Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabled checks. The suites run on macOS under `/bin/sh`, `dash`, `bash`, `bash --posix` and `zsh`, and on Ubuntu under the same shells in a privileged container.
 
+Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with its own BSD tools, Homebrew's GNU tools or Homebrew's uutils tools. CI runs the whole suite on each, and `kakikomi doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
+
 <a id="development"></a>
 
 ## Development
@@ -209,7 +211,7 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabl
 | Command | Description |
 |:--------|:------------|
 | `make lint` | ShellCheck on every script and completion, mandoc on the man page, and a check that no function is defined twice |
-| `make test` | The 224 `bats` tests under the system `sh` |
+| `make test` | The 237 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
 | `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |
