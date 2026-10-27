@@ -319,6 +319,51 @@ esac"
   [[ "${output}" == *"Target: ${DEVICE}"* ]]
 }
 
+@test "kakikomi reads a mount point given as the source as its whole disk" {
+  # Arrange
+  disk_test_fat_image "${WORK}/fat.img" 8 KKSOURCE
+  local mount_point
+  case "${DISK_TEST_OS}" in
+  Darwin)
+    local listing
+    listing="$(hdiutil attach "${WORK}/fat.img")"
+    DEVICE="${listing%%[[:space:]]*}"
+    MOUNTED="${DEVICE}"
+    mount_point="$(printf '%s\n' "${listing}" | awk -F'\t' '/\/Volumes\// { print $NF; exit }')"
+    ;;
+  *)
+    DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
+    disk_test_partition_nodes_start
+    mount_point="${WORK}/mnt"
+    mkdir -p "${mount_point}"
+    disk_test_wait_partition "${DEVICE}p1"
+    sudo mount "${DEVICE}p1" "${mount_point}"
+    MOUNTED="${mount_point}"
+    ;;
+  esac
+
+  # Act
+  run disk_test_run kakikomi "${mount_point}" "${WORK}/no-such-disk" </dev/null
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" != *"image not found"* ]]
+  [[ "${output}" == *"kakikomi: not a device or mount point: ${WORK}/no-such-disk"* ]]
+}
+
+@test "kakikomi refuses a source folder that is not a mount point" {
+  # Arrange
+  local folder="${WORK}/source-folder"
+  mkdir -p "${folder}"
+
+  # Act
+  run disk_test_run kakikomi "${folder}" "${WORK}/no-such-disk" </dev/null
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "kakikomi: no device found for mount point: ${folder}" ]]
+}
+
 @test "kakikomi resolves a partition to its whole disk" {
   # Arrange
   disk_test_fat_image "${WORK}/fat.img" 8 KKPART

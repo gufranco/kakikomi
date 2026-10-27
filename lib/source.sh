@@ -234,7 +234,11 @@ disk_source_open() {
   DISK_SRC_STREAM=0
   DISK_SRC_TOOL=""
   DISK_ZIP_MEMBER=""
-  DISK_SRC_KIND="$(disk_source_kind "$1")"
+  if [ -d "$1" ]; then
+    DISK_SRC_PATH="$(disk_resolve "$1")" || return 1
+    DISK_SRC_ORIGIN="${DISK_SRC_PATH}"
+  fi
+  DISK_SRC_KIND="$(disk_source_kind "${DISK_SRC_PATH}")"
   if [ "${DISK_SRC_KIND}" = "url" ]; then
     DISK_SRC_PATH="$(disk_download "$1")" || return 1
     DISK_SRC_ORIGIN="${DISK_SRC_PATH}"

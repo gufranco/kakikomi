@@ -19,7 +19,7 @@
 
 </div>
 
-一條指令，222 個測試，14 個 shell 模組，除了 POSIX 系統之外沒有任何執行時依賴。`kakikomi` 是日文「書き込み」，意思是把資料寫入磁碟。姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 負責抹除磁碟並檢查出錯的位線。
+一條指令，224 個測試，14 個 shell 模組，除了 POSIX 系統之外沒有任何執行時依賴。`kakikomi` 是日文「書き込み」，意思是把資料寫入磁碟。姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 負責抹除磁碟並檢查出錯的位線。
 
 ---
 
@@ -125,7 +125,7 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 | 內含單一映像的 `.zip` | 用 `bsdtar` 串流讀取 |
 | `.dmg`、`.vhd`、`.vhdx`、`.vmdk`、`.qcow2` | 先檢查剩餘空間，再轉換為原始映像 |
 | `http://` 或 `https://` 網址 | 以可續傳方式下載，然後當作檔案讀取 |
-| `/dev/...` | 從該磁碟機複製，來源同樣保持不掛載 |
+| `/dev/...`，或 `/Volumes/OLD` 這類已掛載的卷 | 從整個磁碟機複製，來源同樣保持不掛載 |
 
 | 選項 | 效果 |
 |:-------|:-------|
@@ -143,11 +143,15 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
+kakikomi debian.img.xz /Volumes/USB              # a mounted volume stands for its whole disk
 kakikomi https://example.org/os.img.gz            # pick the target from a list
 kakikomi /dev/disk4 /dev/disk5                    # clone disk4 onto disk5
+kakikomi /Volumes/OLD /Volumes/NEW               # the same clone, named by volume
 kakikomi --again game.ima /dev/disk6              # a batch of floppies
 kakikomi format /dev/disk4 exfat MEDIA
 ```
+
+磁碟可以用裝置名稱指定，例如 `/dev/disk4`，也可以用它掛載出的任何卷指定，例如 `/Volumes/USB`；kakikomi 會找出卷背後的整個磁碟，來源、目標和 format 指令都一樣。
 
 kakikomi 遵循同系列工具共用的命令列約定，詳見 [FAMILY.md](FAMILY.md)。
 
@@ -205,7 +209,7 @@ graph LR
 | 指令 | 說明 |
 |:--------|:------------|
 | `make lint` | 對每個腳本和自動補全執行 ShellCheck，用 mandoc 檢查 man 說明頁，並檢查沒有函數被重複定義 |
-| `make test` | 在系統 `sh` 下執行 222 個 `bats` 測試 |
+| `make test` | 在系統 `sh` 下執行 224 個 `bats` 測試 |
 | `make test-all` | 在每個已安裝的 shell 下執行相同測試 |
 | `make test-linux` | 從 Mac 在特權 Ubuntu 容器內執行相同測試 |
 | `make coverage` | 在這部 Mac 和同一個容器內用 bashcov 量度行覆蓋率並合併，CI 要求 100% |

@@ -74,15 +74,19 @@ environment:
   option on the command line wins.
 
 notes:
-  Leave the target out to pick from the attached removable disks. The target
-  is never mounted, not even for a moment. A file named help, doctor, version
-  or format is written by giving its path, such as ./help.
+  A disk is named by its device, such as /dev/disk4, or by any volume mounted
+  from it, such as /Volumes/USB, which stands for the whole disk. Leave the
+  target out to pick from the attached removable disks. The target is never
+  mounted, not even for a moment. A file named help, doctor, version or format
+  is written by giving its path, such as ./help.
 
 examples:
   kakikomi debian.img.xz /dev/disk4
+  kakikomi debian.img.xz /Volumes/USB
   kakikomi https://example.org/os.img.gz
   kakikomi debian.img.xz /dev/disk4 /dev/disk5
   kakikomi /dev/disk4 /dev/disk5
+  kakikomi /Volumes/OLD /Volumes/NEW
   kakikomi --again game.ima
   kakikomi format /dev/disk4 exfat MEDIA
 USAGE

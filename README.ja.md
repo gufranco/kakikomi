@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは1つ、テストは222件、シェルのモジュールは14個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
+コマンドは1つ、テストは224件、シェルのモジュールは14個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
 
 ---
 
@@ -125,7 +125,7 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 | イメージを1つだけ含む`.zip` | `bsdtar`でストリームとして読みます |
 | `.dmg`、`.vhd`、`.vhdx`、`.vmdk`、`.qcow2` | 空き容量を確認してから、先にrawへ変換します |
 | `http://`または`https://`のURL | 再開可能なダウンロードのあと、ファイルとして読みます |
-| `/dev/...` | そのドライブから複製し、そのドライブもマウントさせません |
+| `/dev/...`、または `/Volumes/OLD` のようなマウント中のボリューム | ドライブ全体から複製し、そのドライブもマウントさせません |
 
 | オプション | 効果 |
 |:-------|:-------|
@@ -143,11 +143,15 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
+kakikomi debian.img.xz /Volumes/USB              # a mounted volume stands for its whole disk
 kakikomi https://example.org/os.img.gz            # pick the target from a list
 kakikomi /dev/disk4 /dev/disk5                    # clone disk4 onto disk5
+kakikomi /Volumes/OLD /Volumes/NEW               # the same clone, named by volume
 kakikomi --again game.ima /dev/disk6              # a batch of floppies
 kakikomi format /dev/disk4 exfat MEDIA
 ```
+
+ディスクはデバイス名（`/dev/disk4` など）でも、そのディスクからマウントされたボリューム（`/Volumes/USB` など）でも指定できます。kakikomi はボリュームの背後にあるディスク全体を突き止めます。コピー元、書き込み先、format のどれでも同じです。
 
 kakikomiはファミリー共通のコマンドライン規約に従います。内容は[FAMILY.md](FAMILY.md)にあります。
 
@@ -205,7 +209,7 @@ WindowsのISOはそのまま書いてもUSBからは起動しません。kakikom
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプトと補完にShellCheck、manページにmandocを実行し、関数が二重に定義されていないことを確認します |
-| `make test` | システムの`sh`で222件の`bats`テスト |
+| `make test` | システムの`sh`で224件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
 | `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |

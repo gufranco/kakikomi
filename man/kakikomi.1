@@ -30,6 +30,12 @@ A Windows installer ISO is laid out as a UEFI-bootable FAT32 drive unless
 .B \-\-raw
 is given.
 .PP
+A disk is named by its device, such as
+.IR /dev/disk4 ,
+or by any volume mounted from it, such as
+.IR /Volumes/USB ,
+which stands for the whole disk.
+.PP
 Before anything is written, kakikomi prints what it is about to replace and
 asks for the device names to be typed back.
 .SH COMMANDS

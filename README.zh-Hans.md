@@ -19,7 +19,7 @@
 
 </div>
 
-一个命令，222 个测试，14 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
+一个命令，224 个测试，14 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
 
 ---
 
@@ -125,7 +125,7 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 | 只含一个镜像的 `.zip` | 用 `bsdtar` 流式读取 |
 | `.dmg`、`.vhd`、`.vhdx`、`.vmdk`、`.qcow2` | 检查可用空间后先转换为 raw |
 | `http://` 或 `https://` URL | 可续传下载后作为文件读取 |
-| `/dev/...` | 从该驱动器克隆，该驱动器同样不会被挂载 |
+| `/dev/...`，或 `/Volumes/OLD` 这样已挂载的卷 | 从整个驱动器克隆，该驱动器同样不会被挂载 |
 
 | 选项 | 效果 |
 |:-------|:-------|
@@ -143,11 +143,15 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
+kakikomi debian.img.xz /Volumes/USB              # a mounted volume stands for its whole disk
 kakikomi https://example.org/os.img.gz            # pick the target from a list
 kakikomi /dev/disk4 /dev/disk5                    # clone disk4 onto disk5
+kakikomi /Volumes/OLD /Volumes/NEW               # the same clone, named by volume
 kakikomi --again game.ima /dev/disk6              # a batch of floppies
 kakikomi format /dev/disk4 exfat MEDIA
 ```
+
+磁盘可以用设备名指定，例如 `/dev/disk4`，也可以用它挂载出的任何卷指定，例如 `/Volumes/USB`；kakikomi 会找出卷背后的整个磁盘，来源、目标和 format 命令都一样。
 
 kakikomi 遵循同系列工具共用的命令行约定，详见 [FAMILY.md](FAMILY.md)。
 
@@ -205,7 +209,7 @@ graph LR
 | 命令 | 说明 |
 |:--------|:------------|
 | `make lint` | 对每个脚本和补全运行 ShellCheck，用 mandoc 检查 man 手册，并检查没有函数被重复定义 |
-| `make test` | 在系统 `sh` 下运行 222 个 `bats` 测试 |
+| `make test` | 在系统 `sh` 下运行 224 个 `bats` 测试 |
 | `make test-all` | 在每个已安装的 shell 下运行同样的测试 |
 | `make test-linux` | 从 Mac 在特权 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 在这台 Mac 和同一容器中用 bashcov 测量行覆盖率并合并，CI 要求 100% |

@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 222 tests, 14 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
+One command, 224 tests, 14 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
 
 ---
 
@@ -125,7 +125,7 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 | `.zip` holding one image | Streamed with `bsdtar` |
 | `.dmg`, `.vhd`, `.vhdx`, `.vmdk`, `.qcow2` | Converted to raw first, after a free-space check |
 | `http://` or `https://` URL | Downloaded with resume, then read as a file |
-| `/dev/...` | Cloned from that drive, which is also kept unmounted |
+| `/dev/...`, or a mounted volume such as `/Volumes/OLD` | Cloned from the whole drive, which is also kept unmounted |
 
 | Option | Effect |
 |:-------|:-------|
@@ -143,11 +143,15 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
+kakikomi debian.img.xz /Volumes/USB              # a mounted volume stands for its whole disk
 kakikomi https://example.org/os.img.gz            # pick the target from a list
 kakikomi /dev/disk4 /dev/disk5                    # clone disk4 onto disk5
+kakikomi /Volumes/OLD /Volumes/NEW               # the same clone, named by volume
 kakikomi --again game.ima /dev/disk6              # a batch of floppies
 kakikomi format /dev/disk4 exfat MEDIA
 ```
+
+A disk is named by its device, such as `/dev/disk4`, or by any volume mounted from it, such as `/Volumes/USB`; kakikomi works out the whole disk behind the volume, for the image, the target and the format command alike.
 
 kakikomi follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
 
@@ -205,7 +209,7 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabl
 | Command | Description |
 |:--------|:------------|
 | `make lint` | ShellCheck on every script and completion, mandoc on the man page, and a check that no function is defined twice |
-| `make test` | The 222 `bats` tests under the system `sh` |
+| `make test` | The 224 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
 | `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |
