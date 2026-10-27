@@ -108,7 +108,7 @@ disk_fstab_lock() {
     fi
     disk_fl_tries=$((disk_fl_tries + 1))
     if [ "${disk_fl_tries}" -ge "${disk_fl_limit}" ]; then
-      disk_error "Another kakikomi held ${disk_fl_lock} for $((disk_fl_limit / 10))s, so the fstab was left untouched."
+      disk_error "another kakikomi held ${disk_fl_lock} for $((disk_fl_limit / 10))s, so the fstab was left untouched."
       return 1
     fi
     sleep 0.1
@@ -186,7 +186,7 @@ disk_volume_lines() {
     if [ -z "${disk_vl_uuid}" ]; then
       disk_vl_name="$(disk_plist_value "${disk_vl_dev}" VolumeName)"
       if [ -z "${disk_vl_name}" ]; then
-        disk_error "A ${disk_vl_type} volume in this image has neither a UUID nor a label, so macOS cannot be told to leave it alone."
+        disk_error "a ${disk_vl_type} volume in this image has neither a UUID nor a label, so macOS cannot be told to leave it alone."
         disk_vl_status=1
         continue
       fi
@@ -209,7 +209,7 @@ disk_guard_probe() {
   disk_partition_starts "$2" "$1" >"${DISK_TMPDIR}/starts" || return 1
   disk_gp_starts="$(cat "${DISK_TMPDIR}/starts")"
   if [ -n "${DISK_GUARD_UNSUPPORTED}" ]; then
-    disk_error "STOPPED: this image holds an ${DISK_GUARD_UNSUPPORTED} partition, whose volume identity cannot be read from its header alone."
+    disk_error "stopped: this image holds an ${DISK_GUARD_UNSUPPORTED} partition, whose volume identity cannot be read from its header alone."
     return 1
   fi
   disk_gp_head="$(disk_file_size "$2")"
@@ -233,7 +233,7 @@ disk_guard_declare() {
   disk_gd_io="$(disk_io_device "$1")"
   disk_gd_probe="$(disk_guard_probe "${disk_gd_io}" "$2" "$3")" || return 1
   disk_gd_lines="$(disk_volume_lines "${disk_gd_probe}")" || {
-    disk_error "STOPPED: could not stop the system from mounting $1, so its first sectors stay blank."
+    disk_error "stopped: could not stop the system from mounting $1, so its first sectors stay blank."
     return 1
   }
   rm -f "${disk_gd_probe}"
@@ -243,7 +243,7 @@ disk_guard_declare() {
     return 0
   fi
   disk_fstab_append "${disk_gd_tag}" "${disk_gd_lines}" || {
-    disk_error "STOPPED: could not stop the system from mounting $1, so its first sectors stay blank."
+    disk_error "stopped: could not stop the system from mounting $1, so its first sectors stay blank."
     return 1
   }
   DISK_GUARD_DECLARED="${disk_gd_tag}"
@@ -325,7 +325,7 @@ disk_breach_stop() {
   DISK_BREACH_FLAG=""
   DISK_BREACH_LOG=""
   [ -n "${disk_bs_log}" ] || return 0
-  disk_error "STOPPED: $1 was mounted, so the system may have written to it."
+  disk_error "stopped: $1 was mounted, so the system may have written to it."
   disk_log_lines disk_error "${disk_bs_log}"
   return 1
 }

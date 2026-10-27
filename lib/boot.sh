@@ -37,7 +37,7 @@ disk_exfat_build() {
       ;;
     Linux)
       disk_cmd_exists mkfs.exfat || {
-        disk_error "mkfs.exfat is not installed. Install the exfatprogs package."
+        disk_error "mkfs.exfat is not installed. install the exfatprogs package."
         return 1
       }
       disk_xb_loop="$(sudo losetup -f --show -o 1048576 "$1")" || return 1
@@ -151,7 +151,7 @@ disk_iso_list() {
     printf '%s\n' "${disk_il_listing}" | sed -n 's/^Path = //p'
     return 0
   fi
-  disk_warning "Neither bsdtar nor 7z is installed, so this ISO cannot be checked for a Windows installer."
+  disk_warning "neither bsdtar nor 7z is installed, so this ISO cannot be checked for a Windows installer."
   return 1
 }
 
@@ -176,7 +176,7 @@ disk_split_wim() {
   disk_sw_size="$(disk_file_size "${disk_sw_wim}")"
   [ "${disk_sw_size}" -gt "${FAT32_MAX_FILE:-4294967295}" ] || return 0
   if ! disk_cmd_exists wimlib-imagex; then
-    disk_error "STOPPED: install.wim is over 4 GiB, which FAT32 cannot hold, and wimlib-imagex is needed to split it. Install wimlib."
+    disk_error "stopped: install.wim is over 4 GiB, which FAT32 cannot hold, and wimlib-imagex is needed to split it. install wimlib."
     return 1
   fi
   disk_sw_human="$(disk_human "${disk_sw_size}")"
@@ -184,7 +184,7 @@ disk_split_wim() {
   disk_sw_part_mb=$((${FAT32_MAX_FILE:-4294967295} * 9 / 10485760))
   [ "${disk_sw_part_mb}" -ge 1 ] || disk_sw_part_mb=1
   wimlib-imagex split "${disk_sw_wim}" "${disk_sw_wim%.*}.swm" "${disk_sw_part_mb}" >/dev/null 2>&1 || {
-    disk_error "STOPPED: wimlib-imagex could not split install.wim."
+    disk_error "stopped: wimlib-imagex could not split install.wim."
     return 1
   }
   rm -f "${disk_sw_wim}"
@@ -220,7 +220,7 @@ disk_fat_verify_tree() {
   done >"${DISK_SRC_WORK}/verify.bad"
   rm -f "${disk_fv_back}"
   if [ -s "${DISK_SRC_WORK}/verify.bad" ]; then
-    disk_error "STOPPED: these files did not copy into the FAT32 volume intact:"
+    disk_error "stopped: these files did not copy into the FAT32 volume intact:"
     disk_fv_bad="$(sed -n '1,20p' "${DISK_SRC_WORK}/verify.bad")"
     disk_log_lines disk_error "${disk_fv_bad}"
     return 1
@@ -236,19 +236,19 @@ disk_windows_image() {
   disk_wn_tree="${DISK_SRC_WORK}/iso"
   disk_wn_image="${DISK_SRC_WORK}/windows.img"
   disk_cmd_exists mformat || {
-    disk_error "STOPPED: building a Windows USB needs mtools. Install it: brew install mtools, or apt install mtools."
+    disk_error "stopped: building a Windows USB needs mtools. install it: brew install mtools, or apt install mtools."
     return 1
   }
   disk_wn_iso_size="$(disk_file_size "${disk_wn_iso}")"
   disk_wn_free="$(disk_free_bytes "${DISK_SRC_WORK}")"
   if [ "${disk_wn_free}" -lt $((disk_wn_iso_size * 22 / 10)) ]; then
     disk_wn_need="$(disk_human $((disk_wn_iso_size * 22 / 10)))"
-    disk_error "STOPPED: laying out this ISO needs about ${disk_wn_need} free in ${DISK_SRC_WORK}."
+    disk_error "stopped: laying out this ISO needs about ${disk_wn_need} free in ${DISK_SRC_WORK}."
     return 1
   fi
   disk_info "Extracting the ISO to lay it out as a FAT32 drive." >&2
   disk_iso_extract "${disk_wn_iso}" "${disk_wn_tree}" || {
-    disk_error "STOPPED: the ISO could not be extracted."
+    disk_error "stopped: the ISO could not be extracted."
     return 1
   }
   disk_split_wim "${disk_wn_tree}" || return 1
@@ -257,12 +257,12 @@ disk_windows_image() {
   [ "${disk_wn_size}" -ge 41943040 ] || disk_wn_size=41943040
   disk_wn_label="$(disk_iso_label "${disk_wn_iso}")"
   disk_build_volume "${disk_wn_image}" fat32 "${disk_wn_label}" "${disk_wn_size}" || {
-    disk_error "STOPPED: the FAT32 volume could not be created."
+    disk_error "stopped: the FAT32 volume could not be created."
     return 1
   }
   disk_info "Copying the installer files into the FAT32 volume." >&2
   disk_fat_copy_tree "${disk_wn_image}" "${disk_wn_tree}" || {
-    disk_error "STOPPED: copying the installer files into the FAT32 volume failed."
+    disk_error "stopped: copying the installer files into the FAT32 volume failed."
     return 1
   }
   disk_fat_verify_tree "${disk_wn_image}" "${disk_wn_tree}" || return 1

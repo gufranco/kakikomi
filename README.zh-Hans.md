@@ -19,22 +19,37 @@
 
 </div>
 
-一个命令，211 个测试，14 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
+一个命令，222 个测试，14 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
 
 ---
 
 ```console
-$ kakikomi debian.img.xz /dev/disk4
+$ kakikomi debian.img.xz /dev/disk6
+Computing the image's SHA-256.
+
 Image:  debian.img.xz
-        xz, 1.4 GiB (1501560832 bytes)
-Target: /dev/disk4, 14.9 GiB, SANDISK ULTRA
-Type disk4 to write, or anything else to stop: disk4
-Blanking the first 1.0 MiB so nothing on /dev/disk4 is mountable until the very end.
-Told macOS not to mount the 2 volume(s) in this image.
-Writing the first 1.0 MiB last.
+        xz, 16.0 MiB (16777216 bytes)
+        SHA-256 dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
+Target: /dev/disk6, 16.0 MiB, DISK IMAGE
+        Everything on it is replaced, including:
+          +16.8 MB disk6
+
+Type disk6 to write, or anything else to stop: disk6
+Unmounting /dev/disk6...
+Disk unmounted
+Measuring /dev/disk6 before writing it, so every limit comes from this disk.
+Measured read: 232800 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
+Measured write: 83142 KiB/s sustained, 29ms to reach a sector, allowing 3x that before stopping.
+Blanking the first 16.0 MiB so nothing on /dev/disk6 is mountable until the very end.
+Writing  50%  86.0 MiB/s  0m00s left
+The image holds no volume macOS would mount.
+Writing the first 16.0 MiB last.
+Writing 100%  34.7 MiB/s  0m00s left
 Wrote and verified every chunk of the image.
-Validated: /dev/disk4 matches the image, SHA-256 9f86d081884c7d65...
-Ejected. /dev/disk4 is safe to remove.
+Reading back all 16.0 MiB to compare with the image.
+Validated: /dev/disk6 matches the image, SHA-256 dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
+Ejecting /dev/disk6...
+Ejected. /dev/disk6 is safe to remove.
 ```
 
 <a id="quick-start"></a>
@@ -65,22 +80,39 @@ cd kakikomi
 make install
 ```
 
-`make install` 把工具复制到 `~/.local` 下，并把 `kakikomi` 放进 `~/.local/bin`；设置 `PREFIX` 可以改变位置。
+`make install` 把工具、man 手册以及 bash、zsh、fish 补全复制到 `~/.local` 下，并把 `kakikomi` 放进 `~/.local/bin`；设置 `PREFIX` 可以改变位置。Homebrew formula 安装的是同样的文件。
 
 ### 验证
 
 ```console
-$ kakikomi --version
-kakikomi 1.0.0
+$ kakikomi doctor
+dd                 ok       /bin/dd
+cmp                ok       /usr/bin/cmp
+od                 ok       /usr/bin/od
+awk                ok       /usr/bin/awk
+sed                ok       /usr/bin/sed
+sudo               ok       /usr/bin/sudo
+sha256sum|shasum   ok       /sbin/sha256sum
+diskutil           ok       /usr/sbin/diskutil
+hdiutil            ok       /usr/bin/hdiutil
+curl               ok       /usr/bin/curl
+gzip               ok       /usr/bin/gzip
+xz                 ok       /opt/homebrew/bin/xz
+zstd               ok       /opt/homebrew/bin/zstd
+bzip2              ok       /usr/bin/bzip2
+bsdtar|7z          ok       /usr/bin/bsdtar
+qemu-img           ok       /opt/homebrew/bin/qemu-img
+mcopy              ok       /opt/homebrew/bin/mcopy
+wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 ```
 
 ## 用法
 
 | 命令 | 用途 |
 |:--------|:--------|
-| `kakikomi <image\|url\|device> [target...]` | 把镜像写入一个或多个磁盘。不指定目标时，列出可选的可移动磁盘 |
+| `kakikomi [options] <image\|url\|device> [target...]` | 把镜像写入一个或多个磁盘。不指定目标时，列出可选的可移动磁盘 |
 | `kakikomi <windows.iso> <target>` | 把 Windows 安装 ISO 布置成可 UEFI 启动的 FAT32 U 盘 |
-| `kakikomi format <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | 快速格式化：只写入新文件系统的结构 |
+| `kakikomi format [options] <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | 快速格式化：只写入新文件系统的结构 |
 | `kakikomi --release` | 移除某次运行遗留的挂载防护 |
 | 不带参数的 `kakikomi` | 在终端中运行时，先询问要做什么，再依次询问每个值 |
 | `kakikomi doctor` | 列出 kakikomi 需要的工具以及是否已安装 |
@@ -95,25 +127,29 @@ kakikomi 1.0.0
 | `http://` 或 `https://` URL | 可续传下载后作为文件读取 |
 | `/dev/...` | 从该驱动器克隆，该驱动器同样不会被挂载 |
 
-| 变量 | 效果 |
-|:---------|:-------|
-| `VERIFY=n` | 跳过最后的整盘 SHA-256 比对。未设置时会询问 |
-| `DELETE=y` | 所有磁盘校验通过后把镜像移到废纸篓。没有回读时忽略 |
-| `AGAIN=y` | 把同一镜像写入你插入的下一个磁盘 |
-| `REINSERT=y` | 弹出后等待磁盘重新插入并再次比对 |
-| `ZERO_TAIL=y` | 在较大的磁盘上清空镜像之后的空间 |
-| `SHA256=<hash>` | 镜像不匹配就停止。同目录的 `.sha256` 或 `SHA256SUMS` 文件会自动读取 |
-| `ALLOW_INTERNAL=y` | 允许内置磁盘。运行中系统所在的磁盘始终被拒绝 |
-| `KEEP_GUARD=y` | 运行后保留 fstab 防护，让这台 Mac 永不挂载该磁盘 |
-| `MODE=raw` | 按字节原样写入 Windows ISO，而不是布置成 FAT32 |
+| 选项 | 效果 |
+|:-------|:-------|
+| `--verify`、`--no-verify` | 最后把整个磁盘与镜像的 SHA-256 比对，或跳过。未指定时在终端中询问 |
+| `--delete`、`--no-delete` | 所有磁盘校验通过后把镜像移到废纸篓，或保留。没有回读时忽略 |
+| `--again` | 把同一镜像写入你插入的下一个磁盘 |
+| `--reinsert`、`--no-reinsert` | 弹出后等待磁盘重新插入并再次比对 |
+| `--zero-tail` | 在较大的磁盘上清空镜像之后的空间 |
+| `--sha256 HASH` | 镜像不匹配就停止。同目录的 `.sha256` 或 `SHA256SUMS` 文件会自动读取 |
+| `--allow-internal` | 允许内置磁盘。运行中系统所在的磁盘始终被拒绝 |
+| `--keep-guard` | 运行后保留 fstab 防护，让这台 Mac 永不挂载该磁盘 |
+| `--raw` | 按字节原样写入 Windows ISO，而不是布置成 FAT32 |
+
+也可以写成 `--sha256=HASH`，`--` 表示选项结束。环境变量 `VERIFY`、`DELETE`、`AGAIN`、`REINSERT`、`ZERO_TAIL`、`SHA256`、`ALLOW_INTERNAL`、`KEEP_GUARD` 和 `MODE=raw` 以 `y` 或 `n` 设置同样的选项，命令行上的选项优先。
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
 kakikomi https://example.org/os.img.gz            # pick the target from a list
 kakikomi /dev/disk4 /dev/disk5                    # clone disk4 onto disk5
-AGAIN=y kakikomi game.ima /dev/disk6              # a batch of floppies
+kakikomi --again game.ima /dev/disk6              # a batch of floppies
 kakikomi format /dev/disk4 exfat MEDIA
 ```
+
+kakikomi 遵循同系列工具共用的命令行约定，详见 [FAMILY.md](FAMILY.md)。
 
 <a id="never-mounted"></a>
 
@@ -136,7 +172,7 @@ graph LR
 | 直到最后都无可挂载 | 第一个 MiB 为空，就没有分区表和引导扇区，DiskArbitration 和 udisks 都找不到卷 |
 | 出现之前先声明 | macOS：从用 `-nomount` 挂接的仅含头部的副本读取每个卷的 UUID，以 `noauto` 写入 `/etc/fstab`。Linux：为该设备添加 `UDISKS_IGNORE` udev 规则 |
 | 监视 | 运行期间发现挂载即判失败，并列出系统创建的文件 |
-| 证明 | `REINSERT=y` 在你拔插之后回读整个磁盘 |
+| 证明 | `--reinsert` 在你拔插之后回读整个磁盘 |
 
 中途停止的运行会让第一个 MiB 保持空白，所以写到一半的磁盘同样无法挂载。
 
@@ -168,8 +204,8 @@ graph LR
 
 | 命令 | 说明 |
 |:--------|:------------|
-| `make lint` | 对每个脚本运行 ShellCheck |
-| `make test` | 在系统 `sh` 下运行 211 个 `bats` 测试 |
+| `make lint` | 对每个脚本和补全运行 ShellCheck，用 mandoc 检查 man 手册，并检查没有函数被重复定义 |
+| `make test` | 在系统 `sh` 下运行 222 个 `bats` 测试 |
 | `make test-all` | 在每个已安装的 shell 下运行同样的测试 |
 | `make test-linux` | 从 Mac 在特权 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 在这台 Mac 和同一容器中用 bashcov 测量行覆盖率并合并，CI 要求 100% |

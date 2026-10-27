@@ -121,7 +121,7 @@ media_error="printf 'dd: error writing: Input/output error\\n' >&2; exit 1"
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"went silent for"* ]]
-  [[ "${output}" == *"The drive stopped answering mid-transfer"* ]]
+  [[ "${output}" == *"the drive stopped answering mid-transfer"* ]]
 }
 
 @test "kakikomi stops at once when a transfer is interrupted" {
@@ -133,7 +133,7 @@ media_error="printf 'dd: error writing: Input/output error\\n' >&2; exit 1"
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: interrupted during"* ]]
+  [[ "${output}" == *"stopped: interrupted during"* ]]
 }
 
 @test "kakikomi does not trust a transfer that moved fewer bytes" {
@@ -171,7 +171,7 @@ exit \"\$status\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"That reads as write protection rather than worn media."* ]]
+  [[ "${output}" == *"that reads as write protection rather than worn media."* ]]
 }
 
 @test "kakikomi stops when the disk fails while it is being measured" {
@@ -183,7 +183,7 @@ exit \"\$status\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"The write probe failed on the first sectors of"* ]]
+  [[ "${output}" == *"the write probe failed on the first sectors of"* ]]
   [[ "${output}" == *"the disk failed while being measured"* ]]
 }
 
@@ -198,7 +198,7 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"is write protected, so nothing on it can be written."* ]]
-  [[ "${output}" == *"The drive accepted a test write and the media kept its previous contents."* ]]
+  [[ "${output}" == *"the drive accepted a test write and the media kept its previous contents."* ]]
 }
 
 @test "kakikomi bypasses the page cache when direct I/O works" {

@@ -1,0 +1,112 @@
+.TH KAKIKOMI 1 "2026-10-27" "kakikomi" "User Commands"
+.SH NAME
+kakikomi \- write disk images to removable media, verified and never mounted
+.SH SYNOPSIS
+.B kakikomi
+.br
+.B kakikomi
+.RI [ options ] " image" | url | "device " [ target ...]
+.br
+.B kakikomi format
+.RI [ options ] " target " [ filesystem ] " " [ label ]
+.br
+.B kakikomi \-\-release
+.br
+.B kakikomi doctor
+.br
+.B kakikomi version
+.br
+.B kakikomi help
+.SH DESCRIPTION
+.B kakikomi
+writes a disk image, a download or another drive to one or more removable
+disks. Every chunk is written, read back and compared before the next, and
+the whole disk is compared with the image's SHA-256 at the end. The target is
+never mounted, not even for a moment.
+.PP
+Compressed images in gzip, xz, zstd, bzip2 and zip form are read as they are
+written. Virtual disks in VHD, VHDX, VMDK and QCOW2 form are converted first.
+A Windows installer ISO is laid out as a UEFI-bootable FAT32 drive unless
+.B \-\-raw
+is given.
+.PP
+Before anything is written, kakikomi prints what it is about to replace and
+asks for the device names to be typed back.
+.SH COMMANDS
+.TP
+.B format
+Quick format a disk: write only the new filesystem's structures. Without a
+filesystem, disks up to 32 GiB get FAT32 and larger ones exFAT.
+.B floppy
+writes a 1.44 MB filesystem with no partition table.
+.TP
+.B \-\-release
+Remove the mount guards an interrupted run left behind.
+.TP
+.B doctor
+List the tools kakikomi needs and whether each is installed. Exits non-zero
+only when a required tool is missing.
+.TP
+.B version
+Print the version and the platform.
+.TP
+.B help
+Print the usage page.
+.SH OPTIONS
+.TP
+.BR \-\-verify ", " \-\-no\-verify
+Read the whole disk back and compare its SHA-256 at the end. Default yes.
+.TP
+.BR \-\-delete ", " \-\-no\-delete
+Move the image to the Trash once every disk validated. Default no.
+.TP
+.B \-\-again
+Write the same image to the next disk inserted.
+.TP
+.BR \-\-reinsert ", " \-\-no\-reinsert
+After ejecting, wait for the disk to come back and compare it again.
+Default no.
+.TP
+.B \-\-zero\-tail
+Blank the space past the image on a larger disk.
+.TP
+.BI \-\-sha256 " hash"
+Stop unless the image matches. A sibling
+.I .sha256
+file is read too.
+.TP
+.B \-\-allow\-internal
+Allow an internal disk. The disk holding the running system is always refused.
+.TP
+.B \-\-keep\-guard
+Keep macOS from ever mounting the disk again.
+.TP
+.B \-\-raw
+Write a Windows ISO as is instead of as a FAT32 installer.
+.PP
+Every option that takes a value also takes the form
+.IR \-\-name = value ,
+and
+.B \-\-
+ends the options.
+.SH ENVIRONMENT
+.BR VERIFY ,
+.BR DELETE ,
+.BR AGAIN ,
+.BR REINSERT ,
+.BR ZERO_TAIL ,
+.BR SHA256 ,
+.BR ALLOW_INTERNAL ,
+.B KEEP_GUARD
+and
+.B MODE=raw
+set the same options, with
+.B y
+or
+.B n
+for yes or no. An option on the command line wins over the environment.
+.SH EXIT STATUS
+0 when every disk was written and verified, 1 on any failure or refusal.
+.SH SEE ALSO
+.BR kiyome (1),
+.BR dd (1)

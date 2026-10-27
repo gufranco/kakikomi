@@ -96,7 +96,7 @@ format_with() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Unknown filesystem: ntfs. Use fat32, exfat, fat or floppy."* ]]
+  [[ "${output}" == *"unknown filesystem: ntfs. use fat32, exfat, fat or floppy."* ]]
 }
 
 @test "kakikomi lays a Windows installer ISO out as FAT32 and splits a large install.wim" {

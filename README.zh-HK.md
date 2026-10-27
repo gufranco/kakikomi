@@ -2,7 +2,7 @@
 
 <h1>kakikomi</h1>
 
-<strong>將磁碟映像寫入軟碟、Zip 碟、USB 手指和硬碟，逐塊校驗，而且唔畀系統掛載。</strong>
+<strong>把磁碟映像寫入軟碟、Zip 碟、USB 手指和硬碟，逐塊校驗，而且絕不讓系統掛載。</strong>
 
 [English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | 繁體中文 (香港)
 
@@ -19,37 +19,52 @@
 
 </div>
 
-一個指令，211 個測試，14 個 shell 模組，除咗 POSIX 系統之外冇任何執行時依賴。`kakikomi` 係日文「書き込み」，即係將資料寫入磁碟。佢嘅姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用嚟抹乾淨磁碟同檢查出錯嘅位線。
+一條指令，222 個測試，14 個 shell 模組，除了 POSIX 系統之外沒有任何執行時依賴。`kakikomi` 是日文「書き込み」，意思是把資料寫入磁碟。姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 負責抹除磁碟並檢查出錯的位線。
 
 ---
 
 ```console
-$ kakikomi debian.img.xz /dev/disk4
+$ kakikomi debian.img.xz /dev/disk6
+Computing the image's SHA-256.
+
 Image:  debian.img.xz
-        xz, 1.4 GiB (1501560832 bytes)
-Target: /dev/disk4, 14.9 GiB, SANDISK ULTRA
-Type disk4 to write, or anything else to stop: disk4
-Blanking the first 1.0 MiB so nothing on /dev/disk4 is mountable until the very end.
-Told macOS not to mount the 2 volume(s) in this image.
-Writing the first 1.0 MiB last.
+        xz, 16.0 MiB (16777216 bytes)
+        SHA-256 dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
+Target: /dev/disk6, 16.0 MiB, DISK IMAGE
+        Everything on it is replaced, including:
+          +16.8 MB disk6
+
+Type disk6 to write, or anything else to stop: disk6
+Unmounting /dev/disk6...
+Disk unmounted
+Measuring /dev/disk6 before writing it, so every limit comes from this disk.
+Measured read: 232800 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
+Measured write: 83142 KiB/s sustained, 29ms to reach a sector, allowing 3x that before stopping.
+Blanking the first 16.0 MiB so nothing on /dev/disk6 is mountable until the very end.
+Writing  50%  86.0 MiB/s  0m00s left
+The image holds no volume macOS would mount.
+Writing the first 16.0 MiB last.
+Writing 100%  34.7 MiB/s  0m00s left
 Wrote and verified every chunk of the image.
-Validated: /dev/disk4 matches the image, SHA-256 9f86d081884c7d65...
-Ejected. /dev/disk4 is safe to remove.
+Reading back all 16.0 MiB to compare with the image.
+Validated: /dev/disk6 matches the image, SHA-256 dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
+Ejecting /dev/disk6...
+Ejected. /dev/disk6 is safe to remove.
 ```
 
 <a id="quick-start"></a>
 
 ## 快速開始
 
-### 前置條件
+### 先決條件
 
 | 工具 | 用途 | 安裝 |
 |:-----|:----|:--------|
-| POSIX `sh`、`dd`、`cmp`、`od` | 工具本身 | macOS 同 Linux 已預裝，唔需要 `bash` |
-| `gzip`、`xz`、`zstd`、`bzip2` | 壓縮映像 | 只喺寫入對應格式時需要 |
-| `bsdtar` 或 `7z` | `.zip` 映像同 Windows ISO | Linux 上係 `libarchive-tools` 或 `p7zip-full` |
+| POSIX `sh`、`dd`、`cmp`、`od` | 工具本身 | macOS 和 Linux 已預裝，不需要 `bash` |
+| `gzip`、`xz`、`zstd`、`bzip2` | 壓縮映像 | 只在寫入對應格式時需要 |
+| `bsdtar` 或 `7z` | `.zip` 映像和 Windows ISO | Linux 上為 `libarchive-tools` 或 `p7zip-full` |
 | `qemu-img` | `.vhd`、`.vhdx`、`.vmdk`、`.qcow2` | `brew install qemu` 或 `apt install qemu-utils` |
-| `mtools`、`wimlib` | Windows ISO 同 `kakikomi format` | 隨 Homebrew formula 安裝；Linux 上係 `apt install mtools wimtools` |
+| `mtools`、`wimlib` | Windows ISO 和 `kakikomi format` | 隨 Homebrew formula 安裝；`apt install mtools wimtools` |
 
 ### 安裝
 
@@ -57,7 +72,7 @@ Ejected. /dev/disk4 is safe to remove.
 brew install gufranco/tap/kakikomi
 ```
 
-亦可以由原始碼安裝：
+或從原始碼安裝：
 
 ```bash
 git clone https://github.com/gufranco/kakikomi.git
@@ -65,67 +80,88 @@ cd kakikomi
 make install
 ```
 
-`make install` 會將工具複製到 `~/.local` 之下，再將 `kakikomi` 放入 `~/.local/bin`；設定 `PREFIX` 可以改位置。
+`make install` 把工具、man 說明頁以及 bash、zsh、fish 自動補全複製到 `~/.local` 之下，並把 `kakikomi` 放進 `~/.local/bin`；設定 `PREFIX` 可以改變位置。Homebrew formula 安裝的是相同的檔案。
 
 ### 驗證
 
 ```console
-$ kakikomi --version
-kakikomi 1.0.0
+$ kakikomi doctor
+dd                 ok       /bin/dd
+cmp                ok       /usr/bin/cmp
+od                 ok       /usr/bin/od
+awk                ok       /usr/bin/awk
+sed                ok       /usr/bin/sed
+sudo               ok       /usr/bin/sudo
+sha256sum|shasum   ok       /sbin/sha256sum
+diskutil           ok       /usr/sbin/diskutil
+hdiutil            ok       /usr/bin/hdiutil
+curl               ok       /usr/bin/curl
+gzip               ok       /usr/bin/gzip
+xz                 ok       /opt/homebrew/bin/xz
+zstd               ok       /opt/homebrew/bin/zstd
+bzip2              ok       /usr/bin/bzip2
+bsdtar|7z          ok       /usr/bin/bsdtar
+qemu-img           ok       /opt/homebrew/bin/qemu-img
+mcopy              ok       /opt/homebrew/bin/mcopy
+wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 ```
 
 ## 用法
 
-| 指令 | 用途 |
+| 指令 | 作用 |
 |:--------|:--------|
-| `kakikomi <image\|url\|device> [target...]` | 將映像寫入一個或多個磁碟。唔指定目標時，會列出可揀嘅抽取式磁碟 |
-| `kakikomi <windows.iso> <target>` | 將 Windows 安裝 ISO 佈置成可以 UEFI 開機嘅 FAT32 USB 手指 |
-| `kakikomi format <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | 快速格式化：只寫入新檔案系統嘅結構 |
-| `kakikomi --release` | 移除某次執行遺留低嘅掛載防護 |
-| 唔帶參數嘅 `kakikomi` | 喺終端機執行時，會先問你想做咩，再逐個問需要嘅值 |
-| `kakikomi doctor` | 列出 kakikomi 需要嘅工具同埋有冇安裝 |
+| `kakikomi [options] <image\|url\|device> [target...]` | 把映像寫入一個或多個磁碟。不指定目標時，列出可選的可移除磁碟 |
+| `kakikomi <windows.iso> <target>` | 把 Windows 安裝 ISO 佈置成可用 UEFI 開機的 FAT32 手指 |
+| `kakikomi format [options] <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | 快速格式化：只寫入新檔案系統的結構 |
+| `kakikomi --release` | 移除中斷的執行留下的掛載防護 |
+| 不帶參數的 `kakikomi` | 在終端機執行時，先問要做甚麼，再逐項詢問 |
+| `kakikomi doctor` | 列出 kakikomi 需要的工具及是否已安裝 |
 | `kakikomi version`、`kakikomi help` | 顯示版本或完整用法 |
 
 | 來源 | 讀取方式 |
 |:-------|:---------------|
 | `.img`、`.iso`、`.bin`、`.raw`、`.dsk`、`.ima` | 直接讀取 |
 | `.gz`、`.xz`、`.zst`、`.bz2` | 串流讀取，從不解壓到磁碟 |
-| 只得一個映像嘅 `.zip` | 用 `bsdtar` 串流讀取 |
-| `.dmg`、`.vhd`、`.vhdx`、`.vmdk`、`.qcow2` | 檢查可用空間後先轉換成 raw |
-| `http://` 或 `https://` URL | 可續傳下載之後當檔案讀取 |
-| `/dev/...` | 由該磁碟機複製，嗰部磁碟機同樣唔會被掛載 |
+| 內含單一映像的 `.zip` | 用 `bsdtar` 串流讀取 |
+| `.dmg`、`.vhd`、`.vhdx`、`.vmdk`、`.qcow2` | 先檢查剩餘空間，再轉換為原始映像 |
+| `http://` 或 `https://` 網址 | 以可續傳方式下載，然後當作檔案讀取 |
+| `/dev/...` | 從該磁碟機複製，來源同樣保持不掛載 |
 
-| 變數 | 效果 |
-|:---------|:-------|
-| `VERIFY=n` | 跳過最後嘅全碟 SHA-256 比對。未設定時會問你 |
-| `DELETE=y` | 所有磁碟校驗通過後將映像移去垃圾桶。冇回讀時忽略 |
-| `AGAIN=y` | 將同一個映像寫入你插入嘅下一隻磁碟 |
-| `REINSERT=y` | 退出之後等磁碟重新插入再比對一次 |
-| `ZERO_TAIL=y` | 喺較大嘅磁碟上清空映像之後嘅空間 |
-| `SHA256=<hash>` | 映像唔吻合就停止。同目錄嘅 `.sha256` 或 `SHA256SUMS` 檔案會自動讀取 |
-| `ALLOW_INTERNAL=y` | 允許內置磁碟。正在運行嘅系統所在嘅磁碟一定會被拒絕 |
-| `KEEP_GUARD=y` | 執行後保留 fstab 防護，等呢部 Mac 永遠唔掛載嗰隻磁碟 |
-| `MODE=raw` | 逐個 byte 照寫 Windows ISO，而唔係佈置成 FAT32 |
+| 選項 | 效果 |
+|:-------|:-------|
+| `--verify`、`--no-verify` | 最後把整個磁碟與映像的 SHA-256 比對，或略過。未指定時在終端機詢問 |
+| `--delete`、`--no-delete` | 所有磁碟校驗通過後把映像移到垃圾桶，或保留。沒有回讀時會忽略 |
+| `--again` | 把同一映像寫入你插入的下一個磁碟 |
+| `--reinsert`、`--no-reinsert` | 退出後等待磁碟重新插入，再比對一次 |
+| `--zero-tail` | 在較大的磁碟上清空映像之後的空間 |
+| `--sha256 HASH` | 映像不吻合就停止。同目錄的 `.sha256` 或 `SHA256SUMS` 檔案會自動讀取 |
+| `--allow-internal` | 允許內置磁碟。正在運行的系統所在的磁碟一定會被拒絕 |
+| `--keep-guard` | 執行後保留 fstab 防護，令這部 Mac 永不掛載該磁碟 |
+| `--raw` | 把 Windows ISO 逐個 byte 原樣寫入，而不是佈置成 FAT32 |
+
+也可以寫成 `--sha256=HASH`，`--` 表示選項結束。環境變數 `VERIFY`、`DELETE`、`AGAIN`、`REINSERT`、`ZERO_TAIL`、`SHA256`、`ALLOW_INTERNAL`、`KEEP_GUARD` 和 `MODE=raw` 以 `y` 或 `n` 設定同樣的選項，命令列上的選項優先。
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
 kakikomi https://example.org/os.img.gz            # pick the target from a list
 kakikomi /dev/disk4 /dev/disk5                    # clone disk4 onto disk5
-AGAIN=y kakikomi game.ima /dev/disk6              # a batch of floppies
+kakikomi --again game.ima /dev/disk6              # a batch of floppies
 kakikomi format /dev/disk4 exfat MEDIA
 ```
+
+kakikomi 遵循同系列工具共用的命令列約定，詳見 [FAMILY.md](FAMILY.md)。
 
 <a id="never-mounted"></a>
 
 ## 絕不掛載
 
-macOS 只要掛載 FAT 卷，就算得一剎那，都會寫入 `.fseventsd`、`.Spotlight-V100` 同 `._` 檔案，於是為懷舊機器寫好嘅磁碟攞返嚟時已經變咗。kakikomi 令系統無從入手：
+macOS 只要掛載 FAT 卷，哪怕只是一瞬間，都會寫入 `.fseventsd`、`.Spotlight-V100` 和 `._` 檔案，所以為舊式電腦寫好的磁碟會被改動。kakikomi 會把系統擋在外面：
 
 ```mermaid
 graph LR
     A["確認目標"] --> B["清空第一個 MiB"]
-    B --> C["寫入並校驗其餘每塊"]
-    C --> D["將每個卷宣告為 noauto"]
+    B --> C["寫入並校驗其餘每一塊"]
+    C --> D["把每個卷宣告為 noauto"]
     D --> E["寫入並校驗第一個 MiB"]
     E --> F["退出"]
     F --> G["移除防護"]
@@ -133,34 +169,34 @@ graph LR
 
 | 步驟 | 細節 |
 |:-----|:-------|
-| 直到最後都冇嘢可以掛載 | 第一個 MiB 係空白，就冇分割表同開機扇區，DiskArbitration 同 udisks 都搵唔到卷 |
-| 出現之前先宣告 | macOS：由用 `-nomount` 掛接、只有標頭嘅副本讀取每個卷嘅 UUID，以 `noauto` 寫入 `/etc/fstab`。Linux：為該裝置加入 `UDISKS_IGNORE` udev 規則 |
-| 監察 | 執行期間發現掛載即當失敗，並列出系統建立嘅檔案 |
-| 證明 | `REINSERT=y` 喺你拔插之後回讀成隻磁碟 |
+| 直到最後都無法掛載 | 第一個 MiB 是空白的，沒有分割表也沒有開機磁區，DiskArbitration 和 udisks 都找不到卷 |
+| 出現之前已經宣告 | macOS：每個卷的 UUID 以 `noauto` 寫入 `/etc/fstab`，UUID 取自以 `-nomount` 掛接、只含標頭的副本。Linux：為該裝置加入 `UDISKS_IGNORE` 的 udev 規則 |
+| 持續監察 | 執行期間只要發現掛載就判為失敗，並列出系統建立的檔案 |
+| 加以證明 | `--reinsert` 會在你拔出再插入後，回讀整個磁碟 |
 
-中途停止嘅執行會令第一個 MiB 保持空白，所以寫咗一半嘅磁碟一樣掛載唔到。
+執行到一半停下時，第一個 MiB 仍然是空白的，所以寫了一半的磁碟也無法掛載。
 
-## 一遇到問題就停
+## 遇到第一個問題就停止
 
-每一塊都會寫入、回讀、比對，之後先處理下一塊。kakikomi 會先測量磁碟本身嘅速度，再根據結果為每次傳輸設定期限。唔吻合、停頓或者裝置消失，都會停止嗰隻磁碟、退出佢，並印出出錯嘅位線。
+每一塊都先寫入、回讀並比對，才進行下一塊。kakikomi 先量度磁碟本身的速度，再根據結果為每次傳輸設定期限。不吻合、停頓或裝置消失，都會停止該磁碟、把它退出，並列出出錯的位線。
 
 | 磁碟機 | 處理方式 |
 |:------|:----------|
-| Zip、Jaz、PocketZip | 期限更嚴而且唔重試；停頓會當成磁頭偏離，偏離咗嘅磁頭會整壞佢遇到嘅下一隻碟 |
-| 軟碟、SuperDisk | 唔重試，並等你取出磁碟，因為呢啲磁碟機冇得用軟件退出 |
-| 其他 | 每塊試三次，然後停止 |
+| Zip、Jaz、PocketZip | 期限更嚴而且不重試；停頓會被視為磁頭偏離，偏離的磁頭會損壞它遇到的下一隻碟 |
+| 軟碟、SuperDisk | 不重試，並等你取出磁碟，因為這些磁碟機無法用軟件退出 |
+| 其他 | 每塊嘗試三次，然後停止 |
 
-有多個目標時，每隻磁碟由獨立嘅 worker 寫入，一隻出錯唔會影響其他。
+有多個目標時，每個磁碟由各自的工作程序寫入，其中一個出錯不會影響其他磁碟。
 
-## Windows 安裝碟
+## Windows 安裝程式
 
-逐個 byte 照寫嘅 Windows ISO 冇辦法由 USB 開機。kakikomi 會認出佢，建立一個 MBR 磁碟，入面只有一個載住所有檔案嘅 FAT32 分割區，並用 `wimlib` 拆開超過 4 GiB 嘅 `install.wim`。檔案用 `mtools` 複製，目標從不被掛載，寫入卷之前每個檔案都會回讀比對。結果可以喺 UEFI 機器上開機。
+逐個 byte 寫入的 Windows ISO 無法從 USB 開機。kakikomi 會偵測這類 ISO，建立一個只有單一 FAT32 分割區的 MBR 磁碟，把所有檔案放進去，並用 `wimlib` 分割超過 4 GiB 的 `install.wim`。檔案用 `mtools` 複製，所以目標從不掛載；寫入卷之前，每個檔案都會回讀比對。成品可以在 UEFI 電腦上開機。
 
 <a id="portability"></a>
 
 ## 可攜性
 
-所有程式碼都係 POSIX `sh`，ShellCheck `-o all` 零發現，冇停用任何檢查。測試喺 macOS 嘅 `/bin/sh`、`dash`、`bash`、`bash --posix` 同 `zsh` 之下運行，亦喺特權容器入面嘅 Ubuntu 用相同嘅 shell 運行。
+全部是 POSIX `sh`，ShellCheck `-o all` 零發現，沒有停用任何檢查。測試在 macOS 的 `/bin/sh`、`dash`、`bash`、`bash --posix` 和 `zsh` 下執行，亦在特權容器內的 Ubuntu 以相同的 shell 執行。
 
 <a id="development"></a>
 
@@ -168,13 +204,13 @@ graph LR
 
 | 指令 | 說明 |
 |:--------|:------------|
-| `make lint` | 對每個腳本執行 ShellCheck |
-| `make test` | 喺系統 `sh` 之下執行 211 個 `bats` 測試 |
-| `make test-all` | 喺每個已安裝嘅 shell 之下執行相同測試 |
-| `make test-linux` | 由 Mac 喺特權 Ubuntu 容器入面執行相同測試 |
-| `make coverage` | 喺呢部 Mac 同同一個容器用 bashcov 量度行覆蓋率並合併，CI 要求 100% |
+| `make lint` | 對每個腳本和自動補全執行 ShellCheck，用 mandoc 檢查 man 說明頁，並檢查沒有函數被重複定義 |
+| `make test` | 在系統 `sh` 下執行 222 個 `bats` 測試 |
+| `make test-all` | 在每個已安裝的 shell 下執行相同測試 |
+| `make test-linux` | 從 Mac 在特權 Ubuntu 容器內執行相同測試 |
+| `make coverage` | 在這部 Mac 和同一個容器內用 bashcov 量度行覆蓋率並合併，CI 要求 100% |
 
-測試用 `hdiutil` 或 `losetup` 掛接以檔案為後端嘅磁碟，真實寫入，並喺 Linux 上用 `dmsetup` 注入 I/O 錯誤。CI 喺 Ubuntu 同 macOS 上運行。每次推送到 `main` 都會執行 semantic-release：有 `feat` 或 `fix` commit 時就會發佈 release，更新 [`lib/core.sh`](lib/core.sh) 入面嘅 `KAKIKOMI_VERSION` 同 CHANGELOG，並更新 Homebrew formula。
+測試用 `hdiutil` 或 `losetup` 掛接以檔案為後端的磁碟並真實寫入，在 Linux 上用 `dmsetup` 注入 I/O 錯誤。CI 在 Ubuntu 和 macOS 上執行。每次推送到 `main` 都會執行 semantic-release：`feat` 或 `fix` commit 會發佈新版本，更新 [`lib/core.sh`](lib/core.sh) 內的 `KAKIKOMI_VERSION` 和 CHANGELOG，並更新 Homebrew formula。
 
 ## 授權
 

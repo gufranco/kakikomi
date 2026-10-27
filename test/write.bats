@@ -79,7 +79,7 @@ write_with() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: the image needs 16777728 bytes and ${DEVICE} holds 16777216."* ]]
+  [[ "${output}" == *"stopped: the image needs 16777728 bytes and ${DEVICE} holds 16777216."* ]]
   local first
   first="$(disk_test_range_bytes "${TARGET_IMG}" 0 512)"
   [[ "${first}" == "aa" ]] || { printf "found bytes: %s\n" "${first}"; false; }
@@ -94,7 +94,7 @@ write_with() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Operation cancelled"* ]]
+  [[ "${output}" == *"cancelled, nothing was touched."* ]]
   local bytes
   bytes="$(disk_test_unique_bytes "${TARGET_IMG}")"
   [[ "${bytes}" == "aa" ]] || { printf "found bytes: %s\n" "${bytes}"; false; }
@@ -123,7 +123,7 @@ write_with() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"ZERO_TAIL=y blanks it."* ]]
+  [[ "${output}" == *"--zero-tail blanks it."* ]]
   local tail_bytes
   tail_bytes="$(disk_test_range_bytes "${TARGET_IMG}" 8388608 8388608)"
   [[ "${tail_bytes}" == "aa" ]] || { printf "found bytes: %s\n" "${tail_bytes}"; false; }
@@ -152,7 +152,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status_code}" -ne 0 ]]
-  grep -q "STOPPED: interrupted during write chunk" "${log}" || { cat "${log}"; false; }
+  grep -q "stopped: interrupted during write chunk" "${log}" || { cat "${log}"; false; }
   disk_test_detach "${DEVICE}"
   local head_bytes
   head_bytes="$(disk_test_range_bytes "${TARGET_IMG}" 0 1048576)"
@@ -170,7 +170,7 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ -n "${boot}" ]] || skip "no block device holds / on this host"
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: ${boot} holds the running system, so it is never a target."* ]]
+  [[ "${output}" == *"stopped: ${boot} holds the running system, so it is never a target."* ]]
 }
 
 @test "kakikomi skips the read-back and keeps the image when VERIFY=n" {
@@ -182,7 +182,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"DELETE=y is ignored because nothing was read back"* ]]
+  [[ "${output}" == *"--delete is ignored because nothing was read back"* ]]
   [[ -f "${IMAGE}" ]]
 }
 
@@ -208,7 +208,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"The image changed while it was being written, so it is kept."* ]]
+  [[ "${output}" == *"the image changed while it was being written, so it is kept."* ]]
   [[ -f "${image}" ]]
 }
 

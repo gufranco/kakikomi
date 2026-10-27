@@ -40,31 +40,31 @@ disk_trash() {
   if disk_cmd_exists gio; then
     gio trash "$1" && return 0
   fi
-  printf 'No Trash is available. Type delete to remove %s for good: ' "$1"
+  printf 'No Trash is available. Type delete to remove %s for good: ' "$1" >&2
   disk_tr_answer=""
   IFS= read -r disk_tr_answer || disk_tr_answer=""
   if [ "${disk_tr_answer}" = "delete" ]; then
     rm -f "$1" && return 0
   fi
-  disk_warning "Kept $1."
+  disk_warning "kept $1."
   return 1
 }
 
 disk_delete_source() {
   [ "${DELETE:-}" = "y" ] || return 0
   if [ "${VERIFY:-y}" = "n" ]; then
-    disk_warning "DELETE=y is ignored because nothing was read back, so nothing proves the copy is good."
+    disk_warning "--delete is ignored because nothing was read back, so nothing proves the copy is good."
     return 0
   fi
   if [ "${DISK_SRC_KIND}" = "device" ]; then
-    disk_warning "The source is a drive, so there is no image file to delete."
+    disk_warning "the source is a drive, so there is no image file to delete."
     return 0
   fi
   disk_ds_now="$(disk_source_sha256)"
   if [ "${disk_ds_now}" != "${DISK_SRC_SHA}" ]; then
-    disk_error "The image changed while it was being written, so it is kept."
-    disk_error "Before: ${DISK_SRC_SHA}"
-    disk_error "Now:    ${disk_ds_now}"
+    disk_error "the image changed while it was being written, so it is kept."
+    disk_error "before: ${DISK_SRC_SHA}"
+    disk_error "now:    ${disk_ds_now}"
     return 1
   fi
   if disk_trash "${DISK_SRC_ORIGIN}"; then
@@ -100,13 +100,13 @@ disk_reinsert_check() {
     disk_rc_waited=$((disk_rc_waited + 1))
   done
   if [ -z "${disk_rc_disk:-}" ]; then
-    disk_warning "The disk did not come back within ${disk_rc_shown}, so the reinsertion check was skipped."
+    disk_warning "the disk did not come back within ${disk_rc_shown}, so the reinsertion check was skipped."
     return 0
   fi
   sleep 5
   disk_rc_status=0
   if disk_is_mounted "${disk_rc_disk}"; then
-    disk_error "STOPPED: the system mounted ${disk_rc_disk} when it came back."
+    disk_error "stopped: the system mounted ${disk_rc_disk} when it came back."
     disk_rc_status=1
   fi
   disk_validate_target "${disk_rc_disk}" "${DISK_SRC_SIZE}" "${DISK_SRC_SHA}" || disk_rc_status=1
@@ -126,7 +126,7 @@ disk_after_write() {
   [ "$1" -eq 0 ] || return 1
   disk_aw_round=1
   while disk_again_allowed "${disk_aw_round}"; do
-    printf 'Insert the next disk and press Enter, or type q to finish: '
+    printf 'Insert the next disk and press Enter, or type q to finish: ' >&2
     disk_aw_answer=""
     IFS= read -r disk_aw_answer || disk_aw_answer="q"
     [ "${disk_aw_answer}" = "q" ] && break

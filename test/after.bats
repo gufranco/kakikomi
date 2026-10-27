@@ -121,5 +121,5 @@ mkdir -p '${WORK}/Gio' && mv -f \"\$2\" '${WORK}/Gio/'"
   run answer_and_write "${answers}" "REINSERT=y" "${IMAGE}" "${DEV1}" "${DEV2}"
 
   # Assert
-  [[ "${output}" == *"REINSERT=y checks one disk at a time, so it is skipped when writing several."* ]]
+  [[ "${output}" == *"--reinsert checks one disk at a time, so it is skipped when writing several."* ]]
 }

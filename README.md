@@ -19,22 +19,37 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 211 tests, 14 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
+One command, 222 tests, 14 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
 
 ---
 
 ```console
-$ kakikomi debian.img.xz /dev/disk4
+$ kakikomi debian.img.xz /dev/disk6
+Computing the image's SHA-256.
+
 Image:  debian.img.xz
-        xz, 1.4 GiB (1501560832 bytes)
-Target: /dev/disk4, 14.9 GiB, SANDISK ULTRA
-Type disk4 to write, or anything else to stop: disk4
-Blanking the first 1.0 MiB so nothing on /dev/disk4 is mountable until the very end.
-Told macOS not to mount the 2 volume(s) in this image.
-Writing the first 1.0 MiB last.
+        xz, 16.0 MiB (16777216 bytes)
+        SHA-256 dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
+Target: /dev/disk6, 16.0 MiB, DISK IMAGE
+        Everything on it is replaced, including:
+          +16.8 MB disk6
+
+Type disk6 to write, or anything else to stop: disk6
+Unmounting /dev/disk6...
+Disk unmounted
+Measuring /dev/disk6 before writing it, so every limit comes from this disk.
+Measured read: 232800 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
+Measured write: 83142 KiB/s sustained, 29ms to reach a sector, allowing 3x that before stopping.
+Blanking the first 16.0 MiB so nothing on /dev/disk6 is mountable until the very end.
+Writing  50%  86.0 MiB/s  0m00s left
+The image holds no volume macOS would mount.
+Writing the first 16.0 MiB last.
+Writing 100%  34.7 MiB/s  0m00s left
 Wrote and verified every chunk of the image.
-Validated: /dev/disk4 matches the image, SHA-256 9f86d081884c7d65...
-Ejected. /dev/disk4 is safe to remove.
+Reading back all 16.0 MiB to compare with the image.
+Validated: /dev/disk6 matches the image, SHA-256 dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
+Ejecting /dev/disk6...
+Ejected. /dev/disk6 is safe to remove.
 ```
 
 <a id="quick-start"></a>
@@ -65,22 +80,39 @@ cd kakikomi
 make install
 ```
 
-`make install` copies the tool under `~/.local` and puts `kakikomi` in `~/.local/bin`; set `PREFIX` to change that.
+`make install` copies the tool, its man page and its bash, zsh and fish completions under `~/.local`, and puts `kakikomi` in `~/.local/bin`; set `PREFIX` to change that. The Homebrew formula installs the same files.
 
 ### Verify
 
 ```console
-$ kakikomi --version
-kakikomi 1.0.0
+$ kakikomi doctor
+dd                 ok       /bin/dd
+cmp                ok       /usr/bin/cmp
+od                 ok       /usr/bin/od
+awk                ok       /usr/bin/awk
+sed                ok       /usr/bin/sed
+sudo               ok       /usr/bin/sudo
+sha256sum|shasum   ok       /sbin/sha256sum
+diskutil           ok       /usr/sbin/diskutil
+hdiutil            ok       /usr/bin/hdiutil
+curl               ok       /usr/bin/curl
+gzip               ok       /usr/bin/gzip
+xz                 ok       /opt/homebrew/bin/xz
+zstd               ok       /opt/homebrew/bin/zstd
+bzip2              ok       /usr/bin/bzip2
+bsdtar|7z          ok       /usr/bin/bsdtar
+qemu-img           ok       /opt/homebrew/bin/qemu-img
+mcopy              ok       /opt/homebrew/bin/mcopy
+wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 ```
 
 ## Usage
 
 | Command | Purpose |
 |:--------|:--------|
-| `kakikomi <image\|url\|device> [target...]` | Write an image to one or more disks. With no target, lists the removable disks to pick from |
+| `kakikomi [options] <image\|url\|device> [target...]` | Write an image to one or more disks. With no target, lists the removable disks to pick from |
 | `kakikomi <windows.iso> <target>` | Lay a Windows installer ISO out as a UEFI-bootable FAT32 stick |
-| `kakikomi format <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | Quick format: write only the new filesystem's structures |
+| `kakikomi format [options] <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | Quick format: write only the new filesystem's structures |
 | `kakikomi --release` | Remove the mount guards a run left behind |
 | `kakikomi` with no arguments | Ask what to do, then for each value, when run in a terminal |
 | `kakikomi doctor` | List the tools kakikomi needs and whether they are installed |
@@ -95,25 +127,29 @@ kakikomi 1.0.0
 | `http://` or `https://` URL | Downloaded with resume, then read as a file |
 | `/dev/...` | Cloned from that drive, which is also kept unmounted |
 
-| Variable | Effect |
-|:---------|:-------|
-| `VERIFY=n` | Skip the whole-disk SHA-256 comparison at the end. Asked when unset |
-| `DELETE=y` | Move the image to the Trash once every disk validated. Ignored when nothing was read back |
-| `AGAIN=y` | Write the same image to the next disk you insert |
-| `REINSERT=y` | After ejecting, wait for the disk to come back and compare it again |
-| `ZERO_TAIL=y` | Blank the space past the image on a larger disk |
-| `SHA256=<hash>` | Stop unless the image matches. A sibling `.sha256` or `SHA256SUMS` file is read automatically |
-| `ALLOW_INTERNAL=y` | Allow an internal disk. The disk holding the running system is always refused |
-| `KEEP_GUARD=y` | Keep the fstab guard after the run, so this Mac never mounts that disk |
-| `MODE=raw` | Write a Windows ISO byte for byte instead of laying it out as FAT32 |
+| Option | Effect |
+|:-------|:-------|
+| `--verify`, `--no-verify` | Compare the whole disk with the image's SHA-256 at the end, or skip it. Asked in a terminal when not given |
+| `--delete`, `--no-delete` | Move the image to the Trash once every disk validated, or keep it. Ignored when nothing was read back |
+| `--again` | Write the same image to the next disk you insert |
+| `--reinsert`, `--no-reinsert` | After ejecting, wait for the disk to come back and compare it again |
+| `--zero-tail` | Blank the space past the image on a larger disk |
+| `--sha256 HASH` | Stop unless the image matches. A sibling `.sha256` or `SHA256SUMS` file is read automatically |
+| `--allow-internal` | Allow an internal disk. The disk holding the running system is always refused |
+| `--keep-guard` | Keep the fstab guard after the run, so this Mac never mounts that disk |
+| `--raw` | Write a Windows ISO byte for byte instead of laying it out as FAT32 |
+
+`--sha256=HASH` works too, and `--` ends the options. The environment variables `VERIFY`, `DELETE`, `AGAIN`, `REINSERT`, `ZERO_TAIL`, `SHA256`, `ALLOW_INTERNAL`, `KEEP_GUARD` and `MODE=raw` set the same options, with `y` or `n`; an option on the command line wins.
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
 kakikomi https://example.org/os.img.gz            # pick the target from a list
 kakikomi /dev/disk4 /dev/disk5                    # clone disk4 onto disk5
-AGAIN=y kakikomi game.ima /dev/disk6              # a batch of floppies
+kakikomi --again game.ima /dev/disk6              # a batch of floppies
 kakikomi format /dev/disk4 exfat MEDIA
 ```
+
+kakikomi follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
 
 <a id="never-mounted"></a>
 
@@ -136,7 +172,7 @@ graph LR
 | Nothing mountable until the end | With the first MiB blank there is no partition table or boot sector, so neither DiskArbitration nor udisks finds a volume |
 | Declared before it appears | macOS: each volume's UUID goes into `/etc/fstab` as `noauto`, read from a header-only copy attached with `-nomount`. Linux: a `UDISKS_IGNORE` udev rule for the device |
 | Watched | A mount seen during the run fails it and names the files the system created |
-| Proven | `REINSERT=y` reads the whole disk back after you unplug and replug it |
+| Proven | `--reinsert` reads the whole disk back after you unplug and replug it |
 
 A run stopped halfway leaves the first MiB blank, so the half-written disk is not mountable either.
 
@@ -168,8 +204,8 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabl
 
 | Command | Description |
 |:--------|:------------|
-| `make lint` | ShellCheck on every script |
-| `make test` | The 211 `bats` tests under the system `sh` |
+| `make lint` | ShellCheck on every script and completion, mandoc on the man page, and a check that no function is defined twice |
+| `make test` | The 222 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
 | `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |

@@ -104,7 +104,7 @@ laying_out_on() {
   run laying_out_on "${farm}"
 
   # Assert
-  [[ "${output}" == *"Neither bsdtar nor 7z is installed, so this ISO cannot be checked for a Windows installer."* ]]
+  [[ "${output}" == *"neither bsdtar nor 7z is installed, so this ISO cannot be checked for a Windows installer."* ]]
 }
 
 @test "kakikomi extracts an ISO with bsdtar when 7z is missing" {
@@ -133,7 +133,7 @@ laying_out_on() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: install.wim is over 4 GiB, which FAT32 cannot hold, and wimlib-imagex is needed to split it."* ]]
+  [[ "${output}" == *"stopped: install.wim is over 4 GiB, which FAT32 cannot hold, and wimlib-imagex is needed to split it."* ]]
 }
 
 @test "kakikomi stops when install.wim cannot be split" {
@@ -146,7 +146,7 @@ laying_out_on() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: wimlib-imagex could not split install.wim."* ]]
+  [[ "${output}" == *"stopped: wimlib-imagex could not split install.wim."* ]]
 }
 
 @test "kakikomi needs mtools to build a Windows drive" {
@@ -160,7 +160,7 @@ laying_out_on() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: building a Windows USB needs mtools."* ]]
+  [[ "${output}" == *"stopped: building a Windows USB needs mtools."* ]]
 }
 
 @test "kakikomi stops when there is no room to lay the ISO out" {
@@ -173,7 +173,7 @@ laying_out_on() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: laying out this ISO needs about"* ]]
+  [[ "${output}" == *"stopped: laying out this ISO needs about"* ]]
 }
 
 @test "kakikomi stops when the ISO cannot be extracted" {
@@ -189,7 +189,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: the ISO could not be extracted."* ]]
+  [[ "${output}" == *"stopped: the ISO could not be extracted."* ]]
 }
 
 @test "kakikomi stops when the FAT32 volume cannot be built" {
@@ -202,7 +202,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: the FAT32 volume could not be created."* ]]
+  [[ "${output}" == *"stopped: the FAT32 volume could not be created."* ]]
 }
 
 @test "kakikomi stops when the installer files cannot be copied" {
@@ -216,7 +216,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: copying the installer files into the FAT32 volume failed."* ]]
+  [[ "${output}" == *"stopped: copying the installer files into the FAT32 volume failed."* ]]
 }
 
 @test "kakikomi names the files that did not read back from the volume" {
@@ -230,6 +230,6 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: these files did not copy into the FAT32 volume intact:"* ]]
+  [[ "${output}" == *"stopped: these files did not copy into the FAT32 volume intact:"* ]]
   [[ "${output}" == *"setup.exe"* ]]
 }

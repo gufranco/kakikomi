@@ -42,23 +42,36 @@ kakikomi - write disk images to removable media, verified chunk by chunk, never 
 
 usage:
   kakikomi                                  ask what to do, step by step
-  kakikomi <image|url|device> [target...]   write an image to one or more disks
-  kakikomi format [target] [fat32|exfat|fat|floppy] [label]
+  kakikomi [options] <image|url|device> [target...]
+                                            write an image to one or more disks
+  kakikomi format [options] [target] [fat32|exfat|fat|floppy] [label]
+                                            quick format a disk
   kakikomi --release                        remove mount guards a run left behind
-  kakikomi doctor
-  kakikomi version
-  kakikomi help
+  kakikomi doctor                           check the tools kakikomi needs
+  kakikomi version                          print the version
+  kakikomi help                             print this page
+
+options:
+  --verify | --no-verify       read the whole disk back and compare its SHA-256
+                               at the end (default yes)
+  --delete | --no-delete       move the image to the Trash once every disk
+                               validated (default no)
+  --again                      write the same image to the next disk you insert
+  --reinsert | --no-reinsert   after ejecting, wait for the disk to return and
+                               compare again (default no)
+  --zero-tail                  blank the space past the image on a larger disk
+  --sha256 HASH                stop unless the image matches. a sibling .sha256
+                               is read too
+  --allow-internal             allow an internal disk. the system disk is always
+                               refused
+  --keep-guard                 keep macOS from ever mounting that disk again
+  --raw                        write a Windows ISO as is instead of as a FAT32
+                               installer
 
 environment:
-  VERIFY=n          skip the whole-disk SHA-256 comparison at the end
-  DELETE=y          move the image to the Trash once every disk validated
-  AGAIN=y           write the same image to the next disk you insert
-  REINSERT=y        after ejecting, wait for the disk to return and compare again
-  ZERO_TAIL=y       blank the space past the image on a larger disk
-  SHA256=<hash>     stop unless the image matches. a sibling .sha256 is read too
-  ALLOW_INTERNAL=y  allow an internal disk. the system disk is always refused
-  KEEP_GUARD=y      keep macOS from ever mounting that disk again
-  MODE=raw          write a Windows ISO as is instead of as a FAT32 installer
+  VERIFY, DELETE, AGAIN, REINSERT, ZERO_TAIL, SHA256, ALLOW_INTERNAL,
+  KEEP_GUARD and MODE=raw set the same options, with y or n for yes or no. an
+  option on the command line wins.
 
 notes:
   Leave the target out to pick from the attached removable disks. The target
@@ -70,9 +83,57 @@ examples:
   kakikomi https://example.org/os.img.gz
   kakikomi debian.img.xz /dev/disk4 /dev/disk5
   kakikomi /dev/disk4 /dev/disk5
-  AGAIN=y kakikomi game.ima
+  kakikomi --again game.ima
   kakikomi format /dev/disk4 exfat MEDIA
 USAGE
+}
+
+disk_option_flag() {
+  case "$1" in
+    --verify) VERIFY=y ;;
+    --no-verify) VERIFY=n ;;
+    --delete) DELETE=y ;;
+    --no-delete) DELETE=n ;;
+    --again) AGAIN=y ;;
+    --reinsert) REINSERT=y ;;
+    --no-reinsert) REINSERT=n ;;
+    --zero-tail) ZERO_TAIL=y ;;
+    --allow-internal) ALLOW_INTERNAL=y ;;
+    --keep-guard) KEEP_GUARD=y ;;
+    --raw) MODE=raw ;;
+    *) return 1 ;;
+  esac
+  export VERIFY DELETE AGAIN REINSERT ZERO_TAIL ALLOW_INTERNAL KEEP_GUARD MODE
+  return 0
+}
+
+disk_option_value() {
+  SHA256="$2"
+  export SHA256
+  return 0
+}
+
+disk_parse() {
+  DISK_VALUE_OPTIONS="--sha256"
+  disk_pa_left="$#"
+  disk_pa_literal=0
+  while [ "${disk_pa_left}" -gt 0 ]; do
+    disk_pa_arg="$1"
+    shift
+    disk_pa_left=$((disk_pa_left - 1))
+    if [ "${disk_pa_literal}" -eq 1 ] || ! disk_cli_is_option "${disk_pa_arg}"; then
+      set -- "$@" "${disk_pa_arg}"
+    elif [ "${disk_pa_arg}" = "--" ]; then
+      disk_pa_literal=1
+    else
+      disk_cli_option "${disk_pa_arg}" "${disk_pa_left}" "${1:-}" || return 1
+      if [ "${DISK_CLI_USED}" -eq 1 ]; then
+        shift
+        disk_pa_left=$((disk_pa_left - 1))
+      fi
+    fi
+  done
+  "${DISK_PARSED}" "$@"
 }
 
 disk_write_menu() {
@@ -97,7 +158,7 @@ disk_write_ask_image() {
 disk_write_windows_mode() {
   disk_is_windows_iso "${DISK_SRC_PATH}" || return 0
   disk_info "This is a Windows installer ISO. Written as is it would not boot from USB,"
-  disk_info "so it is laid out as a UEFI-bootable FAT32 drive instead. MODE=raw writes it unchanged."
+  disk_info "so it is laid out as a UEFI-bootable FAT32 drive instead. --raw writes it unchanged."
   disk_ww_image="$(disk_windows_image "${DISK_SRC_PATH}")" || return 1
   DISK_SRC_PATH="${disk_ww_image}"
   DISK_SRC_SIZE="$(disk_file_size "${disk_ww_image}")"
@@ -133,20 +194,24 @@ disk_write_main() {
     help | -h | --help) disk_write_usage ;;
     version | -V | --version) disk_cli_version ;;
     doctor) disk_doctor ;;
-    '')
-      if disk_cli_interactive; then
-        disk_write_menu
-        return "$?"
-      fi
-      disk_cli_hint "no image given"
-      return 1
+    *)
+      DISK_PARSED=disk_write_entry
+      disk_parse "$@"
       ;;
-    -*)
-      disk_cli_hint "unknown option '$1'"
-      return 1
-      ;;
-    *) disk_write_start "$@" ;;
   esac
+}
+
+disk_write_entry() {
+  if [ "$#" -gt 0 ]; then
+    disk_write_start "$@"
+    return "$?"
+  fi
+  if disk_cli_interactive; then
+    disk_write_menu
+    return "$?"
+  fi
+  disk_cli_hint "no image given"
+  return 1
 }
 
 disk_write_main "$@"

@@ -108,7 +108,7 @@ disk_body() {
     disk_bd_file="${DISK_TMPDIR}/chunk"
     [ "${disk_bd_offset}" -lt "${DISK_HEAD}" ] && disk_bd_file="${DISK_TMPDIR}/head-${disk_bd_index}"
     if ! disk_source_read "${disk_bd_offset}" "${DISK_CHUNK}" "${disk_bd_file}"; then
-      disk_error "STOPPED: the image could not be read at offset ${disk_bd_offset}."
+      disk_error "stopped: the image could not be read at offset ${disk_bd_offset}."
       return 1
     fi
     disk_pad_file "${disk_bd_file}" "${disk_bd_piece}" || return 1
@@ -143,7 +143,7 @@ disk_validate_target() {
   disk_info "Reading back all ${disk_vt_human} to compare with the image."
   disk_vt_hash="$({ sudo dd if="${disk_vt_io}" bs=1048576 2>/dev/null || true; } | head -c "$2" | disk_sha256_stdin)"
   if [ "${disk_vt_hash}" != "$3" ]; then
-    disk_error "STOPPED: $1 does not hold the image. Expected SHA-256 $3, read ${disk_vt_hash}."
+    disk_error "stopped: $1 does not hold the image. expected SHA-256 $3, read ${disk_vt_hash}."
     return 1
   fi
   disk_success "Validated: $1 matches the image, SHA-256 ${disk_vt_hash}"
@@ -184,7 +184,7 @@ disk_write_stages() {
   disk_head_last "${disk_ws_disk}" || return 1
   disk_success "Wrote and verified every chunk of the image."
   if [ "${DISK_MARGINAL}" -gt 0 ]; then
-    disk_warning "${DISK_MARGINAL} chunks only settled on a retry. This media is wearing out."
+    disk_warning "${DISK_MARGINAL} chunks only settled on a retry. this media is wearing out."
   fi
   return 0
 }
@@ -227,7 +227,7 @@ disk_write_target() {
   disk_wt_status=0
   disk_wt_raw="$(disk_size_bytes "${disk_wt_disk}")"
   disk_guard_on "${disk_wt_disk}" || {
-    disk_error "STOPPED: could not stop the system from mounting ${disk_wt_disk}."
+    disk_error "stopped: could not stop the system from mounting ${disk_wt_disk}."
     disk_drop_tmpdir
     return 1
   }
@@ -244,7 +244,7 @@ disk_write_target() {
     disk_reinsert_check "${disk_wt_disk}" "${disk_wt_raw}" "$2" || disk_wt_status=1
   elif [ -n "${DISK_GUARD_DECLARED}" ]; then
     KEEP_GUARD=y
-    disk_warning "The mount guard for ${disk_wt_disk} stays in place. Run kakikomi --release once the disk is out."
+    disk_warning "the mount guard for ${disk_wt_disk} stays in place. run kakikomi --release once the disk is out."
   fi
   disk_breach_stop "${disk_wt_disk}" || disk_wt_status=1
   disk_guard_off
@@ -264,7 +264,7 @@ disk_finish_eject() {
       if disk_bounded 30 sudo diskutil eject "$1" >/dev/null 2>&1 || disk_bounded 30 sudo eject "$1" >/dev/null 2>&1; then
         disk_success "Ejected. $1 is safe to remove."
       else
-        disk_warning "$1 did not eject; it stays unmounted and guarded. Remove it once the light stops."
+        disk_warning "$1 did not eject; it stays unmounted and guarded. remove it once the light stops."
         disk_wait_removal "$1"
       fi
       ;;
@@ -282,7 +282,7 @@ disk_wait_removal() {
   done
   if [ "${KEEP_GUARD:-}" != "y" ]; then
     KEEP_GUARD=y
-    disk_warning "$1 is still attached, so the mount guard stays. Run kakikomi --release after removing it."
+    disk_warning "$1 is still attached, so the mount guard stays. run kakikomi --release after removing it."
   fi
   return 0
 }

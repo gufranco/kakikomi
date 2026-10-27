@@ -83,7 +83,7 @@ disk_zip_member() {
   disk_zm_count="$(printf '%s\n' "${disk_zm_files}" | sed '/^$/d' | wc -l)"
   disk_zm_count="$(printf '%s' "${disk_zm_count}" | tr -d '[:space:]')"
   if [ "${disk_zm_count}" -ne 1 ]; then
-    disk_error "STOPPED: $1 holds ${disk_zm_count} files, and only a zip with exactly one image can be written."
+    disk_error "stopped: $1 holds ${disk_zm_count} files, and only a zip with exactly one image can be written."
     disk_log_lines disk_error "${disk_zm_files}"
     disk_info "Extract the one you want with: bsdtar -xf '$1' '<member>'"
     return 1
@@ -166,7 +166,7 @@ disk_expected_sha256() {
 
 disk_download() {
   if ! disk_cmd_exists curl; then
-    disk_error "curl is required to download $1" >&2
+    disk_error "curl is required to download $1." >&2
     return 1
   fi
   disk_dl_cache="${XDG_CACHE_HOME:-${HOME}/.cache}/kakikomi"
@@ -177,7 +177,7 @@ disk_download() {
   disk_dl_target="${disk_dl_cache}/${disk_dl_name}"
   disk_info "Downloading $1" >&2
   if ! curl -fL --retry 3 --connect-timeout 20 -C - -o "${disk_dl_target}" "$1" >&2; then
-    disk_error "STOPPED: the download of $1 failed, so nothing was written." >&2
+    disk_error "stopped: the download of $1 failed, so nothing was written." >&2
     return 1
   fi
   printf '%s\n' "${disk_dl_target}"
@@ -203,25 +203,25 @@ disk_convert() {
       ;;
   esac
   if ! disk_cmd_exists "${disk_cv_tool}"; then
-    disk_error "STOPPED: a $2 image needs ${disk_cv_tool} to become a raw image: ${disk_cv_hint}." >&2
+    disk_error "stopped: a $2 image needs ${disk_cv_tool} to become a raw image: ${disk_cv_hint}." >&2
     return 1
   fi
   disk_cv_need="$(disk_file_size "$1")"
   disk_cv_free="$(disk_free_bytes "${DISK_SRC_WORK}")"
   if [ "${disk_cv_free}" -lt "${disk_cv_need}" ]; then
-    disk_error "STOPPED: converting $1 needs at least ${disk_cv_need} free bytes in ${DISK_SRC_WORK}, which has ${disk_cv_free}." >&2
+    disk_error "stopped: converting $1 needs at least ${disk_cv_need} free bytes in ${DISK_SRC_WORK}, which has ${disk_cv_free}." >&2
     return 1
   fi
   disk_info "Converting the $2 image to raw so it can be written and verified byte for byte." >&2
   if [ "$2" = "dmg" ]; then
     hdiutil convert "$1" -format UDTO -o "${disk_cv_out}" >/dev/null 2>&1 || {
-      disk_error "STOPPED: hdiutil could not convert $1." >&2
+      disk_error "stopped: hdiutil could not convert $1." >&2
       return 1
     }
     [ -f "${disk_cv_out}.cdr" ] && mv -f "${disk_cv_out}.cdr" "${disk_cv_out}"
   else
     qemu-img convert -O raw "$1" "${disk_cv_out}" >/dev/null 2>&1 || {
-      disk_error "STOPPED: qemu-img could not convert $1." >&2
+      disk_error "stopped: qemu-img could not convert $1." >&2
       return 1
     }
   fi
@@ -241,7 +241,7 @@ disk_source_open() {
     DISK_SRC_KIND="$(disk_source_kind "${DISK_SRC_PATH}")"
   fi
   if [ "${DISK_SRC_KIND}" != "device" ] && [ ! -f "${DISK_SRC_PATH}" ]; then
-    disk_error "Image not found: ${DISK_SRC_PATH}"
+    disk_error "image not found: ${DISK_SRC_PATH}"
     return 1
   fi
   disk_source_prepare
@@ -252,7 +252,7 @@ disk_source_prepare() {
     gzip | xz | zstd | bzip2)
       DISK_SRC_TOOL="$(disk_decompressor "${DISK_SRC_KIND}")"
       if ! disk_cmd_exists "${DISK_SRC_TOOL}"; then
-        disk_error "STOPPED: ${DISK_SRC_TOOL} is needed to read this ${DISK_SRC_KIND} image."
+        disk_error "stopped: ${DISK_SRC_TOOL} is needed to read this ${DISK_SRC_KIND} image."
         return 1
       fi
       DISK_SRC_STREAM=1
@@ -260,7 +260,7 @@ disk_source_prepare() {
       ;;
     zip)
       disk_cmd_exists bsdtar || {
-        disk_error "STOPPED: bsdtar is needed to read a zip image. Install libarchive-tools."
+        disk_error "stopped: bsdtar is needed to read a zip image. install libarchive-tools."
         return 1
       }
       disk_zip_member "${DISK_SRC_PATH}" || return 1
@@ -281,7 +281,7 @@ disk_source_prepare() {
       ;;
   esac
   if ! disk_is_uint "${DISK_SRC_SIZE}" || [ "${DISK_SRC_SIZE}" -eq 0 ]; then
-    disk_error "STOPPED: ${DISK_SRC_ORIGIN} is empty or its size could not be read."
+    disk_error "stopped: ${DISK_SRC_ORIGIN} is empty or its size could not be read."
     return 1
   fi
   return 0

@@ -9,7 +9,12 @@ kakikomi format - quick format a disk: write only the new filesystem's structure
 
 usage:
   kakikomi format                              ask for the disk, filesystem and label
-  kakikomi format <target> [fat32|exfat|fat|floppy] [label]
+  kakikomi format [options] <target> [fat32|exfat|fat|floppy] [label]
+                                               format that disk
+
+options:
+  --allow-internal    allow an internal disk. the system disk is always refused
+  The write options, such as --no-verify, apply here too.
 
 notes:
   Without a filesystem, disks up to 32 GiB get FAT32 and larger ones exFAT.
@@ -38,7 +43,7 @@ disk_format_fs() {
     '') disk_default_fs "$2" ;;
     fat32 | exfat | fat | floppy) printf '%s\n' "$1" ;;
     *)
-      disk_error "Unknown filesystem: $1. Use fat32, exfat, fat or floppy."
+      disk_error "unknown filesystem: $1. use fat32, exfat, fat or floppy."
       return 1
       ;;
   esac
@@ -54,7 +59,7 @@ disk_format_tools() {
     exfat) return 0 ;;
     *)
       disk_cmd_exists mformat && return 0
-      disk_error "STOPPED: FAT formatting needs mtools. Install it: brew install mtools, or apt install mtools."
+      disk_error "stopped: FAT formatting needs mtools. install it: brew install mtools, or apt install mtools."
       return 1
       ;;
   esac
@@ -65,7 +70,7 @@ disk_format_prefix() {
   disk_fp_prefix="${DISK_SRC_WORK}/format.img"
   disk_info "Building an empty $2 filesystem named $3 for ${4} bytes."
   disk_build_volume "${disk_fp_volume}" "$2" "$3" "$4" || {
-    disk_error "STOPPED: the $2 filesystem could not be created."
+    disk_error "stopped: the $2 filesystem could not be created."
     return 1
   }
   disk_fp_end="$(disk_metadata_end "${disk_fp_volume}" "${DISK_VOLUME_OFFSET}")"
@@ -80,27 +85,35 @@ disk_format_prefix() {
 disk_format_main() {
   case "${1:-}" in
     help | -h | --help) disk_format_usage ;;
-    '')
-      if disk_cli_interactive; then
-        disk_format_ask
-        return "$?"
-      fi
-      disk_cli_hint "no disk given to format"
-      return 1
+    *)
+      DISK_PARSED=disk_format_entry
+      disk_parse "$@"
       ;;
-    -*)
-      disk_cli_hint "unknown option '$1'"
-      return 1
-      ;;
-    *) disk_format_run "$@" ;;
   esac
+}
+
+disk_format_entry() {
+  if [ "$#" -gt 3 ]; then
+    disk_cli_hint "unexpected extra argument '$4'"
+    return 1
+  fi
+  if [ "$#" -gt 0 ]; then
+    disk_format_run "$@"
+    return "$?"
+  fi
+  if disk_cli_interactive; then
+    disk_format_ask
+    return "$?"
+  fi
+  disk_cli_hint "no disk given to format"
+  return 1
 }
 
 disk_format_run() {
   disk_fm_disk="$(disk_resolve "$1")" || return 1
   disk_fm_size="$(disk_size_bytes "${disk_fm_disk}")"
   if ! disk_is_uint "${disk_fm_size}" || [ "${disk_fm_size}" -eq 0 ]; then
-    disk_error "Unable to determine the size of ${disk_fm_disk}"
+    disk_error "unable to determine the size of ${disk_fm_disk}."
     return 1
   fi
   disk_fm_size=$((disk_fm_size / 1048576 * 1048576))

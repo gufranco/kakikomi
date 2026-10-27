@@ -46,7 +46,7 @@ teardown() {
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *") ${DEV1} "* ]]
-  [[ "${output}" == *"Not a listed number or disk: 0"* ]]
+  [[ "${output}" == *"not a listed number or disk: 0"* ]]
 }
 
 @test "kakikomi writes the disk chosen in the picker" {
@@ -96,7 +96,7 @@ teardown() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"${faulty_dev##*/}: STOPPED"* ]]
+  [[ "${output}" == *"${faulty_dev##*/}: stopped"* ]]
   [[ "${output}" == *"${DEV1}: written and verified."* ]]
   [[ "${output}" == *"${DEV3}: written and verified."* ]]
   disk_test_same_prefix "${IMAGE}" "${WORK}/t1.img"

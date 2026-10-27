@@ -43,7 +43,7 @@ minimal_path() {
   # Assert
   [[ "${status}" -eq 0 ]]
   [[ "${lines[0]}" == "kakikomi - write disk images to removable media, verified chunk by chunk, never mounted" ]]
-  [[ "${output}" == *"  kakikomi format [target] [fat32|exfat|fat|floppy] [label]"* ]]
+  [[ "${output}" == *"  kakikomi format [options] [target] [fat32|exfat|fat|floppy] [label]"* ]]
 }
 
 @test "kakikomi --help and -h print the same page as help" {
@@ -208,6 +208,168 @@ minimal_path() {
 
   # Act
   run disk_test_run kakikomi format "${option}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "kakikomi: unknown option '-x'. run 'kakikomi help' for usage." ]]
+}
+
+@test "kakikomi names an option that is missing its value" {
+  # Arrange
+  local option=--sha256
+
+  # Act
+  run disk_test_run kakikomi "${option}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "kakikomi: option '--sha256' needs a value. run 'kakikomi help' for usage." ]]
+}
+
+@test "kakikomi refuses a value given to an option that takes none" {
+  # Arrange
+  local option=--verify=yes
+
+  # Act
+  run disk_test_run kakikomi "${option}" "${WORK}/image.img"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "kakikomi: option '--verify' takes no value. run 'kakikomi help' for usage." ]]
+}
+
+@test "kakikomi names an unknown option written as name=value" {
+  # Arrange
+  local option=--speed=fast
+
+  # Act
+  run disk_test_run kakikomi "${option}" "${WORK}/image.img"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "kakikomi: unknown option '--speed'. run 'kakikomi help' for usage." ]]
+}
+
+@test "kakikomi accepts every switch before the image" {
+  # Arrange
+  local missing="${WORK}/missing.img"
+
+  # Act
+  run disk_test_run kakikomi --verify --no-verify --delete --no-delete --again --reinsert --no-reinsert \
+    --zero-tail --allow-internal --keep-guard --raw "${missing}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "kakikomi: image not found: ${missing}" ]]
+}
+
+@test "kakikomi stops before any disk when the image does not match --sha256" {
+  # Arrange
+  local image="${WORK}/image.img"
+  disk_test_image "${image}" 1
+
+  # Act
+  run disk_test_run kakikomi --sha256=0000 "${image}" "${WORK}/no-such-disk"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"kakikomi: stopped: the image does not match its published checksum."* ]]
+}
+
+@test "kakikomi lets --sha256 on the command line win over the environment" {
+  # Arrange
+  local image="${WORK}/image.img"
+  local hash
+  disk_test_image "${image}" 1
+  hash="$(sha256sum "${image}" 2>/dev/null || shasum -a 256 "${image}")"
+  hash="${hash%% *}"
+
+  # Act
+  run disk_test_run_env "SHA256=0000" kakikomi --sha256 "${hash}" "${image}" "${WORK}/no-such-disk"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"kakikomi: not a device or mount point: ${WORK}/no-such-disk"* ]]
+  [[ "${output}" != *"does not match"* ]]
+}
+
+@test "kakikomi treats everything after -- as the image" {
+  # Arrange
+  local image=--odd-name
+
+  # Act
+  run disk_test_run kakikomi -- "${image}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "kakikomi: image not found: --odd-name" ]]
+}
+
+@test "kakikomi format refuses a fourth argument" {
+  # Arrange
+  local extra=surplus
+
+  # Act
+  run disk_test_run kakikomi format /dev/null fat32 LABEL "${extra}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == "kakikomi: unexpected extra argument 'surplus'. run 'kakikomi help' for usage." ]]
+}
+
+help_options() {
+  local page
+  page="$(disk_test_run kakikomi help)" || return 1
+  awk '{ for (i = 1; i <= NF; i++) if (match($i, /^--[a-z0-9][a-z0-9-]*/)) { name = substr($i, RSTART, RLENGTH); if (!seen[name]++) print name } }' <<<"${page}"
+}
+
+option_drift() {
+  local option name man_form missing="" listed completed
+  listed="$(help_options)" || return 1
+  completed="$(grep -oE -- "--[a-z0-9][a-z0-9-]*" "${REPO_DIR}/completions/kakikomi.bash")" || return 1
+  for option in ${listed}; do
+    name="${option#--}"
+    man_form="\\-\\-${name//-/\\-}"
+    grep -qF -- "${man_form}" "${REPO_DIR}/man/kakikomi.1" || missing="${missing} man:${option}"
+    grep -qE -- "(^|[ \"])${option}( |\"|$)" "${REPO_DIR}/completions/kakikomi.bash" || missing="${missing} bash:${option}"
+    grep -qE -- "[')]${option}\\[" "${REPO_DIR}/completions/_kakikomi" || missing="${missing} zsh:${option}"
+    grep -qE -- "-l ${name} " "${REPO_DIR}/completions/kakikomi.fish" || missing="${missing} fish:${option}"
+  done
+  for option in ${completed}; do
+    grep -qx -- "${option}" <<<"${listed}" || missing="${missing} help:${option}"
+  done
+  printf '%s' "${missing}"
+}
+
+@test "kakikomi help, man page and completions list the same options" {
+  # Arrange
+  local expected=""
+
+  # Act
+  run option_drift
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "${expected}" ]]
+}
+
+@test "kakikomi man page passes mandoc lint" {
+  # Arrange
+  local page="${REPO_DIR}/man/kakikomi.1"
+
+  # Act
+  run mandoc -T lint "${page}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+}
+
+@test "kakikomi rejects an unknown short option with a usage hint" {
+  # Arrange
+  local option=-x
+
+  # Act
+  run disk_test_run kakikomi "${option}"
 
   # Assert
   [[ "${status}" -eq 1 ]]

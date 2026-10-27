@@ -147,7 +147,7 @@ opening() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: Image not found: ${missing}"* ]]
+  [[ "${output}" == *"kakikomi: image not found: ${missing}"* ]]
 }
 
 @test "kakikomi refuses an empty image" {
@@ -174,7 +174,7 @@ opening() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: gzip is needed to read this gzip image."* ]]
+  [[ "${output}" == *"stopped: gzip is needed to read this gzip image."* ]]
 }
 
 @test "kakikomi needs bsdtar for a zip image" {
@@ -188,7 +188,7 @@ opening() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: bsdtar is needed to read a zip image."* ]]
+  [[ "${output}" == *"stopped: bsdtar is needed to read a zip image."* ]]
 }
 
 @test "kakikomi refuses a zip archive it cannot read" {
@@ -215,7 +215,7 @@ opening() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: a vmdk image needs qemu-img to become a raw image"* ]]
+  [[ "${output}" == *"stopped: a vmdk image needs qemu-img to become a raw image"* ]]
 }
 
 @test "kakikomi names the converter a dmg image needs" {
@@ -229,7 +229,7 @@ opening() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: a dmg image needs hdiutil to become a raw image"* ]]
+  [[ "${output}" == *"stopped: a dmg image needs hdiutil to become a raw image"* ]]
 }
 
 @test "kakikomi stops when a virtual disk will not fit in the work directory" {
@@ -256,7 +256,7 @@ opening() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: qemu-img could not convert"* ]]
+  [[ "${output}" == *"stopped: qemu-img could not convert"* ]]
 }
 
 @test "kakikomi needs curl to download an image" {
@@ -281,7 +281,7 @@ opening() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: the download of https://example.invalid/disk.img failed, so nothing was written."* ]]
+  [[ "${output}" == *"stopped: the download of https://example.invalid/disk.img failed, so nothing was written."* ]]
 }
 
 @test "kakikomi converts a dmg image to raw with hdiutil" {
@@ -313,7 +313,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: hdiutil could not convert ${WORK}/disk.dmg."* ]]
+  [[ "${output}" == *"stopped: hdiutil could not convert ${WORK}/disk.dmg."* ]]
 }
 
 @test "kakikomi refuses a target that is not a block device" {
@@ -326,5 +326,5 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: Device not found or invalid: "* ]]
+  [[ "${output}" == *"kakikomi: device not found or invalid: "* ]]
 }

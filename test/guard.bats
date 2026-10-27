@@ -156,7 +156,7 @@ fat_target() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Another kakikomi held ${WORK}/kakikomi-fstab.lock for 1s, so the fstab was left untouched."* ]]
+  [[ "${output}" == *"another kakikomi held ${WORK}/kakikomi-fstab.lock for 1s, so the fstab was left untouched."* ]]
   [[ ! -s "${DISK_FSTAB}" ]]
 }
 
@@ -246,7 +246,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: this image holds an HFS+ partition, whose volume identity cannot be read from its header alone."* ]]
+  [[ "${output}" == *"stopped: this image holds an HFS+ partition, whose volume identity cannot be read from its header alone."* ]]
 }
 
 @test "kakikomi keeps the guard when the write fails after it was declared" {
@@ -261,7 +261,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"The mount guard for ${DEVICE} stays in place. Run kakikomi --release once the disk is out."* ]]
+  [[ "${output}" == *"the mount guard for ${DEVICE} stays in place. run kakikomi --release once the disk is out."* ]]
   grep -q "# kakikomi ${DEVICE##*/} begin" "${DISK_FSTAB}"
 }
 

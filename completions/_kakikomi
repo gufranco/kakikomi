@@ -1,0 +1,34 @@
+#compdef kakikomi
+
+_kakikomi() {
+  local -a commands
+  commands=(
+    'format:quick format a disk'
+    'doctor:check the tools kakikomi needs'
+    'version:print the version'
+    'help:print usage'
+  )
+
+  if (( CURRENT == 2 )) && [[ "${words[2]}" != -* ]]; then
+    _alternative 'commands:command:_describe command commands' 'files:image:_files'
+    return
+  fi
+
+  _arguments \
+    '(--no-verify)--verify[compare the whole disk with the image at the end]' \
+    '(--verify)--no-verify[skip the whole-disk comparison]' \
+    '(--no-delete)--delete[move the image to the Trash once every disk validated]' \
+    '(--delete)--no-delete[keep the image]' \
+    '--again[write the same image to the next disk you insert]' \
+    '(--no-reinsert)--reinsert[check the disk again after it is plugged back in]' \
+    '(--reinsert)--no-reinsert[skip the reinsertion check]' \
+    '--zero-tail[blank the space past the image]' \
+    '--sha256[stop unless the image matches this SHA-256]:hash:' \
+    '--allow-internal[allow an internal disk]' \
+    '--keep-guard[keep macOS from ever mounting the disk again]' \
+    '--raw[write a Windows ISO as is]' \
+    '--release[remove mount guards a run left behind]' \
+    '*:file:_files'
+}
+
+_kakikomi "$@"

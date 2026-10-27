@@ -154,7 +154,7 @@ write_compressed() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: the image does not match its published checksum."* ]]
+  [[ "${output}" == *"stopped: the image does not match its published checksum."* ]]
   local bytes
   bytes="$(disk_test_unique_bytes "${TARGET_IMG}")"
   [[ "${bytes}" == "aa" ]] || { printf "found bytes: %s\n" "${bytes}"; false; }

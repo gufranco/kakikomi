@@ -11,12 +11,14 @@ help:
 	@echo "  test-linux  the same suites in a privileged Ubuntu container"
 	@echo "  coverage    bashcov line coverage on this Mac and in the Ubuntu container, gate 100%"
 	@echo "  check       lint and test"
-	@echo "  install     copy bin/ and lib/ under PREFIX (default ~/.local)"
+	@echo "  install     install the tool, man page and completions under PREFIX (default ~/.local)"
 
 lint:
 	shellcheck -x -s sh -o all bin/kakikomi lib/*.sh scripts/*.sh
 	sh scripts/check-names.sh
 	shellcheck -x -o all test/*.sh test/*.bash test/*.bats test/shim/sudo
+	shellcheck -s bash -o all completions/kakikomi.bash
+	mandoc -T lint man/kakikomi.1
 
 test:
 	DISK_SHELLS=sh sh test/run-matrix.sh test
@@ -35,7 +37,11 @@ coverage:
 check: lint test
 
 install:
-	mkdir -p "$(PREFIX)/share/kakikomi" "$(PREFIX)/bin"
+	mkdir -p "$(PREFIX)/share/kakikomi" "$(PREFIX)/bin" "$(PREFIX)/share/man/man1" "$(PREFIX)/share/bash-completion/completions" "$(PREFIX)/share/zsh/site-functions" "$(PREFIX)/share/fish/vendor_completions.d"
 	cp -R bin lib "$(PREFIX)/share/kakikomi/"
+	cp -f man/kakikomi.1 "$(PREFIX)/share/man/man1/kakikomi.1"
+	cp -f completions/kakikomi.bash "$(PREFIX)/share/bash-completion/completions/kakikomi"
+	cp -f completions/_kakikomi "$(PREFIX)/share/zsh/site-functions/_kakikomi"
+	cp -f completions/kakikomi.fish "$(PREFIX)/share/fish/vendor_completions.d/kakikomi.fish"
 	printf '#!/bin/sh\nexec "%s/share/kakikomi/bin/kakikomi" "$$@"\n' "$(PREFIX)" > "$(PREFIX)/bin/kakikomi"
 	chmod 755 "$(PREFIX)/bin/kakikomi"

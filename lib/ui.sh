@@ -80,22 +80,22 @@ disk_is_internal() {
 disk_refuse_target() {
   disk_rt_boot="$(disk_boot_disks)"
   if disk_listed "$1" "${disk_rt_boot}"; then
-    disk_error "STOPPED: $1 holds the running system, so it is never a target."
+    disk_error "stopped: $1 holds the running system, so it is never a target."
     return 1
   fi
   if [ "${ALLOW_INTERNAL:-}" != "y" ] && disk_is_internal "$1"; then
-    disk_error "STOPPED: $1 is an internal disk. Set ALLOW_INTERNAL=y to write to it on purpose."
+    disk_error "stopped: $1 is an internal disk. use --allow-internal to write to it on purpose."
     return 1
   fi
   if [ -n "$2" ]; then
     disk_rt_holders="$(disk_holder_disks "$2")"
     if disk_listed "$1" "${disk_rt_holders}"; then
-      disk_error "STOPPED: the image $2 is stored on $1, so writing would destroy the image mid-copy."
+      disk_error "stopped: the image $2 is stored on $1, so writing would destroy the image mid-copy."
       return 1
     fi
   fi
   if [ -n "$3" ] && [ "$1" = "$3" ]; then
-    disk_error "STOPPED: $1 is the drive being copied, so it cannot also be the target."
+    disk_error "stopped: $1 is the drive being copied, so it cannot also be the target."
     return 1
   fi
   return 0
@@ -142,7 +142,7 @@ disk_eligible() {
 disk_pick_targets() {
   disk_pt_list="$(disk_eligible)"
   if [ -z "${disk_pt_list}" ]; then
-    disk_error "No external or removable disk is attached." >&2
+    disk_error "no external or removable disk is attached." >&2
     return 1
   fi
   disk_pt_index=0
@@ -175,7 +175,7 @@ disk_pick_one() {
       return 0
     fi
   done
-  disk_error "Not a listed number or disk: $1"
+  disk_error "not a listed number or disk: $1."
   return 1
 }
 
@@ -184,11 +184,11 @@ disk_partitions_text() {
   case "${disk_pa_os}" in
     Darwin)
       disk_pa_list="$(diskutil list "$1" 2>/dev/null)"
-      printf '%s\n' "${disk_pa_list}" | awk 'NR > 2 && NF > 3 { $1 = ""; sub(/^ +/, ""); print "      " $0 }'
+      printf '%s\n' "${disk_pa_list}" | awk 'NR > 2 && NF > 3 { $1 = ""; sub(/^ +/, ""); print "          " $0 }'
       ;;
     Linux)
       disk_pa_list="$(lsblk -nro NAME,SIZE,FSTYPE,LABEL "$1" 2>/dev/null)"
-      printf '%s\n' "${disk_pa_list}" | awk 'NR > 1 { print "      " $0 }'
+      printf '%s\n' "${disk_pa_list}" | awk 'NR > 1 { print "          " $0 }'
       ;;
     *) ;;
   esac
@@ -200,7 +200,7 @@ disk_confirm_names() {
   for disk_cn_target in $1; do
     disk_cn_expected="${disk_cn_expected}${disk_cn_expected:+ }${disk_cn_target##*/}"
   done
-  printf 'Type %s to write, or anything else to stop: ' "${disk_cn_expected}"
+  printf 'Type %s to %s, or anything else to stop: ' "${disk_cn_expected}" "$2" >&2
   disk_cn_answer=""
   IFS= read -r disk_cn_answer
   disk_cn_given=""
@@ -208,7 +208,7 @@ disk_confirm_names() {
     disk_cn_given="${disk_cn_given}${disk_cn_given:+ }${disk_cn_word##*/}"
   done
   if [ "${disk_cn_given}" != "${disk_cn_expected}" ]; then
-    disk_warning "Operation cancelled"
+    disk_warning "cancelled, nothing was touched."
     return 1
   fi
   return 0

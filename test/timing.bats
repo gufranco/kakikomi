@@ -53,9 +53,9 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"The read probe failed on the first sectors of"* ]]
-  [[ "${output}" == *"That was a read of data this write is about to overwrite"* ]]
-  [[ "${output}" == *"Speed is not being watched on this disk. Only the byte-for-byte verify decides."* ]]
+  [[ "${output}" == *"the read probe failed on the first sectors of"* ]]
+  [[ "${output}" == *"that was a read of data this write is about to overwrite"* ]]
+  [[ "${output}" == *"speed is not being watched on this disk. only the byte-for-byte verify decides."* ]]
 }
 
 @test "a read probe that loses the bus stops the write" {
@@ -94,7 +94,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   run writing "CALIBRATION_PROBES=2"
 
   # Assert
-  [[ "${output}" == *"The read probe failed at offset 1048576 of"* ]]
+  [[ "${output}" == *"the read probe failed at offset 1048576 of"* ]]
 }
 
 @test "a long probe failing is reported at its offset" {
@@ -106,7 +106,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   run writing "CALIBRATION_PROBES=2"
 
   # Assert
-  [[ "${output}" == *"The read probe failed at offset 4096 of"* ]]
+  [[ "${output}" == *"the read probe failed at offset 4096 of"* ]]
 }
 
 @test "a disk that leaves the bus while being measured stops the write" {
@@ -134,7 +134,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   # Assert
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == *"is too small to time, so only the byte-for-byte verify will judge it."* ]]
-  [[ "${output}" == *"Speed is not being watched on this disk."* ]]
+  [[ "${output}" == *"speed is not being watched on this disk."* ]]
 }
 
 @test "a Zip disk that cannot be timed is not written blind" {
@@ -147,7 +147,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: this disk could not be timed, so nothing would be watching for a stall."* ]]
+  [[ "${output}" == *"stopped: this disk could not be timed, so nothing would be watching for a stall."* ]]
 }
 
 @test "a disk that answers too fast to time is written with only the verify watching" {

@@ -42,7 +42,7 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"is write protected, so nothing on it can be written."* ]]
-  [[ "${output}" == *"The drive reports this media as read-only."* ]]
+  [[ "${output}" == *"the drive reports this media as read-only."* ]]
   [[ "${output}" == *"Release the write-protect switch or lock on the device"* ]]
 }
 
@@ -95,7 +95,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: Unable to determine the size of ${DEVICE}"* ]]
+  [[ "${output}" == *"kakikomi: unable to determine the size of ${DEVICE}."* ]]
 }
 
 @test "kakikomi stops when the disk stays mounted" {
@@ -109,7 +109,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Disk is still mounted, so writing to it would corrupt the mounted volume"* ]]
+  [[ "${output}" == *"disk is still mounted, so writing to it would corrupt the mounted volume"* ]]
 }
 
 @test "kakikomi stops when the mount state cannot be read" {
@@ -122,7 +122,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Unable to read the mount state of ${DEVICE}, so this stops here"* ]]
+  [[ "${output}" == *"unable to read the mount state of ${DEVICE}, so this stops here"* ]]
 }
 
 @test "kakikomi falls back to unmounting when the drive refuses to eject after a fault" {
@@ -136,7 +136,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"The drive refused to eject. The volume is unmounted, so nothing else will touch it."* ]]
+  [[ "${output}" == *"the drive refused to eject. the volume is unmounted, so nothing else will touch it."* ]]
 }
 
 @test "kakikomi says to cut power when the drive will not let go after a fault" {
@@ -150,7 +150,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Cut power to the drive before doing anything else with it."* ]]
+  [[ "${output}" == *"cut power to the drive before doing anything else with it."* ]]
 }
 
 @test "kakikomi ejects the cartridge after a fault on Linux" {
@@ -189,7 +189,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"did not eject; it stays unmounted and guarded. Remove it once the light stops."* ]]
+  [[ "${output}" == *"did not eject; it stays unmounted and guarded. remove it once the light stops."* ]]
   [[ "${output}" == *"is still attached, so the mount guard stays."* ]]
 }
 
@@ -219,7 +219,7 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"Administrator access is required to reach the raw device."* ]]
-  [[ "${output}" == *"kakikomi: Administrator access was not granted"* ]]
+  [[ "${output}" == *"kakikomi: administrator access was not granted."* ]]
 }
 
 @test "kakikomi continues once administrator access is granted" {

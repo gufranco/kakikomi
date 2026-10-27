@@ -227,7 +227,7 @@ esac"
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: Unable to create a working directory"* ]]
+  [[ "${output}" == *"kakikomi: unable to create a working directory."* ]]
 }
 
 @test "doctor marks a missing required tool and a missing pair" {
@@ -270,7 +270,7 @@ esac"
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: Not a device or mount point: ${file}"* ]]
+  [[ "${output}" == *"kakikomi: not a device or mount point: ${file}"* ]]
 }
 
 @test "kakikomi refuses a folder that is not a mount point" {
@@ -285,7 +285,7 @@ esac"
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: No device found for mount point: ${folder}"* ]]
+  [[ "${output}" == *"kakikomi: no device found for mount point: ${folder}"* ]]
 }
 
 @test "kakikomi resolves a mount point to its whole disk" {
@@ -443,7 +443,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: No external or removable disk is attached."* ]]
+  [[ "${output}" == *"kakikomi: no external or removable disk is attached."* ]]
 }
 
 @test "a mounted partition of a disk named with letters counts as mounted" {

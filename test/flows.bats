@@ -65,7 +65,7 @@ writing_with() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: No target chosen."* ]]
+  [[ "${output}" == *"kakikomi: no target chosen."* ]]
 }
 
 @test "kakikomi menu formats the disk it asks for" {
@@ -91,7 +91,7 @@ writing_with() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: Pick exactly one disk."* ]]
+  [[ "${output}" == *"kakikomi: pick exactly one disk."* ]]
 }
 
 @test "kakikomi format needs mtools for a FAT filesystem" {
@@ -105,7 +105,7 @@ writing_with() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: FAT formatting needs mtools."* ]]
+  [[ "${output}" == *"stopped: FAT formatting needs mtools."* ]]
 }
 
 @test "kakikomi format stops when the filesystem cannot be built" {
@@ -118,7 +118,7 @@ writing_with() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: the fat filesystem could not be created."* ]]
+  [[ "${output}" == *"stopped: the fat filesystem could not be created."* ]]
 }
 
 @test "kakikomi format stops when the disk size cannot be read" {
@@ -132,7 +132,7 @@ writing_with() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: Unable to determine the size of ${DEVICE}"* ]]
+  [[ "${output}" == *"kakikomi: unable to determine the size of ${DEVICE}."* ]]
 }
 
 @test "kakikomi warns that a small floppy image will not read on larger media" {
@@ -145,7 +145,7 @@ writing_with() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"A 720.0 KiB floppy image on 1.4 MiB media will not read in a drive built for the smaller format."* ]]
+  [[ "${output}" == *"a 720.0 KiB floppy image on 1.4 MiB media will not read in a drive built for the smaller format."* ]]
 }
 
 @test "kakikomi accepts a compressed image whose published SHA-256 is of its contents" {
@@ -189,7 +189,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: the image could not be read at offset"* ]]
+  [[ "${output}" == *"stopped: the image could not be read at offset"* ]]
 }
 
 @test "kakikomi stops when the whole-disk read back does not match" {
@@ -204,7 +204,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"does not hold the image. Expected SHA-256"* ]]
+  [[ "${output}" == *"does not hold the image. expected SHA-256"* ]]
 }
 
 @test "kakikomi keeps the image when the trash refuses it" {
@@ -246,7 +246,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"The disk did not come back within 1s, so the reinsertion check was skipped."* ]]
+  [[ "${output}" == *"the disk did not come back within 1s, so the reinsertion check was skipped."* ]]
 }
 
 @test "kakikomi stops when the system mounts the disk as it returns" {
@@ -267,7 +267,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status_code}" -eq 1 ]]
-  grep -q "STOPPED: the system mounted ${EXTRA} when it came back." "${log}"
+  grep -q "stopped: the system mounted ${EXTRA} when it came back." "${log}"
 }
 
 @test "kakikomi runs when called by name from PATH" {
@@ -296,7 +296,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: mkfs.exfat is not installed. Install the exfatprogs package."* ]]
+  [[ "${output}" == *"kakikomi: mkfs.exfat is not installed. install the exfatprogs package."* ]]
 }
 
 @test "kakikomi refuses an internal disk unless asked" {
@@ -311,7 +311,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: ${DEVICE} is an internal disk. Set ALLOW_INTERNAL=y to write to it on purpose."* ]]
+  [[ "${output}" == *"stopped: ${DEVICE} is an internal disk. use --allow-internal to write to it on purpose."* ]]
 }
 
 @test "kakikomi refuses to write over the disk that holds the image" {
@@ -362,7 +362,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: could not stop the system from mounting ${DEVICE}."* ]]
+  [[ "${output}" == *"stopped: could not stop the system from mounting ${DEVICE}."* ]]
 }
 
 @test "kakikomi stops a chunk that finishes after an interrupt" {
@@ -381,7 +381,7 @@ exit \"\$status\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: interrupted during write chunk"* ]]
+  [[ "${output}" == *"stopped: interrupted during write chunk"* ]]
 }
 
 @test "kakikomi writes no further chunk once a stop arrives between chunks" {
@@ -402,5 +402,5 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"STOPPED: interrupted during write chunk"* ]]
+  [[ "${output}" == *"stopped: interrupted during write chunk"* ]]
 }

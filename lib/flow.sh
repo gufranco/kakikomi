@@ -33,19 +33,19 @@ disk_write_targets() {
 disk_write_fits() {
   disk_wf_size="$(disk_size_bytes "$1")"
   if ! disk_is_uint "${disk_wf_size}" || [ "${disk_wf_size}" -eq 0 ]; then
-    disk_error "Unable to determine the size of $1"
+    disk_error "unable to determine the size of $1."
     return 1
   fi
   disk_wf_sector="$(disk_sector_bytes "$1")"
   disk_wf_size=$((disk_wf_size - disk_wf_size % disk_wf_sector))
   disk_wf_need="$(disk_padded_size "${DISK_SRC_SIZE}" "${disk_wf_sector}")"
   if [ "${disk_wf_need}" -gt "${disk_wf_size}" ]; then
-    disk_error "STOPPED: the image needs ${disk_wf_need} bytes and $1 holds ${disk_wf_size}."
+    disk_error "stopped: the image needs ${disk_wf_need} bytes and $1 holds ${disk_wf_size}."
     return 1
   fi
   if [ "${disk_wf_need}" -lt "${disk_wf_size}" ] && [ "${ZERO_TAIL:-}" != "y" ] && [ "${DISK_QUIET_TAIL}" != "1" ]; then
     disk_wf_extra="$(disk_human $((disk_wf_size - disk_wf_need)))"
-    disk_warning "$1 is ${disk_wf_extra} larger than the image. That space keeps its old contents; ZERO_TAIL=y blanks it."
+    disk_warning "$1 is ${disk_wf_extra} larger than the image. that space keeps its old contents; --zero-tail blanks it."
   fi
   disk_geometry_warning "${DISK_SRC_SIZE}" "${disk_wf_size}"
   return 0
@@ -56,7 +56,7 @@ disk_geometry_warning() {
     368640:737280 | 368640:1474560 | 737280:1474560 | 1228800:1474560 | 1474560:2949120 | 737280:2949120)
       disk_gw_image="$(disk_human "$1")"
       disk_gw_media="$(disk_human "$2")"
-      disk_warning "A ${disk_gw_image} floppy image on ${disk_gw_media} media will not read in a drive built for the smaller format."
+      disk_warning "a ${disk_gw_image} floppy image on ${disk_gw_media} media will not read in a drive built for the smaller format."
       ;;
     *) ;;
   esac
@@ -69,7 +69,7 @@ disk_write_bootable_hint() {
   disk_mbr_valid "${DISK_SRC_PATH}" && return 0
   disk_wb_iso="$(disk_magic_hex "${DISK_SRC_PATH}" 32769 5)"
   [ "${disk_wb_iso}" = "4344303031" ] && return 0
-  disk_warning "The image has no partition table or boot record, so the disk may not boot or show any files."
+  disk_warning "the image has no partition table or boot record, so the disk may not boot or show any files."
   return 0
 }
 
@@ -96,9 +96,9 @@ disk_write_checksum() {
     disk_success "The image matches its published SHA-256."
     return 0
   fi
-  disk_error "STOPPED: the image does not match its published checksum."
-  disk_error "Expected ${DISK_PUBLISHED_SHA}"
-  disk_error "Read     ${DISK_SRC_SHA}"
+  disk_error "stopped: the image does not match its published checksum."
+  disk_error "expected ${DISK_PUBLISHED_SHA}"
+  disk_error "read     ${DISK_SRC_SHA}"
   return 1
 }
 
@@ -129,7 +129,7 @@ disk_write_check_targets() {
   [ "${DISK_SRC_KIND}" != "device" ] && disk_ct_image="${DISK_SRC_ORIGIN}"
   for disk_ct_target in $1; do
     if [ ! -b "${disk_ct_target}" ] && [ ! -c "${disk_ct_target}" ]; then
-      disk_error "Device not found or invalid: ${disk_ct_target}"
+      disk_error "device not found or invalid: ${disk_ct_target}"
       return 1
     fi
     disk_refuse_target "${disk_ct_target}" "${disk_ct_image}" "${disk_ct_clone}" || return 1
@@ -148,7 +148,7 @@ disk_write_run() {
     return "$?"
   fi
   if [ "${REINSERT:-}" = "y" ]; then
-    disk_warning "REINSERT=y checks one disk at a time, so it is skipped when writing several."
+    disk_warning "--reinsert checks one disk at a time, so it is skipped when writing several."
     REINSERT=n
   fi
   disk_wr_pids=""
@@ -165,7 +165,7 @@ disk_write_run() {
     if wait "${disk_wr_pair#*=}"; then
       disk_success "${disk_wr_pair%%=*}: written and verified."
     else
-      disk_error "${disk_wr_pair%%=*}: failed, see its STOPPED lines above."
+      disk_error "${disk_wr_pair%%=*}: failed, see its stopped lines above."
       disk_wr_failed=$((disk_wr_failed + 1))
     fi
   done
@@ -175,14 +175,14 @@ disk_write_run() {
 disk_write_once() {
   disk_wo_targets="$(disk_write_targets "$@")" || return 1
   [ -n "${disk_wo_targets}" ] || {
-    disk_error "No target chosen."
+    disk_error "no target chosen."
     return 1
   }
   disk_write_check_targets "${disk_wo_targets}" || return 1
   disk_write_bootable_hint
   disk_write_summary "${disk_wo_targets}"
   disk_ask_options
-  disk_confirm_names "${disk_wo_targets}" || return 1
+  disk_confirm_names "${disk_wo_targets}" write || return 1
   disk_require_sudo || return 1
   disk_write_run "${disk_wo_targets}"
 }
