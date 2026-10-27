@@ -189,7 +189,7 @@ exit \"\$status\""
 
 @test "kakikomi refuses media whose writes silently do not land" {
   # Arrange
-  disk_test_shim dd "case \"\$*\" in *write-probe\\ of=*${NAME}*) set -- \$(printf '%s\\n' \"\$@\" | sed 's|^of=.*|of=/dev/null|; /^seek=/d') ;; esac
+  disk_test_shim dd "case \"\$*\" in *write-probe\\ of=*${NAME}*) set -- \$(printf '%s\\n' \"\$@\" | sed 's|^of=.*|of=/dev/null|; /^seek=/d; /^oflag=/d') ;; esac
 exec \"\$REAL\" \"\$@\""
 
   # Act
