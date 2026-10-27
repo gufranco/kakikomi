@@ -1,5 +1,14 @@
 # Changelog
 
+# [2.1.0](https://github.com/gufranco/kakikomi/compare/v2.0.0...v2.1.0) (2026-10-27)
+
+
+### Features
+
+* **cli:** follow the family command-line contract ([89cfdbe](https://github.com/gufranco/kakikomi/commit/89cfdbeb57485da62b00a698337bd0e1733908ae))
+* **doctor:** name the flavor of each core tool ([af58c08](https://github.com/gufranco/kakikomi/commit/af58c083048afe3f1f91b95e6fa3f40b27a3f5d3))
+* **source:** read a mounted volume as its disk ([05d333e](https://github.com/gufranco/kakikomi/commit/05d333e0a8f9842fca1188a0c514b36a381f12cd))
+
 # [2.0.0](https://github.com/gufranco/kakikomi/compare/v1.0.0...v2.0.0) (2026-10-26)
 
 
