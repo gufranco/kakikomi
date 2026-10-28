@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.2.0](https://github.com/gufranco/kakikomi/compare/v2.1.0...v2.2.0) (2026-10-28)
+
+
+### Features
+
+* check published checksums before writing ([f736bd8](https://github.com/gufranco/kakikomi/commit/f736bd873a2e10cfc7040e4e2fcfb675ecb2db87))
+
 # [2.1.0](https://github.com/gufranco/kakikomi/compare/v2.0.0...v2.1.0) (2026-10-27)
 
 
