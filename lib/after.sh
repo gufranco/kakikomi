@@ -60,7 +60,7 @@ disk_delete_source() {
     disk_warning "the source is a drive, so there is no image file to delete."
     return 0
   fi
-  disk_ds_now="$(disk_source_sha256)"
+  disk_ds_now="$(disk_source_digest sha256)"
   if [ "${disk_ds_now}" != "${DISK_SRC_SHA}" ]; then
     disk_error "the image changed while it was being written, so it is kept."
     disk_error "before: ${DISK_SRC_SHA}"

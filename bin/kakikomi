@@ -21,6 +21,8 @@ DISK_PROG=kakikomi
 . "${DISK_LIB}/wipe.sh"
 # shellcheck source=SCRIPTDIR/../lib/source.sh
 . "${DISK_LIB}/source.sh"
+# shellcheck source=SCRIPTDIR/../lib/checksum.sh
+. "${DISK_LIB}/checksum.sh"
 # shellcheck source=SCRIPTDIR/../lib/guard.sh
 . "${DISK_LIB}/guard.sh"
 # shellcheck source=SCRIPTDIR/../lib/ui.sh
@@ -60,8 +62,9 @@ options:
   --reinsert | --no-reinsert   after ejecting, wait for the disk to return and
                                compare again (default no)
   --zero-tail                  blank the space past the image on a larger disk
-  --sha256 HASH                stop unless the image matches. a sibling .sha256
-                               is read too
+  --sha256 HASH                stop unless the image matches this SHA-256.
+                               without it, a checksum file published next to
+                               the image is read
   --allow-internal             allow an internal disk. the system disk is always
                                refused
   --keep-guard                 keep macOS from ever mounting that disk again
@@ -79,6 +82,12 @@ notes:
   target out to pick from the attached removable disks. The target is never
   mounted, not even for a moment. A file named help, doctor, version or format
   is written by giving its path, such as ./help.
+
+  A checksum file next to the image, such as debian.iso.sha256, SHA256SUMS,
+  MD5SUMS, b2sums.txt, a Fedora CHECKSUM or an .sfv, is read when it names the
+  image, in any of the usual formats and algorithms. A mismatch stops the run
+  before any disk is touched. For a URL, the same names are asked of its
+  server.
 
 examples:
   kakikomi debian.img.xz /dev/disk4
@@ -177,7 +186,7 @@ disk_write_start() {
   trap disk_write_cleanup EXIT
   trap disk_write_interrupted INT TERM HUP
   disk_source_open "${disk_wm_source}" || return 1
-  disk_write_published
+  disk_write_published || return 1
   disk_write_windows_mode || return 1
   disk_write_checksum || return 1
   disk_wm_status=0

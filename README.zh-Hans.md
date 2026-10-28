@@ -19,7 +19,7 @@
 
 </div>
 
-一个命令，237 个测试，14 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
+一个命令，297 个测试，15 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
 
 ---
 
@@ -104,6 +104,9 @@ bsdtar|7z          ok       /usr/bin/bsdtar
 qemu-img           ok       /opt/homebrew/bin/qemu-img
 mcopy              ok       /opt/homebrew/bin/mcopy
 wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
+md5sum|md5         ok       /sbin/md5sum, bsd 1.0
+sha512sum|shasum   ok       /sbin/sha512sum, bsd 1.0
+b2sum|openssl      missing  checks a published BLAKE2b checksum
 ```
 
 ## 用法
@@ -134,7 +137,7 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 | `--again` | 把同一镜像写入你插入的下一个磁盘 |
 | `--reinsert`、`--no-reinsert` | 弹出后等待磁盘重新插入并再次比对 |
 | `--zero-tail` | 在较大的磁盘上清空镜像之后的空间 |
-| `--sha256 HASH` | 镜像不匹配就停止。同目录的 `.sha256` 或 `SHA256SUMS` 文件会自动读取 |
+| `--sha256 HASH` | 镜像与这个 SHA-256 不匹配就停止。不指定时，读取镜像旁边发布的校验和文件，见[发布的校验和](#published-checksums) |
 | `--allow-internal` | 允许内置磁盘。运行中系统所在的磁盘始终被拒绝 |
 | `--keep-guard` | 运行后保留 fstab 防护，让这台 Mac 永不挂载该磁盘 |
 | `--raw` | 按字节原样写入 Windows ISO，而不是布置成 FAT32 |
@@ -192,6 +195,39 @@ graph LR
 
 有多个目标时，每个磁盘由独立的 worker 写入，一个出错不会影响其他磁盘。
 
+<a id="published-checksums"></a>
+
+## 发布的校验和
+
+大多数镜像在同一个下载页面上附带校验和文件。kakikomi 在写入之前，会在镜像旁边寻找它，镜像不匹配就停止。以 URL 给出的镜像，还会向同一服务器目录询问常见的文件名。
+
+| 寻找的内容 | 示例 |
+|:-----------|:-----|
+| 以镜像命名的文件 | `debian.iso.sha256`、`debian.iso.md5`、`debian.sha512`、`debian.iso.DIGESTS`、`debian.iso.json` |
+| 旁边的列表 | `SHA256SUMS`、`SHA512SUMS (1)`、`sha256sum.txt`、`b2sums.txt`、`MD5SUMS`、`CHECKSUM`、`Fedora-...-CHECKSUM`、`release.sfv` |
+
+| 格式 | 行示例 |
+|:-----|:-------|
+| `sha256sum`、`md5sum`、`b2sum`、`shasum` | `9f2c...e1  debian.iso`，二进制模式下为 `*debian.iso` |
+| BSD 与 `--tag` | `SHA256 (debian.iso) = 9f2c...e1` |
+| OpenSSL | `SHA2-256(debian.iso)= 9f2c...e1` |
+| 签名的列表 | 用 PGP 签名包裹的 Fedora 和 Debian 文件，签名外框会被跳过 |
+| Gentoo 的 `DIGESTS` | 普通行上方的 `# SHA512 HASH` 标题 |
+| Windows | `CertUtil -hashfile` 和 PowerShell 的 `Get-FileHash`，表格和列表两种形式 |
+| SFV | `debian.iso CBF43926` |
+| 只有摘要 | 以镜像命名、只写着哈希的文件，大小写不限，Unix 或 Windows 换行均可 |
+
+可识别 MD5、SHA-1、SHA-224、SHA-256、SHA-384、SHA-512、SHA3、BLAKE2b 和 CRC32，依据是行上的标签、上方的标题、文件名或摘要的长度。发布了多种时只校验一种：优先 SHA-256，因为它本来就要计算，否则用本机工具能计算的最强算法。压缩镜像只要与文件本身或解压后的内容之一匹配即可，所以列出 `debian.img` 的列表也适用于 `debian.img.xz`。
+
+| 结果 | 会发生什么 |
+|:-----|:-----------|
+| 匹配 | 显示 `The image matches the SHA-512 published in Downloads/SHA512SUMS.`，然后继续写入 |
+| 不匹配 | 在动任何磁盘之前停止，并显示期望值和计算出的摘要 |
+| 没有工具能计算发布的算法 | 停止，并指出要安装的工具 |
+| 没有指明任何镜像的单独摘要，例如只有哈希的 `sha256.txt` | 它可能属于另一个下载，所以不匹配只给出警告 |
+
+签名列表上的 PGP 签名不会被验证。`--sha256 HASH` 会用你给出的值代替查找。
+
 ## Windows 安装盘
 
 按字节原样写入的 Windows ISO 无法从 USB 启动。kakikomi 会识别它，构建一个 MBR 磁盘，其中只有一个容纳全部文件的 FAT32 分区，并用 `wimlib` 拆分超过 4 GiB 的 `install.wim`。文件用 `mtools` 复制，目标从不被挂载，写入卷之前每个文件都会回读比对。结果可以在 UEFI 机器上启动。
@@ -211,7 +247,7 @@ graph LR
 | 命令 | 说明 |
 |:--------|:------------|
 | `make lint` | 对每个脚本和补全运行 ShellCheck，用 mandoc 检查 man 手册，并检查没有函数被重复定义 |
-| `make test` | 在系统 `sh` 下运行 237 个 `bats` 测试 |
+| `make test` | 在系统 `sh` 下运行 297 个 `bats` 测试 |
 | `make test-all` | 在每个已安装的 shell 下运行同样的测试 |
 | `make test-linux` | 从 Mac 在特权 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 在这台 Mac 和同一容器中用 bashcov 测量行覆盖率并合并，CI 要求 100% |

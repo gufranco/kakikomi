@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 237 tests, 14 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
+One command, 297 tests, 15 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
 
 ---
 
@@ -104,6 +104,9 @@ bsdtar|7z          ok       /usr/bin/bsdtar
 qemu-img           ok       /opt/homebrew/bin/qemu-img
 mcopy              ok       /opt/homebrew/bin/mcopy
 wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
+md5sum|md5         ok       /sbin/md5sum, bsd 1.0
+sha512sum|shasum   ok       /sbin/sha512sum, bsd 1.0
+b2sum|openssl      missing  checks a published BLAKE2b checksum
 ```
 
 ## Usage
@@ -134,7 +137,7 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 | `--again` | Write the same image to the next disk you insert |
 | `--reinsert`, `--no-reinsert` | After ejecting, wait for the disk to come back and compare it again |
 | `--zero-tail` | Blank the space past the image on a larger disk |
-| `--sha256 HASH` | Stop unless the image matches. A sibling `.sha256` or `SHA256SUMS` file is read automatically |
+| `--sha256 HASH` | Stop unless the image matches this SHA-256. Without it, a checksum file published next to the image is read, see [Published checksums](#published-checksums) |
 | `--allow-internal` | Allow an internal disk. The disk holding the running system is always refused |
 | `--keep-guard` | Keep the fstab guard after the run, so this Mac never mounts that disk |
 | `--raw` | Write a Windows ISO byte for byte instead of laying it out as FAT32 |
@@ -192,6 +195,39 @@ Every chunk is written, read back, and compared before the next one. kakikomi fi
 
 With several targets, each disk is written by its own worker, and a fault on one does not stop the others.
 
+<a id="published-checksums"></a>
+
+## Published checksums
+
+Most images come with a checksum file from the same download page. Before anything is written, kakikomi looks for one next to the image and stops when the image does not match it. For an image given as a URL, it also asks the same server directory for the usual names.
+
+| Looked for | Examples |
+|:-----------|:---------|
+| A file named after the image | `debian.iso.sha256`, `debian.iso.md5`, `debian.sha512`, `debian.iso.DIGESTS`, `debian.iso.json` |
+| A list next to it | `SHA256SUMS`, `SHA512SUMS (1)`, `sha256sum.txt`, `b2sums.txt`, `MD5SUMS`, `CHECKSUM`, `Fedora-...-CHECKSUM`, `release.sfv` |
+
+| Format | Example line |
+|:-------|:-------------|
+| `sha256sum`, `md5sum`, `b2sum`, `shasum` | `9f2c...e1  debian.iso`, or `*debian.iso` in binary mode |
+| BSD and `--tag` | `SHA256 (debian.iso) = 9f2c...e1` |
+| OpenSSL | `SHA2-256(debian.iso)= 9f2c...e1` |
+| Signed lists | Fedora and Debian files wrapped in a PGP signature; the armor is skipped |
+| Gentoo `DIGESTS` | `# SHA512 HASH` headers above plain lines |
+| Windows | `CertUtil -hashfile` and PowerShell `Get-FileHash`, in table or list form |
+| SFV | `debian.iso CBF43926` |
+| A bare digest | A file named after the image holding only the hash, in any case, with Unix or Windows line endings |
+
+MD5, SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA3, BLAKE2b and CRC32 are recognized, by a label on the line, a header above it, the file name, or the digest's length. When several are published, kakikomi checks one: SHA-256 first, since it is computed anyway, then the strongest one a tool here can compute. A compressed image matches either the file or its decompressed contents, so a list that names `debian.img` covers `debian.img.xz`.
+
+| Result | What happens |
+|:-------|:-------------|
+| Matches | `The image matches the SHA-512 published in Downloads/SHA512SUMS.`, then the write goes on |
+| Does not match | The run stops before any disk is touched, printing the expected and the computed digest |
+| No tool computes the published algorithm | The run stops and names the tool to install |
+| A loose digest that names no image, such as a `sha256.txt` holding only a hash | A mismatch is a warning, since the file may belong to another download |
+
+The PGP signature on a signed list is not verified. `--sha256 HASH` replaces the search with the digest you give.
+
 ## Windows installers
 
 A Windows ISO written byte for byte does not boot from USB. kakikomi detects one and builds an MBR disk with a single FAT32 partition holding every file, splitting an `install.wim` over 4 GiB with `wimlib`. The files are copied with `mtools`, so the target is never mounted, and every file is read back and compared before the volume is written. The result boots on UEFI machines.
@@ -211,7 +247,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 | Command | Description |
 |:--------|:------------|
 | `make lint` | ShellCheck on every script and completion, mandoc on the man page, and a check that no function is defined twice |
-| `make test` | The 237 `bats` tests under the system `sh` |
+| `make test` | The 297 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
 | `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |

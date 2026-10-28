@@ -77,9 +77,9 @@ Default no.
 Blank the space past the image on a larger disk.
 .TP
 .BI \-\-sha256 " hash"
-Stop unless the image matches. A sibling
-.I .sha256
-file is read too.
+Stop unless the image matches this SHA-256. Without it, a checksum file
+published next to the image is read; see
+.BR "PUBLISHED CHECKSUMS" .
 .TP
 .B \-\-allow\-internal
 Allow an internal disk. The disk holding the running system is always refused.
@@ -95,6 +95,40 @@ Every option that takes a value also takes the form
 and
 .B \-\-
 ends the options.
+.SH PUBLISHED CHECKSUMS
+Before anything is written, kakikomi looks next to the image for a checksum
+file that names it: a file named after the image, such as
+.I debian.iso.sha256
+or
+.IR debian.sha512 ,
+or a list such as
+.IR SHA256SUMS ,
+.IR MD5SUMS ,
+.IR b2sums.txt ,
+a Fedora
+.I CHECKSUM
+or an
+.I .sfv
+file. For an image given as a URL, the same names are asked of its server.
+.PP
+The lines written by
+.BR sha256sum ,
+.BR md5sum ,
+.BR b2sum ,
+.BR shasum ,
+BSD tag lines, OpenSSL,
+.B CertUtil
+and PowerShell are read, along with PGP-signed lists, Gentoo
+.I DIGESTS
+files, SFV files and files holding only a digest. MD5, SHA-1, SHA-224,
+SHA-256, SHA-384, SHA-512, SHA3, BLAKE2b and CRC32 are recognized. SHA-256 is
+checked first when published, otherwise the strongest algorithm a tool here
+can compute. A compressed image matches either its file or its contents.
+.PP
+A mismatch stops the run before any disk is touched, and so does a published
+algorithm no installed tool computes. A digest in a file that names no image
+only warns, since it may belong to another download. The PGP signature of a
+signed list is not verified.
 .SH ENVIRONMENT
 .BR VERIFY ,
 .BR DELETE ,

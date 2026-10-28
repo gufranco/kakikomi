@@ -53,7 +53,7 @@ disk_tool_flavor() {
 
 disk_doctor_note() {
   case "${1##*/}" in
-    dd | cmp | od | awk | sed | sha256sum) disk_tool_flavor "$1" ;;
+    dd | cmp | od | awk | sed | sha256sum | sha512sum | md5sum | md5 | b2sum) disk_tool_flavor "$1" ;;
     shasum)
       disk_dn_raw="$("$1" --version 2>&1 </dev/null)" || true
       disk_dn_version="$(disk_flavor_version "${disk_dn_raw}")"
@@ -118,9 +118,19 @@ disk_doctor_core() {
   return "${disk_dc_status}"
 }
 
+disk_doctor_digest() {
+  if ! disk_gc_tool="$(disk_digest_tool "$2")"; then
+    disk_doctor_row "$1" missing "$3"
+    return 0
+  fi
+  disk_gc_found="$(command -v "${disk_gc_tool}")"
+  disk_gc_detail="$(disk_doctor_found "${disk_gc_found}")"
+  disk_doctor_row "$1" ok "${disk_gc_detail}"
+}
+
 disk_doctor_formats() {
   disk_doctor_tool curl optional "needed to write from a URL"
-  disk_doctor_tool gzip optional "needed for .gz images"
+  disk_doctor_tool gzip optional "needed for .gz images and .sfv checksums"
   disk_doctor_tool xz optional "needed for .xz images"
   disk_doctor_tool zstd optional "needed for .zst images"
   disk_doctor_tool bzip2 optional "needed for .bz2 images"
@@ -128,6 +138,9 @@ disk_doctor_formats() {
   disk_doctor_tool qemu-img optional "needed for .vhd, .vhdx, .vmdk and .qcow2 images"
   disk_doctor_tool mcopy optional "mtools, needed for Windows ISOs and format"
   disk_doctor_tool wimlib-imagex optional "wimlib, needed for Windows ISOs over 4 GiB"
+  disk_doctor_digest "md5sum|md5" md5 "checks a published MD5 checksum"
+  disk_doctor_digest "sha512sum|shasum" sha512 "checks a published SHA-1, SHA-384 or SHA-512 checksum"
+  disk_doctor_digest "b2sum|openssl" blake2b "checks a published BLAKE2b checksum"
 }
 
 disk_doctor() {

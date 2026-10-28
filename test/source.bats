@@ -154,7 +154,7 @@ write_compressed() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"stopped: the image does not match its published checksum."* ]]
+  [[ "${output}" == *"stopped: the image does not match the expected SHA-256."* ]]
   local bytes
   bytes="$(disk_test_unique_bytes "${TARGET_IMG}")"
   [[ "${bytes}" == "aa" ]] || { printf "found bytes: %s\n" "${bytes}"; false; }
@@ -171,7 +171,7 @@ write_compressed() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"The image matches its published SHA-256."* ]]
+  [[ "${output}" == *"The image matches the SHA-256 published in ${IMAGE}.sha256."* ]]
 }
 
 @test "kakikomi clones one drive onto another" {

@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは1つ、テストは237件、シェルのモジュールは14個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
+コマンドは1つ、テストは297件、シェルのモジュールは15個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
 
 ---
 
@@ -104,6 +104,9 @@ bsdtar|7z          ok       /usr/bin/bsdtar
 qemu-img           ok       /opt/homebrew/bin/qemu-img
 mcopy              ok       /opt/homebrew/bin/mcopy
 wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
+md5sum|md5         ok       /sbin/md5sum, bsd 1.0
+sha512sum|shasum   ok       /sbin/sha512sum, bsd 1.0
+b2sum|openssl      missing  checks a published BLAKE2b checksum
 ```
 
 ## 使い方
@@ -134,7 +137,7 @@ wimlib-imagex      ok       /opt/homebrew/bin/wimlib-imagex
 | `--again` | 次に挿したディスクにも同じイメージを書き込みます |
 | `--reinsert`、`--no-reinsert` | 取り出したあと、ディスクが戻るのを待って再度比較します |
 | `--zero-tail` | 大きいディスクで、イメージより後ろの領域を消去します |
-| `--sha256 HASH` | イメージが一致しなければ止めます。隣にある`.sha256`や`SHA256SUMS`は自動で読みます |
+| `--sha256 HASH` | イメージがこの SHA-256 と一致しなければ止めます。指定しない場合はイメージの隣に公開されたチェックサムファイルを読みます。[公開チェックサム](#published-checksums)を参照 |
 | `--allow-internal` | 内蔵ディスクを許可します。動作中のシステムがあるディスクは常に拒否されます |
 | `--keep-guard` | 実行後もfstabの設定を残し、このMacがそのディスクを今後もマウントしないようにします |
 | `--raw` | WindowsのISOをFAT32に配置せず、そのまま書き込みます |
@@ -192,6 +195,39 @@ graph LR
 
 書き込み先が複数あるときは、ディスクごとに別のワーカーが書き込み、1台の失敗が他を止めることはありません。
 
+<a id="published-checksums"></a>
+
+## 公開チェックサム
+
+ほとんどのイメージには、同じダウンロードページからチェックサムファイルが配布されています。kakikomi は書き込む前にイメージの隣でそれを探し、イメージが一致しなければ止めます。URL で指定したイメージでは、同じサーバーのディレクトリにもよく使われる名前を問い合わせます。
+
+| 探すもの | 例 |
+|:---------|:---|
+| イメージの名前を持つファイル | `debian.iso.sha256`、`debian.iso.md5`、`debian.sha512`、`debian.iso.DIGESTS`、`debian.iso.json` |
+| 隣にある一覧 | `SHA256SUMS`、`SHA512SUMS (1)`、`sha256sum.txt`、`b2sums.txt`、`MD5SUMS`、`CHECKSUM`、`Fedora-...-CHECKSUM`、`release.sfv` |
+
+| 形式 | 行の例 |
+|:-----|:-------|
+| `sha256sum`、`md5sum`、`b2sum`、`shasum` | `9f2c...e1  debian.iso`、バイナリモードでは `*debian.iso` |
+| BSD と `--tag` | `SHA256 (debian.iso) = 9f2c...e1` |
+| OpenSSL | `SHA2-256(debian.iso)= 9f2c...e1` |
+| 署名付きの一覧 | PGP 署名で包まれた Fedora や Debian のファイル。署名の枠は読み飛ばします |
+| Gentoo の `DIGESTS` | 普通の行の上にある `# SHA512 HASH` 見出し |
+| Windows | `CertUtil -hashfile` と PowerShell の `Get-FileHash`、表形式とリスト形式の両方 |
+| SFV | `debian.iso CBF43926` |
+| ダイジェストだけ | イメージの名前を持ち、ハッシュだけを書いたファイル。大文字小文字、Unix と Windows の改行を問いません |
+
+MD5、SHA-1、SHA-224、SHA-256、SHA-384、SHA-512、SHA3、BLAKE2b、CRC32 を、行のラベル、上の見出し、ファイル名、ダイジェストの長さから見分けます。複数が公開されていれば一つだけ確かめます。どのみち計算する SHA-256 を優先し、なければここにあるツールで計算できる最も強いものを使います。圧縮イメージはファイルそのものか展開した中身のどちらかに一致すればよいので、`debian.img` を挙げた一覧は `debian.img.xz` にも使えます。
+
+| 結果 | どうなるか |
+|:-----|:-----------|
+| 一致 | `The image matches the SHA-512 published in Downloads/SHA512SUMS.` と表示して書き込みを続けます |
+| 不一致 | どのディスクにも触れる前に止まり、期待値と計算したダイジェストを表示します |
+| 公開されたアルゴリズムを計算できるツールがない | 止まって、入れるべきツールを示します |
+| どのイメージも指さない単独のダイジェスト、たとえばハッシュだけの `sha256.txt` | 別のダウンロードのものかもしれないので、不一致は警告にとどめます |
+
+署名付き一覧の PGP 署名は検証しません。`--sha256 HASH` を指定すると、探す代わりにその値を使います。
+
 ## Windowsのインストーラー
 
 WindowsのISOはそのまま書いてもUSBからは起動しません。kakikomiはそれを検出し、すべてのファイルを含むFAT32パーティション1つのMBRディスクを作り、4GiBを超える`install.wim`は`wimlib`で分割します。ファイルは`mtools`でコピーするので書き込み先はマウントされず、ボリュームを書き込む前に全ファイルを読み戻して比較します。できたものはUEFIのマシンで起動します。
@@ -211,7 +247,7 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプトと補完にShellCheck、manページにmandocを実行し、関数が二重に定義されていないことを確認します |
-| `make test` | システムの`sh`で237件の`bats`テスト |
+| `make test` | システムの`sh`で297件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
 | `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |

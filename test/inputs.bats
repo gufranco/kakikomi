@@ -107,7 +107,7 @@ opening() {
   farm="$(disk_test_farm sha256sum)"
 
   # Act
-  run disk_test_call_path "${farm}" disk_hash_tool
+  run disk_test_call_path "${farm}" disk_digest_tool sha256
 
   # Assert
   [[ "${output}" == "shasum" ]]

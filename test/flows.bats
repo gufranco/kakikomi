@@ -161,7 +161,7 @@ writing_with() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"The image matches its published SHA-256."* ]]
+  [[ "${output}" == *"The image matches the expected SHA-256."* ]]
 }
 
 @test "kakikomi pads an image that ends inside a sector" {

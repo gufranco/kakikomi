@@ -273,7 +273,7 @@ minimal_path() {
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"kakikomi: stopped: the image does not match its published checksum."* ]]
+  [[ "${output}" == *"kakikomi: stopped: the image does not match the expected SHA-256."* ]]
 }
 
 @test "kakikomi lets --sha256 on the command line win over the environment" {

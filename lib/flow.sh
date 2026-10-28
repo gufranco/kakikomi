@@ -73,33 +73,45 @@ disk_write_bootable_hint() {
   return 0
 }
 
-disk_write_published() {
-  DISK_PUBLISHED_SHA="$(disk_expected_sha256 "${DISK_SRC_ORIGIN}")" || DISK_PUBLISHED_SHA=""
-  DISK_PUBLISHED_OK=0
-  [ -n "${DISK_PUBLISHED_SHA}" ] || return 0
-  [ -f "${DISK_SRC_ORIGIN}" ] || return 0
-  disk_info "Checking the image against its published SHA-256."
-  disk_wp_file="$(disk_sha256_stdin <"${DISK_SRC_ORIGIN}")"
-  if [ "${disk_wp_file}" = "${DISK_PUBLISHED_SHA}" ]; then
-    DISK_PUBLISHED_OK=1
-    disk_success "The image matches its published SHA-256."
+disk_write_find_published() {
+  disk_wq_all="$(disk_published_digests "${DISK_SRC_ORIGIN}")"
+  if [ -z "${disk_wq_all}" ] && [ -n "${DISK_SRC_URL}" ]; then
+    mkdir -p "${DISK_SRC_WORK}/published" || return 1
+    disk_wq_all="$(disk_published_remote "${DISK_SRC_URL}" "${DISK_SRC_WORK}/published")"
   fi
+  printf '%s\n' "${disk_wq_all}"
+}
+
+disk_write_published() {
+  DISK_PUBLISHED_OK=0
+  DISK_PUBLISHED_ALG=""
+  DISK_PUBLISHED_READ=""
+  disk_wp_all="$(disk_write_find_published)" || return 1
+  [ -n "${disk_wp_all}" ] || return 0
+  disk_published_choose "${disk_wp_all}" || return 1
+  [ -n "${DISK_PUBLISHED_ALG}" ] || return 0
+  [ -f "${DISK_SRC_ORIGIN}" ] || return 0
+  disk_wp_where="$(disk_published_sources "${DISK_PUBLISHED_SET}" | sed -n '1p')"
+  disk_wp_phrase="$(disk_published_phrase "${DISK_PUBLISHED_ALG}" "${disk_wp_where}")"
+  disk_info "Checking the image against ${disk_wp_phrase}."
+  disk_published_check file && disk_published_matched
   return 0
+}
+
+disk_write_contents_differ() {
+  [ "${DISK_SRC_STREAM}" = "1" ] || [ "${DISK_SRC_PATH}" != "${DISK_SRC_ORIGIN}" ] || [ ! -f "${DISK_SRC_ORIGIN}" ]
 }
 
 disk_write_checksum() {
   disk_info "Computing the image's SHA-256."
-  DISK_SRC_SHA="$(disk_source_sha256)"
-  [ -n "${DISK_PUBLISHED_SHA}" ] || return 0
+  DISK_SRC_SHA="$(disk_source_digest sha256)"
+  [ -n "${DISK_PUBLISHED_ALG}" ] || return 0
   [ "${DISK_PUBLISHED_OK}" = "1" ] && return 0
-  if [ "${DISK_PUBLISHED_SHA}" = "${DISK_SRC_SHA}" ]; then
-    disk_success "The image matches its published SHA-256."
+  if disk_write_contents_differ && disk_published_check contents; then
+    disk_published_matched
     return 0
   fi
-  disk_error "stopped: the image does not match its published checksum."
-  disk_error "expected ${DISK_PUBLISHED_SHA}"
-  disk_error "read     ${DISK_SRC_SHA}"
-  return 1
+  disk_published_mismatch
 }
 
 disk_write_summary() {

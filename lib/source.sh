@@ -111,57 +111,19 @@ disk_stream_size() {
   printf '%s\n' "${disk_ss_bytes}"
 }
 
-disk_hash_tool() {
-  if disk_cmd_exists sha256sum; then
-    printf 'sha256sum\n'
-  elif disk_cmd_exists shasum; then
-    printf 'shasum\n'
-  else
-    printf 'openssl\n'
-  fi
-}
-
 disk_sha256_stdin() {
-  disk_hs_tool="$(disk_hash_tool)"
-  case "${disk_hs_tool}" in
-    sha256sum) disk_hs_out="$(sha256sum)" ;;
-    shasum) disk_hs_out="$(shasum -a 256)" ;;
-    *) disk_hs_out="$(openssl dgst -sha256 -r)" ;;
-  esac
-  printf '%s\n' "${disk_hs_out%% *}"
+  disk_digest_stdin sha256
 }
 
-disk_source_sha256() {
+disk_source_digest() {
   if [ "${DISK_SRC_STREAM}" = "1" ]; then
-    { disk_stream_source "${DISK_SRC_PATH}" "${DISK_SRC_KIND}" "${DISK_SRC_TOOL}" 2>/dev/null || true; } | disk_sha256_stdin
+    { disk_stream_source "${DISK_SRC_PATH}" "${DISK_SRC_KIND}" "${DISK_SRC_TOOL}" 2>/dev/null || true; } | disk_digest_stdin "$1"
   elif [ "${DISK_SRC_KIND}" = "device" ]; then
     disk_ssh_io="$(disk_io_device "${DISK_SRC_PATH}")"
-    { sudo dd if="${disk_ssh_io}" bs=1048576 2>/dev/null || true; } | head -c "${DISK_SRC_SIZE}" | disk_sha256_stdin
+    { sudo dd if="${disk_ssh_io}" bs=1048576 2>/dev/null || true; } | head -c "${DISK_SRC_SIZE}" | disk_digest_stdin "$1"
   else
-    disk_sha256_stdin <"${DISK_SRC_PATH}"
+    disk_digest_stdin "$1" <"${DISK_SRC_PATH}"
   fi
-}
-
-disk_expected_sha256() {
-  if [ -n "${SHA256:-}" ]; then
-    printf '%s\n' "${SHA256}" | tr '[:upper:]' '[:lower:]'
-    return 0
-  fi
-  disk_es_dir="${1%/*}"
-  [ "${disk_es_dir}" = "$1" ] && disk_es_dir="."
-  disk_es_name="${1##*/}"
-  for disk_es_file in "$1.sha256" "${disk_es_dir}/SHA256SUMS" "${disk_es_dir}/sha256sums.txt"; do
-    [ -f "${disk_es_file}" ] || continue
-    disk_es_hash="$(awk -v name="${disk_es_name}" '
-      NF == 1 && $1 ~ /^[0-9a-fA-F]{64}$/ { print tolower($1); exit }
-      { file = $2; sub(/^\*/, "", file); if (file == name) { print tolower($1); exit } }
-    ' "${disk_es_file}")"
-    if [ -n "${disk_es_hash}" ]; then
-      printf '%s\n' "${disk_es_hash}"
-      return 0
-    fi
-  done
-  return 1
 }
 
 disk_download() {
@@ -231,6 +193,7 @@ disk_convert() {
 disk_source_open() {
   DISK_SRC_PATH="$1"
   DISK_SRC_ORIGIN="$1"
+  DISK_SRC_URL=""
   DISK_SRC_STREAM=0
   DISK_SRC_TOOL=""
   DISK_ZIP_MEMBER=""
@@ -240,6 +203,7 @@ disk_source_open() {
   fi
   DISK_SRC_KIND="$(disk_source_kind "${DISK_SRC_PATH}")"
   if [ "${DISK_SRC_KIND}" = "url" ]; then
+    DISK_SRC_URL="$1"
     DISK_SRC_PATH="$(disk_download "$1")" || return 1
     DISK_SRC_ORIGIN="${DISK_SRC_PATH}"
     DISK_SRC_KIND="$(disk_source_kind "${DISK_SRC_PATH}")"
