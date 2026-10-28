@@ -113,12 +113,17 @@ disk_test_run_path() {
 
 disk_test_attach() {
   local image="$1"
-  local listing
+  local listing device tries=0
 
   case "${DISK_TEST_OS}" in
   Darwin)
     listing="$(hdiutil attach -nomount -imagekey diskimage-class=CRawDiskImage "${image}")" || return 1
-    printf '%s\n' "${listing%%[[:space:]]*}"
+    device="${listing%%[[:space:]]*}"
+    until diskutil info "${device}" >/dev/null 2>&1 || [[ "${tries}" -ge 300 ]]; do
+      sleep 0.1
+      tries=$((tries + 1))
+    done
+    printf '%s\n' "${device}"
     ;;
   Linux)
     sudo losetup -f --show "${image}"
