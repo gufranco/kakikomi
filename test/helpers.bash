@@ -111,13 +111,23 @@ disk_test_run_path() {
   PATH="${search_path}" "${shell_words[@]}" "${REPO_DIR}/bin/${program}" "$@"
 }
 
+disk_test_hdiutil() {
+  local tries=0
+
+  until hdiutil "$@"; do
+    tries=$((tries + 1))
+    [[ "${tries}" -lt 50 ]] || return 1
+    sleep 0.2
+  done
+}
+
 disk_test_attach() {
   local image="$1"
   local listing device tries=0
 
   case "${DISK_TEST_OS}" in
   Darwin)
-    listing="$(hdiutil attach -nomount -imagekey diskimage-class=CRawDiskImage "${image}")" || return 1
+    listing="$(disk_test_hdiutil attach -nomount -imagekey diskimage-class=CRawDiskImage "${image}")" || return 1
     device="${listing%%[[:space:]]*}"
     until diskutil info "${device}" >/dev/null 2>&1 || [[ "${tries}" -ge 300 ]]; do
       sleep 0.1
@@ -229,8 +239,8 @@ disk_test_fat_image() {
 
   case "${DISK_TEST_OS}" in
   Darwin)
-    hdiutil create -size "${mebibytes}m" -layout MBRSPUD -fs "MS-DOS FAT16" -volname "${label}" -o "${base}.dmg" >/dev/null || return 1
-    hdiutil convert "${base}.dmg" -format UDTO -o "${base}" >/dev/null || return 1
+    disk_test_hdiutil create -ov -size "${mebibytes}m" -layout MBRSPUD -fs "MS-DOS FAT16" -volname "${label}" -o "${base}.dmg" >/dev/null || return 1
+    disk_test_hdiutil convert -ov "${base}.dmg" -format UDTO -o "${base}" >/dev/null || return 1
     mv -f "${base}.cdr" "${file}"
     rm -f "${base}.dmg"
     ;;

@@ -321,7 +321,7 @@ exec \"\$REAL\" \"\$@\""
   case "${DISK_TEST_OS}" in
   Darwin)
     local listing
-    listing="$(hdiutil attach "${WORK}/fat.img")"
+    listing="$(disk_test_hdiutil attach "${WORK}/fat.img")"
     DEVICE="${listing%%[[:space:]]*}"
     folder="$(printf '%s\n' "${listing}" | awk -F'\t' '/\/Volumes\// { print $NF; exit }')"
     disk_test_random_file "${folder}/payload.img" 1
