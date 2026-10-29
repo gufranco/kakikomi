@@ -80,7 +80,7 @@ teardown() {
 
 @test "kakikomi finishes the healthy disks when one target fails mid-write" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "a failing block device is built with device-mapper, which only Linux has"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "a failing block device is built with device-mapper, which only Linux has"
   local sectors
   sectors="$(sudo blockdev --getsz "${DEV2}")"
   FAULTY="kakikomi-faulty-$$"
@@ -105,9 +105,9 @@ teardown() {
 
 @test "kakikomi keeps every disk's guard when three write at once" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
   local names="${DEV1##*/} ${DEV2##*/} ${DEV3##*/}"
-  export KEEP_GUARD=y
+  export KAKIKOMI_KEEP_GUARD=y
 
   # Act
   run answer_and_write "${names}\n" "${IMAGE}" "${DEV1}" "${DEV2}" "${DEV3}"
@@ -115,9 +115,9 @@ teardown() {
   # Assert
   [[ "${status}" -eq 0 ]]
   local blocks
-  blocks="$(grep -c '^# kakikomi .* begin$' "${DISK_FSTAB}")"
+  blocks="$(grep -c '^# kakikomi .* begin$' "${KAKIKOMI_FSTAB}")"
   [[ "${blocks}" -eq 3 ]]
-  grep -q "^# kakikomi ${DEV1##*/} begin$" "${DISK_FSTAB}"
-  grep -q "^# kakikomi ${DEV2##*/} begin$" "${DISK_FSTAB}"
-  grep -q "^# kakikomi ${DEV3##*/} begin$" "${DISK_FSTAB}"
+  grep -q "^# kakikomi ${DEV1##*/} begin$" "${KAKIKOMI_FSTAB}"
+  grep -q "^# kakikomi ${DEV2##*/} begin$" "${KAKIKOMI_FSTAB}"
+  grep -q "^# kakikomi ${DEV3##*/} begin$" "${KAKIKOMI_FSTAB}"
 }

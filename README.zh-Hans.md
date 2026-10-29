@@ -18,7 +18,7 @@
 
 </div>
 
-一个命令，297 个测试，15 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
+一个命令，305 个测试，15 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
 
 ---
 
@@ -37,16 +37,17 @@ Type disk6 to write, or anything else to stop: disk6
 Unmounting /dev/disk6...
 Disk unmounted
 Measuring /dev/disk6 before writing it, so every limit comes from this disk.
-Measured read: 232800 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
-Measured write: 83142 KiB/s sustained, 29ms to reach a sector, allowing 3x that before stopping.
-Blanking the first 16.0 MiB so nothing on /dev/disk6 is mountable until the very end.
+Measured read: 232800 KiB/s, 27ms to reach a sector, allowing 3x that.
+Measured write: 83142 KiB/s, 29ms to reach a sector, allowing 3x that.
+Blanking the first 16.0 MiB so /dev/disk6 cannot mount until the end.
 Writing  50%  86.0 MiB/s  0m00s left
 The image holds no volume macOS would mount.
 Writing the first 16.0 MiB last.
 Writing 100%  34.7 MiB/s  0m00s left
 Wrote and verified every chunk of the image.
 Reading back all 16.0 MiB to compare with the image.
-Validated: /dev/disk6 matches the image, SHA-256 dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
+Validated: /dev/disk6 matches the image, SHA-256
+        dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
 Ejecting /dev/disk6...
 Ejected. /dev/disk6 is safe to remove.
 ```
@@ -141,7 +142,7 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `--keep-guard` | 运行后保留 fstab 防护，让这台 Mac 永不挂载该磁盘 |
 | `--raw` | 按字节原样写入 Windows ISO，而不是布置成 FAT32 |
 
-也可以写成 `--sha256=HASH`，`--` 表示选项结束。环境变量 `VERIFY`、`DELETE`、`AGAIN`、`REINSERT`、`ZERO_TAIL`、`SHA256`、`ALLOW_INTERNAL`、`KEEP_GUARD` 和 `MODE=raw` 以 `y` 或 `n` 设置同样的选项，命令行上的选项优先。
+也可以写成 `--sha256=HASH`，`--` 表示选项结束。环境变量 `KAKIKOMI_VERIFY`、`KAKIKOMI_DELETE`、`KAKIKOMI_AGAIN`、`KAKIKOMI_REINSERT`、`KAKIKOMI_ZERO_TAIL`、`KAKIKOMI_SHA256`、`KAKIKOMI_ALLOW_INTERNAL`、`KAKIKOMI_KEEP_GUARD` 和 `KAKIKOMI_MODE=raw` 以 `y` 或 `n` 设置同样的选项，命令行上的选项优先。
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
@@ -246,7 +247,7 @@ graph LR
 | 命令 | 说明 |
 |:--------|:------------|
 | `make lint` | 对每个脚本和补全运行 ShellCheck，用 mandoc 检查 man 手册，并检查没有函数被重复定义 |
-| `make test` | 在系统 `sh` 下运行 297 个 `bats` 测试 |
+| `make test` | 在系统 `sh` 下运行 305 个 `bats` 测试 |
 | `make test-all` | 在每个已安装的 shell 下运行同样的测试 |
 | `make test-linux` | 从 Mac 在特权 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 在这台 Mac 和同一容器中用 bashcov 测量行覆盖率并合并，CI 要求 100% |

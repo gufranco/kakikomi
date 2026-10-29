@@ -28,11 +28,11 @@ windows_iso() {
 }
 
 laying_out() {
-  printf '%s\n' "${NAME}" | disk_test_run_env "FAT32_MAX_FILE=1048576 ${1:-}" kakikomi "${ISO}" "${DEVICE}"
+  printf '%s\n' "${NAME}" | disk_test_run_env "KAKIKOMI_FAT32_MAX_FILE=1048576 ${1:-}" kakikomi "${ISO}" "${DEVICE}"
 }
 
 laying_out_on() {
-  printf '%s\n' "${NAME}" | FAT32_MAX_FILE=1048576 disk_test_run_path "$1" kakikomi "${ISO}" "${DEVICE}"
+  printf '%s\n' "${NAME}" | KAKIKOMI_FAT32_MAX_FILE=1048576 disk_test_run_path "$1" kakikomi "${ISO}" "${DEVICE}"
 }
 
 @test "a disk up to 3 MiB gets a floppy filesystem by default" {
@@ -70,7 +70,7 @@ laying_out_on() {
 
 @test "an unknown system cannot build exFAT" {
   # Arrange
-  export DISK_OS=FreeBSD
+  export KAKIKOMI_OS=FreeBSD
 
   # Act
   run disk_test_call disk_exfat_build "${WORK}/volume.img" LABEL

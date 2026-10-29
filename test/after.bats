@@ -39,12 +39,12 @@ write_on_path() {
   printf '%b' "${answers}" | disk_test_run_path "${search_path}" kakikomi "$@"
 }
 
-@test "kakikomi AGAIN=y writes the same image to the next disk" {
+@test "kakikomi KAKIKOMI_AGAIN=y writes the same image to the next disk" {
   # Arrange
   local answers="${DEV1##*/}\n\n${DEV2##*/}\n${DEV2##*/}\nq\n"
 
   # Act
-  run answer_and_write "${answers}" "AGAIN=y" "${IMAGE}" "${DEV1}"
+  run answer_and_write "${answers}" "KAKIKOMI_AGAIN=y" "${IMAGE}" "${DEV1}"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -52,10 +52,10 @@ write_on_path() {
   disk_test_same_prefix "${IMAGE}" "${WORK}/t2.img"
 }
 
-@test "kakikomi REINSERT=y compares the disk again after it comes back" {
+@test "kakikomi KAKIKOMI_REINSERT=y compares the disk again after it comes back" {
   # Arrange
   local log="${WORK}/run.log"
-  printf '%s\n' "${DEV1##*/}" | disk_test_run_env "REINSERT=y" kakikomi "${IMAGE}" "${DEV1}" >"${log}" 2>&1 &
+  printf '%s\n' "${DEV1##*/}" | disk_test_run_env "KAKIKOMI_REINSERT=y" kakikomi "${IMAGE}" "${DEV1}" >"${log}" 2>&1 &
   local runner="$!"
   disk_test_wait_for "${log}" "plug it back in" 1200 || cat "${log}"
 
@@ -76,7 +76,7 @@ write_on_path() {
   local answers="y\ny\nn\n${DEV1##*/}\n"
 
   # Act
-  run answer_and_write "${answers}" "DISK_INTERACTIVE=1" "${IMAGE}" "${DEV1}"
+  run answer_and_write "${answers}" "KAKIKOMI_INTERACTIVE=1" "${IMAGE}" "${DEV1}"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -89,7 +89,7 @@ write_on_path() {
   disk_test_shim trash "mkdir -p '${WORK}/Bin' && mv -f \"\$1\" '${WORK}/Bin/'"
 
   # Act
-  run answer_and_write "${DEV1##*/}\n" "DELETE=y DISK_TRASH=" "${IMAGE}" "${DEV1}"
+  run answer_and_write "${DEV1##*/}\n" "KAKIKOMI_DELETE=y KAKIKOMI_TRASH=" "${IMAGE}" "${DEV1}"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -103,7 +103,7 @@ write_on_path() {
 mkdir -p '${WORK}/Gio' && mv -f \"\$2\" '${WORK}/Gio/'"
   local farm
   farm="$(disk_test_farm trash)"
-  export DELETE=y DISK_TRASH=""
+  export KAKIKOMI_DELETE=y KAKIKOMI_TRASH=""
 
   # Act
   run write_on_path "${farm}" "${DEV1##*/}\n" "${IMAGE}" "${DEV1}"
@@ -118,7 +118,7 @@ mkdir -p '${WORK}/Gio' && mv -f \"\$2\" '${WORK}/Gio/'"
   local answers="${DEV1##*/} ${DEV2##*/}\n"
 
   # Act
-  run answer_and_write "${answers}" "REINSERT=y" "${IMAGE}" "${DEV1}" "${DEV2}"
+  run answer_and_write "${answers}" "KAKIKOMI_REINSERT=y" "${IMAGE}" "${DEV1}" "${DEV2}"
 
   # Assert
   [[ "${output}" == *"--reinsert checks one disk at a time, so it is skipped when writing several."* ]]

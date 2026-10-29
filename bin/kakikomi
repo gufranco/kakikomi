@@ -1,6 +1,10 @@
 #!/bin/sh
 [ -n "${ZSH_VERSION:-}" ] && emulate sh
 
+for disk_inherited in $(env | sed -n 's/^\(DISK_[A-Za-z0-9_]*\)=.*/\1/p'); do
+  unset "${disk_inherited}"
+done
+
 disk_self="$0"
 case "${disk_self}" in
   */*) ;;
@@ -40,18 +44,18 @@ DISK_PROG=kakikomi
 
 disk_write_usage() {
   cat <<'USAGE'
-kakikomi - write disk images to removable media, verified chunk by chunk, never mounted
+kakikomi - write disk images to removable media, verified, never mounted
 
 usage:
-  kakikomi                                  ask what to do, step by step
+  kakikomi                     ask what to do, step by step
   kakikomi [options] <image|url|device> [target...]
-                                            write an image to one or more disks
+                               write an image to one or more disks
   kakikomi format [options] [target] [fat32|exfat|fat|floppy] [label]
-                                            quick format a disk
-  kakikomi --release                        remove mount guards a run left behind
-  kakikomi doctor                           check the tools kakikomi needs
-  kakikomi version                          print the version
-  kakikomi help                             print this page
+                               quick format a disk
+  kakikomi --release           remove mount guards a run left behind
+  kakikomi doctor              check the tools kakikomi needs
+  kakikomi version             print the version
+  kakikomi help                print this page
 
 options:
   --verify | --no-verify       read the whole disk back and compare its SHA-256
@@ -72,9 +76,10 @@ options:
                                installer
 
 environment:
-  VERIFY, DELETE, AGAIN, REINSERT, ZERO_TAIL, SHA256, ALLOW_INTERNAL,
-  KEEP_GUARD and MODE=raw set the same options, with y or n for yes or no. an
-  option on the command line wins.
+  KAKIKOMI_VERIFY, KAKIKOMI_DELETE, KAKIKOMI_AGAIN, KAKIKOMI_REINSERT,
+  KAKIKOMI_ZERO_TAIL, KAKIKOMI_SHA256, KAKIKOMI_ALLOW_INTERNAL,
+  KAKIKOMI_KEEP_GUARD and KAKIKOMI_MODE=raw set the same options, with y or n
+  for yes or no. an option on the command line wins.
 
 notes:
   A disk is named by its device, such as /dev/disk4, or by any volume mounted
@@ -103,26 +108,27 @@ USAGE
 
 disk_option_flag() {
   case "$1" in
-    --verify) VERIFY=y ;;
-    --no-verify) VERIFY=n ;;
-    --delete) DELETE=y ;;
-    --no-delete) DELETE=n ;;
-    --again) AGAIN=y ;;
-    --reinsert) REINSERT=y ;;
-    --no-reinsert) REINSERT=n ;;
-    --zero-tail) ZERO_TAIL=y ;;
-    --allow-internal) ALLOW_INTERNAL=y ;;
-    --keep-guard) KEEP_GUARD=y ;;
-    --raw) MODE=raw ;;
+    --verify) KAKIKOMI_VERIFY=y ;;
+    --no-verify) KAKIKOMI_VERIFY=n ;;
+    --delete) KAKIKOMI_DELETE=y ;;
+    --no-delete) KAKIKOMI_DELETE=n ;;
+    --again) KAKIKOMI_AGAIN=y ;;
+    --reinsert) KAKIKOMI_REINSERT=y ;;
+    --no-reinsert) KAKIKOMI_REINSERT=n ;;
+    --zero-tail) KAKIKOMI_ZERO_TAIL=y ;;
+    --allow-internal) KAKIKOMI_ALLOW_INTERNAL=y ;;
+    --keep-guard) KAKIKOMI_KEEP_GUARD=y ;;
+    --raw) KAKIKOMI_MODE=raw ;;
     *) return 1 ;;
   esac
-  export VERIFY DELETE AGAIN REINSERT ZERO_TAIL ALLOW_INTERNAL KEEP_GUARD MODE
+  export KAKIKOMI_VERIFY KAKIKOMI_DELETE KAKIKOMI_AGAIN KAKIKOMI_REINSERT KAKIKOMI_ZERO_TAIL
+  export KAKIKOMI_ALLOW_INTERNAL KAKIKOMI_KEEP_GUARD KAKIKOMI_MODE
   return 0
 }
 
 disk_option_value() {
-  SHA256="$2"
-  export SHA256
+  KAKIKOMI_SHA256="$2"
+  export KAKIKOMI_SHA256
   return 0
 }
 

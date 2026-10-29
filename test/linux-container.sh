@@ -2,13 +2,13 @@
 set -eu
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
-image="${DISK_TEST_IMAGE:-ubuntu:26.04}"
+image="${KAKIKOMI_TEST_IMAGE:-ubuntu:26.04}"
 
 docker run --rm --privileged \
   -v "${repo}:/repo" \
   -w /repo \
-  -e DISK_SHELL="${DISK_SHELL:-}" \
-  -e DISK_TEST_RECORD="${DISK_TEST_RECORD:-}" \
+  -e KAKIKOMI_TEST_SHELL="${KAKIKOMI_TEST_SHELL:-}" \
+  -e KAKIKOMI_TEST_RECORD="${KAKIKOMI_TEST_RECORD:-}" \
   "${image}" \
   sh -c '
     set -eu

@@ -27,7 +27,7 @@ disk_write_chunk() {
   disk_wc_offset="$3"
   disk_wc_piece="$4"
   disk_wc_label="$5"
-  disk_wc_attempts="${CHUNK_RETRIES:-${DISK_RETRIES}}"
+  disk_wc_attempts="${KAKIKOMI_CHUNK_RETRIES:-${DISK_RETRIES}}"
   [ "${disk_wc_attempts}" -ge 1 ] || disk_wc_attempts=1
   DISK_ATTEMPT=1
   DISK_BITS=""
@@ -160,18 +160,18 @@ disk_write_stages() {
   DISK_MARGINAL=0
   DISK_PROGRESS_STEP=0
   DISK_WORK_BYTES=$((DISK_PADDED + DISK_HEAD))
-  [ "${ZERO_TAIL:-}" = "y" ] && DISK_WORK_BYTES=$((DISK_WORK_BYTES + disk_ws_size - DISK_PADDED))
+  [ "${KAKIKOMI_ZERO_TAIL:-}" = "y" ] && DISK_WORK_BYTES=$((DISK_WORK_BYTES + disk_ws_size - DISK_PADDED))
   DISK_STARTED="$(disk_now_ms)"
 
   disk_ws_head="$(disk_human "${DISK_HEAD}")"
-  disk_info "Blanking the first ${disk_ws_head} so nothing on ${disk_ws_disk} is mountable until the very end."
+  disk_info "Blanking the first ${disk_ws_head} so ${disk_ws_disk} cannot mount until the end."
   disk_zero_range "${disk_ws_disk}" 0 "${DISK_HEAD}" || return 1
   [ "${DISK_SRC_STREAM}" = "1" ] && { disk_stream_start "${DISK_TMPDIR}" || return 1; }
   disk_ws_status=0
   disk_body "${disk_ws_disk}" || disk_ws_status=1
   [ "${DISK_SRC_STREAM}" = "1" ] && disk_stream_stop
   [ "${disk_ws_status}" -eq 0 ] || return 1
-  if [ "${ZERO_TAIL:-}" = "y" ] && [ "${disk_ws_size}" -gt "${DISK_PADDED}" ]; then
+  if [ "${KAKIKOMI_ZERO_TAIL:-}" = "y" ] && [ "${disk_ws_size}" -gt "${DISK_PADDED}" ]; then
     disk_ws_tail="$(disk_human $((disk_ws_size - DISK_PADDED)))"
     disk_info "Zeroing the ${disk_ws_tail} past the image."
     disk_zero_range "${disk_ws_disk}" "${DISK_PADDED}" "${disk_ws_size}" || return 1
@@ -213,7 +213,7 @@ disk_write_prepare() {
   disk_wpp_size="$(disk_size_bytes "$1")"
   disk_wpp_size=$((disk_wpp_size - disk_wpp_size % DISK_SECTOR))
   disk_wpp_span="$(disk_padded_size "${DISK_SRC_SIZE}" "${DISK_SECTOR}")"
-  [ "${ZERO_TAIL:-}" = "y" ] && disk_wpp_span="${disk_wpp_size}"
+  [ "${KAKIKOMI_ZERO_TAIL:-}" = "y" ] && disk_wpp_span="${disk_wpp_size}"
   disk_set_ceiling "${disk_wpp_span}"
   disk_measure "$1" "${disk_wpp_span}" writing "the write" || return 1
   printf '%s\n' "${disk_wpp_size}" >"${DISK_TMPDIR}/size"
@@ -236,14 +236,14 @@ disk_write_target() {
     disk_wt_size="$(cat "${DISK_TMPDIR}/size")"
     disk_write_stages "${disk_wt_disk}" "${disk_wt_size}" || disk_wt_status=1
   fi
-  if [ "${disk_wt_status}" -eq 0 ] && [ "${VERIFY:-y}" != "n" ]; then
+  if [ "${disk_wt_status}" -eq 0 ] && [ "${KAKIKOMI_VERIFY:-y}" != "n" ]; then
     disk_validate_target "${disk_wt_disk}" "${DISK_SRC_SIZE}" "${DISK_SRC_SHA}" || disk_wt_status=1
   fi
   if [ "${disk_wt_status}" -eq 0 ]; then
     disk_finish_eject "${disk_wt_disk}"
     disk_reinsert_check "${disk_wt_disk}" "${disk_wt_raw}" "$2" || disk_wt_status=1
   elif [ -n "${DISK_GUARD_DECLARED}" ]; then
-    KEEP_GUARD=y
+    KAKIKOMI_KEEP_GUARD=y
     disk_warning "the mount guard for ${disk_wt_disk} stays in place. run kakikomi --release once the disk is out."
   fi
   disk_breach_stop "${disk_wt_disk}" || disk_wt_status=1
@@ -274,14 +274,14 @@ disk_finish_eject() {
 
 disk_wait_removal() {
   disk_wr_waited=0
-  disk_wr_limit="${REMOVAL_WAIT_SECONDS:-600}"
+  disk_wr_limit="${KAKIKOMI_REMOVAL_WAIT_SECONDS:-600}"
   while [ "${disk_wr_waited}" -lt "${disk_wr_limit}" ]; do
     disk_device_gone "$1" && return 0
     sleep 1
     disk_wr_waited=$((disk_wr_waited + 1))
   done
-  if [ "${KEEP_GUARD:-}" != "y" ]; then
-    KEEP_GUARD=y
+  if [ "${KAKIKOMI_KEEP_GUARD:-}" != "y" ]; then
+    KAKIKOMI_KEEP_GUARD=y
     disk_warning "$1 is still attached, so the mount guard stays. run kakikomi --release after removing it."
   fi
   return 0

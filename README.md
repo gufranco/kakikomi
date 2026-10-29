@@ -18,7 +18,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 297 tests, 15 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
+One command, 305 tests, 15 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
 
 ---
 
@@ -37,16 +37,17 @@ Type disk6 to write, or anything else to stop: disk6
 Unmounting /dev/disk6...
 Disk unmounted
 Measuring /dev/disk6 before writing it, so every limit comes from this disk.
-Measured read: 232800 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
-Measured write: 83142 KiB/s sustained, 29ms to reach a sector, allowing 3x that before stopping.
-Blanking the first 16.0 MiB so nothing on /dev/disk6 is mountable until the very end.
+Measured read: 232800 KiB/s, 27ms to reach a sector, allowing 3x that.
+Measured write: 83142 KiB/s, 29ms to reach a sector, allowing 3x that.
+Blanking the first 16.0 MiB so /dev/disk6 cannot mount until the end.
 Writing  50%  86.0 MiB/s  0m00s left
 The image holds no volume macOS would mount.
 Writing the first 16.0 MiB last.
 Writing 100%  34.7 MiB/s  0m00s left
 Wrote and verified every chunk of the image.
 Reading back all 16.0 MiB to compare with the image.
-Validated: /dev/disk6 matches the image, SHA-256 dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
+Validated: /dev/disk6 matches the image, SHA-256
+        dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
 Ejecting /dev/disk6...
 Ejected. /dev/disk6 is safe to remove.
 ```
@@ -141,7 +142,7 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `--keep-guard` | Keep the fstab guard after the run, so this Mac never mounts that disk |
 | `--raw` | Write a Windows ISO byte for byte instead of laying it out as FAT32 |
 
-`--sha256=HASH` works too, and `--` ends the options. The environment variables `VERIFY`, `DELETE`, `AGAIN`, `REINSERT`, `ZERO_TAIL`, `SHA256`, `ALLOW_INTERNAL`, `KEEP_GUARD` and `MODE=raw` set the same options, with `y` or `n`; an option on the command line wins.
+`--sha256=HASH` works too, and `--` ends the options. The environment variables `KAKIKOMI_VERIFY`, `KAKIKOMI_DELETE`, `KAKIKOMI_AGAIN`, `KAKIKOMI_REINSERT`, `KAKIKOMI_ZERO_TAIL`, `KAKIKOMI_SHA256`, `KAKIKOMI_ALLOW_INTERNAL`, `KAKIKOMI_KEEP_GUARD` and `KAKIKOMI_MODE=raw` set the same options, with `y` or `n`; an option on the command line wins.
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
@@ -246,7 +247,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 | Command | Description |
 |:--------|:------------|
 | `make lint` | ShellCheck on every script and completion, mandoc on the man page, and a check that no function is defined twice |
-| `make test` | The 297 `bats` tests under the system `sh` |
+| `make test` | The 305 `bats` tests under the system `sh` |
 | `make test-all` | The same tests under every installed shell |
 | `make test-linux` | The same tests in a privileged Ubuntu container, from a Mac |
 | `make coverage` | bashcov line coverage on this Mac and in that container, merged, with a 100% gate CI enforces |

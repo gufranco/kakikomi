@@ -18,7 +18,7 @@ teardown() {
 }
 
 write_windows() {
-  printf '%s\n' "${NAME}" | disk_test_run_env "FAT32_MAX_FILE=1048576" kakikomi "$1" "${DEVICE}"
+  printf '%s\n' "${NAME}" | disk_test_run_env "KAKIKOMI_FAT32_MAX_FILE=1048576" kakikomi "$1" "${DEVICE}"
 }
 
 format_with() {

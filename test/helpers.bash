@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
-DISK_TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_DIR="$(cd "${DISK_TESTS_DIR}/.." && pwd)"
-DISK_TEST_OS="$(uname -s)"
-export DISK_TESTS_DIR REPO_DIR DISK_TEST_OS
+KAKIKOMI_TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="$(cd "${KAKIKOMI_TESTS_DIR}/.." && pwd)"
+KAKIKOMI_TEST_OS="$(uname -s)"
+export KAKIKOMI_TESTS_DIR REPO_DIR KAKIKOMI_TEST_OS
 
 disk_test_path() {
   local base="${PATH}"
-  if [[ "${DISK_TEST_OS}" == "Darwin" ]]; then
-    base="${DISK_TESTS_DIR}/shim:${PATH}"
+  if [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]]; then
+    base="${KAKIKOMI_TESTS_DIR}/shim:${PATH}"
   fi
   if [[ -n "${SHIMS:-}" && -d "${SHIMS}" ]]; then
     printf '%s:%s\n' "${SHIMS}" "${base}"
@@ -26,15 +26,15 @@ disk_test_shim() {
   real="$(PATH="$(disk_test_path_without_shims)" command -v "${name}" || true)"
   printf '#!/bin/sh\n{ set +x; } 2>/dev/null\nREAL=%q\n%s\n' "${real}" "${body}" >"${SHIMS}/${name}"
   chmod +x "${SHIMS}/${name}"
-  if [[ "${DISK_TEST_OS}" == "Linux" && ! -e "${SHIMS}/sudo" ]]; then
+  if [[ "${KAKIKOMI_TEST_OS}" == "Linux" && ! -e "${SHIMS}/sudo" ]]; then
     disk_test_sudo_passthrough
   fi
   export SHIMS
 }
 
 disk_test_path_without_shims() {
-  if [[ "${DISK_TEST_OS}" == "Darwin" ]]; then
-    printf '%s:%s\n' "${DISK_TESTS_DIR}/shim" "${PATH}"
+  if [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]]; then
+    printf '%s:%s\n' "${KAKIKOMI_TESTS_DIR}/shim" "${PATH}"
   else
     printf '%s\n' "${PATH}"
   fi
@@ -59,7 +59,7 @@ disk_test_run_env() {
   local -a shell_words env_words
   shift 2
   search_path="$(disk_test_path)"
-  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  read -r -a shell_words <<<"${KAKIKOMI_TEST_SHELL:-sh}"
   read -r -a env_words <<<"${settings}"
   PATH="${search_path}" env "${env_words[@]}" "${shell_words[@]}" "${REPO_DIR}/bin/${program}" "$@"
 }
@@ -68,8 +68,8 @@ disk_test_call() {
   local search_path
   local -a shell_words
   search_path="$(disk_test_path)"
-  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
-  PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" "$@"
+  read -r -a shell_words <<<"${KAKIKOMI_TEST_SHELL:-sh}"
+  PATH="${search_path}" "${shell_words[@]}" "${KAKIKOMI_TESTS_DIR}/call.sh" "$@"
 }
 
 disk_test_farm() {
@@ -98,8 +98,8 @@ disk_test_call_path() {
   local search_path="$1"
   local -a shell_words
   shift
-  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
-  PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" "$@"
+  read -r -a shell_words <<<"${KAKIKOMI_TEST_SHELL:-sh}"
+  PATH="${search_path}" "${shell_words[@]}" "${KAKIKOMI_TESTS_DIR}/call.sh" "$@"
 }
 
 disk_test_run_path() {
@@ -107,7 +107,7 @@ disk_test_run_path() {
   local program="$2"
   local -a shell_words
   shift 2
-  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  read -r -a shell_words <<<"${KAKIKOMI_TEST_SHELL:-sh}"
   PATH="${search_path}" "${shell_words[@]}" "${REPO_DIR}/bin/${program}" "$@"
 }
 
@@ -125,7 +125,7 @@ disk_test_attach() {
   local image="$1"
   local listing device tries=0
 
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin)
     listing="$(disk_test_hdiutil attach -nomount -imagekey diskimage-class=CRawDiskImage "${image}")" || return 1
     device="${listing%%[[:space:]]*}"
@@ -139,7 +139,7 @@ disk_test_attach() {
     sudo losetup -f --show "${image}"
     ;;
   *)
-    printf 'unsupported OS: %s\n' "${DISK_TEST_OS}" >&2
+    printf 'unsupported OS: %s\n' "${KAKIKOMI_TEST_OS}" >&2
     return 1
     ;;
   esac
@@ -148,7 +148,7 @@ disk_test_attach() {
 disk_test_attach_partitioned() {
   local image="$1"
   local device tries=0
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Linux)
     device="$(sudo losetup -f -P --show "${image}")" || return 1
     if [[ -S /run/udev/control ]]; then
@@ -168,7 +168,7 @@ disk_test_attach_partitioned() {
 }
 
 disk_test_partition_nodes_start() {
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || return 0
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || return 0
   (
     tries=0
     while [[ "${tries}" -lt 600 ]]; do
@@ -212,7 +212,7 @@ disk_test_partition_nodes_stop() {
 disk_test_detach() {
   local device="$1"
 
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin) hdiutil detach "${device}" >/dev/null 2>&1 || true ;;
   Linux)
     sudo losetup -d "${device}" >/dev/null 2>&1 || true
@@ -237,7 +237,7 @@ disk_test_fat_image() {
   local label="$3"
   local base="${file%.*}"
 
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin)
     disk_test_hdiutil create -ov -size "${mebibytes}m" -layout MBRSPUD -fs "MS-DOS FAT16" -volname "${label}" -o "${base}.dmg" >/dev/null || return 1
     disk_test_hdiutil convert -ov "${base}.dmg" -format UDTO -o "${base}" >/dev/null || return 1
@@ -293,15 +293,15 @@ disk_test_same_prefix() {
 }
 
 disk_test_setup_env() {
-  export DISK_FSTAB="${WORK:?}/fstab"
-  export REMOVAL_WAIT_SECONDS=1
-  export SLOW_FACTOR=50
-  export DISK_TRASH="${WORK}/trash.sh"
-  : >"${DISK_FSTAB}"
-  printf '%s\n' '#!/bin/sh' "mkdir -p '${WORK}/Trash' && mv -f \"\$1\" '${WORK}/Trash/'" >"${DISK_TRASH}"
-  chmod +x "${DISK_TRASH}"
-  if [[ "${DISK_TEST_OS}" == "Linux" ]]; then
-    export ALLOW_INTERNAL=y
+  export KAKIKOMI_FSTAB="${WORK:?}/fstab"
+  export KAKIKOMI_REMOVAL_WAIT_SECONDS=1
+  export KAKIKOMI_SLOW_FACTOR=50
+  export KAKIKOMI_TRASH="${WORK}/trash.sh"
+  : >"${KAKIKOMI_FSTAB}"
+  printf '%s\n' '#!/bin/sh' "mkdir -p '${WORK}/Trash' && mv -f \"\$1\" '${WORK}/Trash/'" >"${KAKIKOMI_TRASH}"
+  chmod +x "${KAKIKOMI_TRASH}"
+  if [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]]; then
+    export KAKIKOMI_ALLOW_INTERNAL=y
   fi
 }
 
@@ -349,7 +349,7 @@ disk_test_windows_iso() {
   wimlib-imagex capture "${WORK}/payload" "${tree}/sources/install.wim" --compress=none >/dev/null || return 1
   printf 'MZ fake loader\n' >"${tree}/efi/boot/bootx64.efi"
   printf 'MZ fake setup\n' >"${tree}/setup.exe"
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin) hdiutil makehybrid -iso -joliet -default-volume-name WIN11 -o "${iso}" "${tree}" >/dev/null ;;
   *) xorriso -as mkisofs -quiet -J -V WIN11 -o "${iso}" "${tree}" >/dev/null 2>&1 ;;
   esac
@@ -374,17 +374,17 @@ disk_test_unique_bytes() {
 }
 
 disk_test_normalize() {
-  sh "${DISK_TESTS_DIR}/normalize.sh"
+  sh "${KAKIKOMI_TESTS_DIR}/normalize.sh"
 }
 
 disk_test_matches_golden() {
   local name="$1"
   local actual="$2"
-  local golden="${DISK_TESTS_DIR}/golden/${name}.${DISK_TEST_OS}.txt"
+  local golden="${KAKIKOMI_TESTS_DIR}/golden/${name}.${KAKIKOMI_TEST_OS}.txt"
   local normalized
 
   normalized="$(printf '%s\n' "${actual}" | disk_test_normalize)" || return 1
-  if [[ "${DISK_TEST_RECORD:-}" == "1" ]]; then
+  if [[ "${KAKIKOMI_TEST_RECORD:-}" == "1" ]]; then
     printf '%s\n' "${normalized}" >"${golden}"
   fi
 

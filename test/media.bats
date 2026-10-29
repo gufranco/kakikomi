@@ -114,7 +114,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi stops when the mount state cannot be read" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reads the mount table directly"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "macOS reads the mount table directly"
   fake_flag mount-state-fails
 
   # Act
@@ -127,7 +127,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi falls back to unmounting when the drive refuses to eject after a fault" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux has no separate unmount fallback"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "Linux has no separate unmount fallback"
   fake_flag eject-fails
   pass_fault
 
@@ -155,7 +155,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi ejects the cartridge after a fault on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
   disk_test_shim eject "exit 0"
   pass_fault
 
@@ -169,7 +169,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi ejects the drive once the write is validated on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
   disk_test_shim eject "exit 0"
 
   # Act

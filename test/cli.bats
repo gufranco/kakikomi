@@ -14,7 +14,7 @@ teardown() {
 answering() {
   local answers="$1"
   shift
-  printf '%b' "${answers}" | DISK_INTERACTIVE=1 disk_test_run "$@"
+  printf '%b' "${answers}" | KAKIKOMI_INTERACTIVE=1 disk_test_run "$@"
 }
 
 run_answering() {
@@ -42,7 +42,7 @@ minimal_path() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${lines[0]}" == "kakikomi - write disk images to removable media, verified chunk by chunk, never mounted" ]]
+  [[ "${lines[0]}" == "kakikomi - write disk images to removable media, verified, never mounted" ]]
   [[ "${output}" == *"  kakikomi format [options] [target] [fat32|exfat|fat|floppy] [label]"* ]]
 }
 
@@ -187,7 +187,7 @@ minimal_path() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${lines[0]}" == "kakikomi format - quick format a disk: write only the new filesystem's structures" ]]
+  [[ "${lines[0]}" == "kakikomi format - quick format: write only the new filesystem's structures" ]]
 }
 
 @test "kakikomi format with no disk and no terminal fails with a hint" {
@@ -285,7 +285,7 @@ minimal_path() {
   hash="${hash%% *}"
 
   # Act
-  run disk_test_run_env "SHA256=0000" kakikomi --sha256 "${hash}" "${image}" "${WORK}/no-such-disk"
+  run disk_test_run_env "KAKIKOMI_SHA256=0000" kakikomi --sha256 "${hash}" "${image}" "${WORK}/no-such-disk"
 
   # Assert
   [[ "${status}" -eq 1 ]]

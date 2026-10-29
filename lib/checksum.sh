@@ -173,8 +173,8 @@ disk_published_local() {
 }
 
 disk_published_digests() {
-  if [ -n "${SHA256:-}" ]; then
-    disk_nb_hex="$(printf '%s\n' "${SHA256}" | tr '[:upper:]' '[:lower:]')"
+  if [ -n "${KAKIKOMI_SHA256:-}" ]; then
+    disk_nb_hex="$(printf '%s\n' "${KAKIKOMI_SHA256}" | tr '[:upper:]' '[:lower:]')"
     printf 'named sha256 %s --sha256\n' "${disk_nb_hex}"
     return 0
   fi

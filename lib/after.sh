@@ -16,22 +16,22 @@ disk_ask() {
 
 disk_ask_options() {
   disk_cli_interactive || return 0
-  if [ -z "${VERIFY:-}" ]; then
-    VERIFY="$(disk_ask 'Read everything back and compare it with the image when done? [Y/n]' y)"
+  if [ -z "${KAKIKOMI_VERIFY:-}" ]; then
+    KAKIKOMI_VERIFY="$(disk_ask 'Read everything back and compare it with the image when done? [Y/n]' y)"
   fi
-  if [ -z "${DELETE:-}" ] && [ "${VERIFY}" != "n" ] && [ "${DISK_SRC_KIND}" != "device" ]; then
-    DELETE="$(disk_ask 'Move the image to the Trash once every disk validated? [y/N]' n)"
+  if [ -z "${KAKIKOMI_DELETE:-}" ] && [ "${KAKIKOMI_VERIFY}" != "n" ] && [ "${DISK_SRC_KIND}" != "device" ]; then
+    KAKIKOMI_DELETE="$(disk_ask 'Move the image to the Trash once every disk validated? [y/N]' n)"
   fi
-  if [ -z "${REINSERT:-}" ] && [ "${VERIFY}" != "n" ]; then
-    REINSERT="$(disk_ask 'After ejecting, check the disk again when you plug it back in? [y/N]' n)"
+  if [ -z "${KAKIKOMI_REINSERT:-}" ] && [ "${KAKIKOMI_VERIFY}" != "n" ]; then
+    KAKIKOMI_REINSERT="$(disk_ask 'After ejecting, check the disk again when you plug it back in? [y/N]' n)"
   fi
-  export VERIFY DELETE REINSERT
+  export KAKIKOMI_VERIFY KAKIKOMI_DELETE KAKIKOMI_REINSERT
   return 0
 }
 
 disk_trash() {
-  if [ -n "${DISK_TRASH:-}" ]; then
-    "${DISK_TRASH}" "$1" && return 0
+  if [ -n "${KAKIKOMI_TRASH:-}" ]; then
+    "${KAKIKOMI_TRASH}" "$1" && return 0
     return 1
   fi
   if disk_cmd_exists trash; then
@@ -51,8 +51,8 @@ disk_trash() {
 }
 
 disk_delete_source() {
-  [ "${DELETE:-}" = "y" ] || return 0
-  if [ "${VERIFY:-y}" = "n" ]; then
+  [ "${KAKIKOMI_DELETE:-}" = "y" ] || return 0
+  if [ "${KAKIKOMI_VERIFY:-y}" = "n" ]; then
     disk_warning "--delete is ignored because nothing was read back, so nothing proves the copy is good."
     return 0
   fi
@@ -88,9 +88,9 @@ disk_find_returned() {
 }
 
 disk_reinsert_check() {
-  [ "${REINSERT:-}" = "y" ] || return 0
+  [ "${KAKIKOMI_REINSERT:-}" = "y" ] || return 0
   disk_rc_waited=0
-  disk_rc_limit="${REINSERT_WAIT_SECONDS:-300}"
+  disk_rc_limit="${KAKIKOMI_REINSERT_WAIT_SECONDS:-300}"
   disk_rc_shown="$(disk_duration $((disk_rc_limit * 1000)))"
   disk_rc_before="$(disk_eligible)"
   disk_info "Unplug ${1}, plug it back in, and leave it alone. Waiting up to ${disk_rc_shown}."
@@ -116,7 +116,7 @@ disk_reinsert_check() {
 }
 
 disk_again_allowed() {
-  [ "${AGAIN:-}" = "y" ] || return 1
+  [ "${KAKIKOMI_AGAIN:-}" = "y" ] || return 1
   [ "$1" -lt 100 ] || return 1
   [ "${DISK_SRC_KIND}" = "device" ] && return 0
   [ -f "${DISK_SRC_PATH}" ]

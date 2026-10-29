@@ -18,7 +18,7 @@ setup() {
 teardown() {
   disk_test_partition_nodes_stop
   if [[ -n "${MOUNTED}" ]]; then
-    case "${DISK_TEST_OS}" in
+    case "${KAKIKOMI_TEST_OS}" in
     Darwin) hdiutil detach -force "${MOUNTED}" >/dev/null 2>&1 || true ;;
     *) sudo umount "${MOUNTED}" >/dev/null 2>&1 || true ;;
     esac
@@ -46,11 +46,11 @@ declining() {
 }
 
 picking() {
-  printf '%s\nn\n' "$1" | DISK_INTERACTIVE=1 disk_test_run kakikomi "$2"
+  printf '%s\nn\n' "$1" | KAKIKOMI_INTERACTIVE=1 disk_test_run kakikomi "$2"
 }
 
 on_terminal() {
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin) script -q /dev/null "$@" </dev/null ;;
   *) script -qec "$(printf '%q ' "$@")" /dev/null </dev/null ;;
   esac
@@ -165,7 +165,7 @@ exec \"\$@\""
 
 @test "the clock falls back to whole seconds when date has no nanoseconds" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux reads /proc/uptime before date"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "Linux reads /proc/uptime before date"
   disk_test_shim perl "exit 1"
   disk_test_shim date "case \"\$1\" in +%s%N) printf '%sN\\n' \"\$(\"\$REAL\" +%s)\"; exit 0 ;; esac
 exec \"\$REAL\" \"\$@\""
@@ -196,7 +196,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "an unknown system cannot release a disk" {
   # Arrange
-  export DISK_OS=FreeBSD
+  export KAKIKOMI_OS=FreeBSD
 
   # Act
   run disk_test_call disk_release /dev/da0
@@ -207,7 +207,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "an unknown system treats every disk as internal" {
   # Arrange
-  export DISK_OS=FreeBSD
+  export KAKIKOMI_OS=FreeBSD
 
   # Act
   run disk_test_call disk_is_internal /dev/da0
@@ -218,8 +218,8 @@ exec \"\$REAL\" \"\$@\""
 
 @test "the disk picker leaves out an internal disk" {
   # Arrange
-  export DISK_OS=Linux
-  unset ALLOW_INTERNAL
+  export KAKIKOMI_OS=Linux
+  unset KAKIKOMI_ALLOW_INTERNAL
   disk_test_shim findmnt "exit 1"
   disk_test_shim lsblk "case \"\$*\" in
   *NAME,TYPE,SIZE*) printf 'sdy disk 1000\\nsdz disk 1000\\n' ;;
@@ -309,7 +309,7 @@ esac"
   # Arrange
   disk_test_fat_image "${WORK}/fat.img" 8 KKMOUNT
   local mount_point
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin)
     local listing
     listing="$(hdiutil attach "${WORK}/fat.img")"
@@ -340,7 +340,7 @@ esac"
   # Arrange
   disk_test_fat_image "${WORK}/fat.img" 8 KKSOURCE
   local mount_point
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin)
     local listing
     listing="$(hdiutil attach "${WORK}/fat.img")"
@@ -387,7 +387,7 @@ esac"
   DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
   disk_test_partition_nodes_start
   local partition
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin) partition="${DEVICE}s1" ;;
   *) partition="${DEVICE}p1" ;;
   esac
@@ -403,7 +403,7 @@ esac"
 
 @test "kakikomi writes a disk the system had mounted without calling it a breach" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux mounts are covered by the partition and whole-disk tests"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "Linux mounts are covered by the partition and whole-disk tests"
   disk_test_fat_image "${WORK}/fat.img" 8 KKAUTO
   local listing
   listing="$(hdiutil attach "${WORK}/fat.img")"
@@ -420,7 +420,7 @@ esac"
 
 @test "kakikomi unmounts each volume when the whole disk will not unmount on macOS" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "Linux unmounts each partition already"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "Linux unmounts each partition already"
   disk_test_fat_image "${WORK}/fat.img" 8 KKSLICE
   local listing
   listing="$(hdiutil attach "${WORK}/fat.img")"
@@ -439,7 +439,7 @@ esac"
 
 @test "kakikomi unmounts a mounted partition before it writes on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
   disk_test_fat_image "${WORK}/fat.img" 8 KKPART
   DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
   disk_test_partition_nodes_start
@@ -458,7 +458,7 @@ esac"
 
 @test "kakikomi unmounts a filesystem on the whole disk before it writes on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "macOS unmounts the whole disk through diskutil"
   disk_test_image "${WORK}/whole.img" 8
   mkfs.fat -F 16 -s 1 -n KKWHOLE "${WORK}/whole.img" >/dev/null
   DEVICE="$(disk_test_attach "${WORK}/whole.img")"
@@ -476,8 +476,8 @@ esac"
 
 @test "kakikomi lists only removable disks in the picker" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reads the internal flag from diskutil"
-  unset ALLOW_INTERNAL
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "macOS reads the internal flag from diskutil"
+  unset KAKIKOMI_ALLOW_INTERNAL
   disk_test_fill "${WORK}/target.img" 2 '\252'
   DEVICE="$(disk_test_attach "${WORK}/target.img")"
   local name="${DEVICE##*/}"
@@ -495,8 +495,8 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi says when no removable disk is attached" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "an attached disk image is always removable on macOS"
-  unset ALLOW_INTERNAL
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "an attached disk image is always removable on macOS"
+  unset KAKIKOMI_ALLOW_INTERNAL
   local image
   image="$(payload)"
 
@@ -588,12 +588,12 @@ exec \"\$REAL\" \"\$@\""
 @test "progress redraws one line on a terminal" {
   # Arrange
   local -a shell_words
-  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  read -r -a shell_words <<<"${KAKIKOMI_TEST_SHELL:-sh}"
   local search_path
   search_path="$(disk_test_path)"
 
   # Act
-  run on_terminal env PATH="${search_path}" "${shell_words[@]}" "${DISK_TESTS_DIR}/call.sh" disk_progress Writing 1048576 1048576 0
+  run on_terminal env PATH="${search_path}" "${shell_words[@]}" "${KAKIKOMI_TESTS_DIR}/call.sh" disk_progress Writing 1048576 1048576 0
 
   # Assert
   [[ "${output}" == *"Writing 100%"* ]]
@@ -613,7 +613,7 @@ exec \"\$REAL\" \"\$@\""
 @test "a chunk is not judged once a stop is pending" {
   # Arrange
   : >"${WORK}/stop"
-  export DISK_STOP_FILE="${WORK}/stop" STALL_SECONDS=1
+  export DISK_STOP_FILE="${WORK}/stop" KAKIKOMI_STALL_SECONDS=1
 
   # Act
   run disk_test_call call_watch write write 3 9 1048576 5000

@@ -5,12 +5,12 @@
 
 disk_format_usage() {
   cat <<'USAGE'
-kakikomi format - quick format a disk: write only the new filesystem's structures
+kakikomi format - quick format: write only the new filesystem's structures
 
 usage:
-  kakikomi format                              ask for the disk, filesystem and label
+  kakikomi format              ask for the disk, filesystem and label
   kakikomi format [options] <target> [fat32|exfat|fat|floppy] [label]
-                                               format that disk
+                               format that disk
 
 options:
   --allow-internal    allow an internal disk. the system disk is always refused
@@ -130,8 +130,8 @@ disk_format_run() {
   disk_source_open "${disk_fm_prefix}" || return 1
   DISK_SRC_NOTE="a new ${disk_fm_fs} filesystem named ${disk_fm_label}, its structures only"
   DISK_QUIET_TAIL=1
-  DELETE=n
-  export DELETE
+  KAKIKOMI_DELETE=n
+  export KAKIKOMI_DELETE
   disk_write_checksum || return 1
   disk_write_once "${disk_fm_disk}"
 }

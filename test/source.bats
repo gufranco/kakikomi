@@ -135,7 +135,7 @@ write_compressed() {
 @test "kakikomi downloads an image from a URL and writes it" {
   # Arrange
   local port
-  port="$(sh "${DISK_TESTS_DIR}/http-server.sh" "${WORK}" "${WORK}")"
+  port="$(sh "${KAKIKOMI_TESTS_DIR}/http-server.sh" "${WORK}" "${WORK}")"
 
   # Act
   run write_source_with "XDG_CACHE_HOME=${WORK}/cache" "http://127.0.0.1:${port}/fat.img"
@@ -145,12 +145,12 @@ write_compressed() {
   disk_test_same_prefix "${WORK}/original.img" "${TARGET_IMG}"
 }
 
-@test "kakikomi stops when the image does not match SHA256" {
+@test "kakikomi stops when the image does not match KAKIKOMI_SHA256" {
   # Arrange
   local wrong="0000000000000000000000000000000000000000000000000000000000000000"
 
   # Act
-  run write_source_with "SHA256=${wrong}" "${IMAGE}"
+  run write_source_with "KAKIKOMI_SHA256=${wrong}" "${IMAGE}"
 
   # Assert
   [[ "${status}" -eq 1 ]]

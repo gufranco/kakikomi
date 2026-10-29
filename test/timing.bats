@@ -91,7 +91,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fail_dd "*of=*calibration*bs=4096\ skip=256\ count=1*" "${io_error}"
 
   # Act
-  run writing "CALIBRATION_PROBES=2"
+  run writing "KAKIKOMI_CALIBRATION_PROBES=2"
 
   # Assert
   [[ "${output}" == *"the read probe failed at offset 1048576 of"* ]]
@@ -103,7 +103,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fail_dd "*of=*calibration*bs=4096\ skip=1\ count=*" "${io_error}"
 
   # Act
-  run writing "CALIBRATION_PROBES=2"
+  run writing "KAKIKOMI_CALIBRATION_PROBES=2"
 
   # Assert
   [[ "${output}" == *"the read probe failed at offset 4096 of"* ]]
@@ -117,7 +117,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   fail_dd "*of=*calibration*skip=1\ *" "\"\$REAL\" \"\$@\"; : >'${gone}'; exit 0"
 
   # Act
-  run writing "CALIBRATION_PROBES=1"
+  run writing "KAKIKOMI_CALIBRATION_PROBES=1"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -186,7 +186,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   disk_test_shim perl "now=\$(cat '${counter}'); printf '%s\\n' \$((now + 1000)) >'${counter}'; printf '%s\\n' \"\${now}\""
 
   # Act
-  run writing "PROBE_CEILING_MS=300"
+  run writing "KAKIKOMI_PROBE_CEILING_MS=300"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -195,7 +195,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
 
 @test "a chunk past the stall limit you set stops the write" {
   # Arrange
-  export STALL_SECONDS=1
+  export KAKIKOMI_STALL_SECONDS=1
 
   # Act
   run disk_test_call call_watch write write 3 9 1048576 2000
@@ -213,7 +213,7 @@ bus_error="printf 'dd: Device not configured\\n' >&2; exit 1"
   disk_test_shim perl "now=\$(cat '${counter}'); printf '%s\\n' \$((now + 3000)) >'${counter}'; printf '%s\\n' \"\${now}\""
 
   # Act
-  run writing "STALL_SECONDS=1"
+  run writing "KAKIKOMI_STALL_SECONDS=1"
 
   # Assert
   [[ "${status}" -eq 1 ]]

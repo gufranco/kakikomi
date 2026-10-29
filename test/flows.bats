@@ -33,7 +33,7 @@ attach() {
 answering() {
   local answers="$1"
   shift
-  printf '%b' "${answers}" | DISK_INTERACTIVE=1 disk_test_run kakikomi "$@"
+  printf '%b' "${answers}" | KAKIKOMI_INTERACTIVE=1 disk_test_run kakikomi "$@"
 }
 
 writing_with() {
@@ -157,7 +157,7 @@ writing_with() {
   gzip -c "${WORK}/payload.img" >"${WORK}/payload.img.gz"
 
   # Act
-  run writing_with "SHA256=${sha}" "${WORK}/payload.img.gz"
+  run writing_with "KAKIKOMI_SHA256=${sha}" "${WORK}/payload.img.gz"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -215,7 +215,7 @@ exec \"\$REAL\" \"\$@\""
   chmod +x "${WORK}/refuse.sh"
 
   # Act
-  run writing_with "DELETE=y DISK_TRASH=${WORK}/refuse.sh" "${WORK}/payload.img"
+  run writing_with "KAKIKOMI_DELETE=y KAKIKOMI_TRASH=${WORK}/refuse.sh" "${WORK}/payload.img"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -242,7 +242,7 @@ exec \"\$REAL\" \"\$@\""
   disk_test_random_file "${WORK}/payload.img" 1
 
   # Act
-  run writing_with "REINSERT=y REINSERT_WAIT_SECONDS=1" "${WORK}/payload.img"
+  run writing_with "KAKIKOMI_REINSERT=y KAKIKOMI_REINSERT_WAIT_SECONDS=1" "${WORK}/payload.img"
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -255,7 +255,7 @@ exec \"\$REAL\" \"\$@\""
   disk_test_random_file "${WORK}/payload.img" 1
   fake_install
   local log="${WORK}/run.log"
-  printf '%s\n' "${NAME}" | disk_test_run_env "REINSERT=y" kakikomi "${WORK}/payload.img" "${DEVICE}" >"${log}" 2>&1 &
+  printf '%s\n' "${NAME}" | disk_test_run_env "KAKIKOMI_REINSERT=y" kakikomi "${WORK}/payload.img" "${DEVICE}" >"${log}" 2>&1 &
   local runner="$!"
   disk_test_wait_for "${log}" "plug it back in" 1200 || cat "${log}"
 
@@ -274,7 +274,7 @@ exec \"\$REAL\" \"\$@\""
   # Arrange
   local bin="${REPO_DIR}/bin"
   local -a shell_words
-  read -r -a shell_words <<<"${DISK_SHELL:-sh}"
+  read -r -a shell_words <<<"${KAKIKOMI_TEST_SHELL:-sh}"
 
   # Act
   run bash -c 'cd "$1" && shift && PATH="$PWD:$PATH" "$@" kakikomi version' _ "${bin}" "${shell_words[@]}"
@@ -286,7 +286,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi format names the package exFAT needs on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS builds exFAT with newfs_exfat"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "macOS builds exFAT with newfs_exfat"
   attach 4194304
   local farm
   farm="$(disk_test_farm mkfs.exfat)"
@@ -301,10 +301,10 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi refuses an internal disk unless asked" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "an attached disk image is always external on macOS"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "an attached disk image is always external on macOS"
   attach 2097152
   disk_test_random_file "${WORK}/payload.img" 1
-  unset ALLOW_INTERNAL
+  unset KAKIKOMI_ALLOW_INTERNAL
 
   # Act
   run disk_test_run kakikomi "${WORK}/payload.img" "${DEVICE}" </dev/null
@@ -318,7 +318,7 @@ exec \"\$REAL\" \"\$@\""
   # Arrange
   disk_test_fat_image "${WORK}/fat.img" 8 KKHOLD
   local folder
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin)
     local listing
     listing="$(disk_test_hdiutil attach "${WORK}/fat.img")"
@@ -342,7 +342,7 @@ exec \"\$REAL\" \"\$@\""
   run disk_test_run kakikomi "${folder}/payload.img" "${DEVICE}" </dev/null
 
   # Assert
-  case "${DISK_TEST_OS}" in
+  case "${KAKIKOMI_TEST_OS}" in
   Darwin) hdiutil detach -force "${DEVICE}" >/dev/null 2>&1 || true ;;
   *) sudo umount "${folder}" >/dev/null 2>&1 || true ;;
   esac
@@ -352,7 +352,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi stops when the system cannot be kept from mounting the disk on Linux" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS guards through the fstab"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "macOS guards through the fstab"
   attach 2097152
   disk_test_random_file "${WORK}/payload.img" 1
   disk_test_shim tee "exit 1"

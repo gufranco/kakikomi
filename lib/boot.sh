@@ -133,7 +133,7 @@ disk_build_volume() {
 }
 
 disk_is_windows_iso() {
-  [ "${MODE:-}" = "raw" ] && return 1
+  [ "${KAKIKOMI_MODE:-}" = "raw" ] && return 1
   [ "${DISK_SRC_KIND}" = "raw" ] || return 1
   disk_wi_cd="$(disk_magic_hex "$1" 32769 5)"
   [ "${disk_wi_cd}" = "4344303031" ] || return 1
@@ -174,14 +174,14 @@ disk_split_wim() {
   disk_sw_wim="$(printf '%s\n' "${disk_sw_wim}" | sed -n '1p')"
   [ -n "${disk_sw_wim}" ] || return 0
   disk_sw_size="$(disk_file_size "${disk_sw_wim}")"
-  [ "${disk_sw_size}" -gt "${FAT32_MAX_FILE:-4294967295}" ] || return 0
+  [ "${disk_sw_size}" -gt "${KAKIKOMI_FAT32_MAX_FILE:-4294967295}" ] || return 0
   if ! disk_cmd_exists wimlib-imagex; then
     disk_error "stopped: install.wim is over 4 GiB, which FAT32 cannot hold, and wimlib-imagex is needed to split it. install wimlib."
     return 1
   fi
   disk_sw_human="$(disk_human "${disk_sw_size}")"
   disk_info "Splitting the ${disk_sw_human} install.wim into parts FAT32 can hold." >&2
-  disk_sw_part_mb=$((${FAT32_MAX_FILE:-4294967295} * 9 / 10485760))
+  disk_sw_part_mb=$((${KAKIKOMI_FAT32_MAX_FILE:-4294967295} * 9 / 10485760))
   [ "${disk_sw_part_mb}" -ge 1 ] || disk_sw_part_mb=1
   wimlib-imagex split "${disk_sw_wim}" "${disk_sw_wim%.*}.swm" "${disk_sw_part_mb}" >/dev/null 2>&1 || {
     disk_error "stopped: wimlib-imagex could not split install.wim."

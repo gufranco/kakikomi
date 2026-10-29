@@ -286,7 +286,7 @@ opening() {
 
 @test "kakikomi converts a dmg image to raw with hdiutil" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "hdiutil ships with macOS only"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "hdiutil ships with macOS only"
   mkdir -p "${WORK}/folder"
   printf 'payload\n' >"${WORK}/folder/file.txt"
   hdiutil create -srcfolder "${WORK}/folder" -format UDZO -o "${WORK}/disk.dmg" >/dev/null
@@ -301,7 +301,7 @@ opening() {
 
 @test "kakikomi stops when hdiutil cannot convert a dmg image" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "hdiutil ships with macOS only"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "hdiutil ships with macOS only"
   mkdir -p "${WORK}/folder"
   printf 'payload\n' >"${WORK}/folder/file.txt"
   hdiutil create -srcfolder "${WORK}/folder" -format UDZO -o "${WORK}/disk.dmg" >/dev/null
@@ -318,7 +318,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi refuses a target that is not a block device" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reports a device node for every mounted volume"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "macOS reports a device node for every mounted volume"
   disk_test_random_file "${WORK}/disk.img" 1
 
   # Act

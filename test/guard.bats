@@ -119,7 +119,7 @@ fat_target() {
 
 @test "the fstab guard is written to a new fstab" {
   # Arrange
-  export DISK_FSTAB="${WORK}/etc/fstab.new"
+  export KAKIKOMI_FSTAB="${WORK}/etc/fstab.new"
   mkdir -p "${WORK}/etc"
   export TMPDIR="${WORK}"
 
@@ -147,7 +147,7 @@ fat_target() {
 
 @test "a lock held by a running kakikomi leaves the fstab untouched" {
   # Arrange
-  export TMPDIR="${WORK}" FSTAB_LOCK_SECONDS=1
+  export TMPDIR="${WORK}" KAKIKOMI_FSTAB_LOCK_SECONDS=1
   mkdir -p "${WORK}/kakikomi-fstab.lock"
   printf '%s\n' "$$" >"${WORK}/kakikomi-fstab.lock/pid"
 
@@ -157,39 +157,39 @@ fat_target() {
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"another kakikomi held ${WORK}/kakikomi-fstab.lock for 1s, so the fstab was left untouched."* ]]
-  [[ ! -s "${DISK_FSTAB}" ]]
+  [[ ! -s "${KAKIKOMI_FSTAB}" ]]
 }
 
 @test "kakikomi --release says when no guard is left" {
   # Arrange
-  printf 'LABEL=OTHER none msdos rw,noauto\n' >"${DISK_FSTAB}"
+  printf 'LABEL=OTHER none msdos rw,noauto\n' >"${KAKIKOMI_FSTAB}"
 
   # Act
   run disk_test_run kakikomi --release
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${output}" == *"No mount guard was left in ${DISK_FSTAB}."* ]]
+  [[ "${output}" == *"No mount guard was left in ${KAKIKOMI_FSTAB}."* ]]
 }
 
 @test "kakikomi guards a volume by label when it has no UUID" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
   fat_target
   fake_install
   printf '<string></string>\n' >"$(fake_dir)/plist/VolumeUUID"
 
   # Act
-  run writing "KEEP_GUARD=y"
+  run writing "KAKIKOMI_KEEP_GUARD=y"
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  grep -q '^LABEL=GUARDED none msdos rw,noauto$' "${DISK_FSTAB}"
+  grep -q '^LABEL=GUARDED none msdos rw,noauto$' "${KAKIKOMI_FSTAB}"
 }
 
 @test "kakikomi stops when a volume has neither a UUID nor a label" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
   fat_target
   fake_install
   printf '<string></string>\n' >"$(fake_dir)/plist/VolumeUUID"
@@ -206,7 +206,7 @@ fat_target() {
 
 @test "kakikomi stops when the probe image will not attach" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
   fat_target
   disk_test_shim hdiutil "case \"\$*\" in attach*probe.img*) exit 1 ;; esac
 exec \"\$REAL\" \"\$@\""
@@ -221,11 +221,11 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi stops when the fstab cannot be written" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
   fat_target
 
   # Act
-  run writing "DISK_FSTAB=${WORK}/missing/fstab"
+  run writing "KAKIKOMI_FSTAB=${WORK}/missing/fstab"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -234,7 +234,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi refuses an image holding an HFS+ partition" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
   craft "${WORK}/hfs.img" 2097152 "450=af 454=00080000 ${signature}"
   IMAGE="${WORK}/hfs.img"
   disk_test_fill "${WORK}/target.img" 4 '\252'
@@ -251,7 +251,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi keeps the guard when the write fails after it was declared" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
   fat_target
   disk_test_shim dd "case \"\$*\" in *if=*${NAME}\\ bs=1048576) printf 'X'; exit 0 ;; esac
 exec \"\$REAL\" \"\$@\""
@@ -262,7 +262,7 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"the mount guard for ${DEVICE} stays in place. run kakikomi --release once the disk is out."* ]]
-  grep -q "# kakikomi ${DEVICE##*/} begin" "${DISK_FSTAB}"
+  grep -q "# kakikomi ${DEVICE##*/} begin" "${KAKIKOMI_FSTAB}"
 }
 
 @test "an extended partition chain that loops on itself stops after a bounded walk" {

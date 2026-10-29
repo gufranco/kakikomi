@@ -45,7 +45,7 @@ digest_with_path() {
 }
 
 published_with_setting() {
-  export SHA256="$1"
+  export KAKIKOMI_SHA256="$1"
   disk_test_call disk_published_digests "$2"
 }
 
@@ -365,7 +365,7 @@ tool_supports() {
   [[ -z "${output}" ]]
 }
 
-@test "the SHA256 setting replaces every published file" {
+@test "the KAKIKOMI_SHA256 setting replaces every published file" {
   # Arrange
   printf '%s  debian.iso\n' "${MD5_ABC}" >"${DIR}/MD5SUMS"
   local upper
@@ -384,7 +384,7 @@ tool_supports() {
   mkdir -p "${site}"
   printf '%s  debian.iso\n' "${SHA512_ABC}" >"${site}/SHA512SUMS"
   local port
-  port="$(sh "${DISK_TESTS_DIR}/http-server.sh" "${site}" "${WORK}")"
+  port="$(sh "${KAKIKOMI_TESTS_DIR}/http-server.sh" "${site}" "${WORK}")"
   mkdir -p "${WORK}/fetched"
 
   # Act
@@ -401,7 +401,7 @@ tool_supports() {
   mkdir -p "${site}"
   printf '%s  other.iso\n' "${SHA256_ABC}" >"${site}/SHA256SUMS"
   local port
-  port="$(sh "${DISK_TESTS_DIR}/http-server.sh" "${site}" "${WORK}")"
+  port="$(sh "${KAKIKOMI_TESTS_DIR}/http-server.sh" "${site}" "${WORK}")"
   mkdir -p "${WORK}/fetched"
 
   # Act
@@ -777,7 +777,7 @@ tool_supports() {
   printf 'abc' >"${site}/debian.iso"
   printf '%s  debian.iso\n' "${SHA512_ABC:0:64}" >"${site}/SHA256SUMS"
   local port
-  port="$(sh "${DISK_TESTS_DIR}/http-server.sh" "${site}" "${WORK}")"
+  port="$(sh "${KAKIKOMI_TESTS_DIR}/http-server.sh" "${site}" "${WORK}")"
 
   # Act
   run disk_test_run_env "XDG_CACHE_HOME=${WORK}/cache" kakikomi "http://127.0.0.1:${port}/debian.iso" "${NOWHERE}"

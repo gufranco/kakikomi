@@ -18,7 +18,7 @@
 
 </div>
 
-コマンドは1つ、テストは297件、シェルのモジュールは15個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
+コマンドは1つ、テストは305件、シェルのモジュールは15個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
 
 ---
 
@@ -37,16 +37,17 @@ Type disk6 to write, or anything else to stop: disk6
 Unmounting /dev/disk6...
 Disk unmounted
 Measuring /dev/disk6 before writing it, so every limit comes from this disk.
-Measured read: 232800 KiB/s sustained, 27ms to reach a sector, allowing 3x that before stopping.
-Measured write: 83142 KiB/s sustained, 29ms to reach a sector, allowing 3x that before stopping.
-Blanking the first 16.0 MiB so nothing on /dev/disk6 is mountable until the very end.
+Measured read: 232800 KiB/s, 27ms to reach a sector, allowing 3x that.
+Measured write: 83142 KiB/s, 29ms to reach a sector, allowing 3x that.
+Blanking the first 16.0 MiB so /dev/disk6 cannot mount until the end.
 Writing  50%  86.0 MiB/s  0m00s left
 The image holds no volume macOS would mount.
 Writing the first 16.0 MiB last.
 Writing 100%  34.7 MiB/s  0m00s left
 Wrote and verified every chunk of the image.
 Reading back all 16.0 MiB to compare with the image.
-Validated: /dev/disk6 matches the image, SHA-256 dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
+Validated: /dev/disk6 matches the image, SHA-256
+        dab1a2aef901faed28711e7cfa3fa8ce52cfee0a9b05d71b3d4feb95fb846bb0
 Ejecting /dev/disk6...
 Ejected. /dev/disk6 is safe to remove.
 ```
@@ -141,7 +142,7 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `--keep-guard` | 実行後もfstabの設定を残し、このMacがそのディスクを今後もマウントしないようにします |
 | `--raw` | WindowsのISOをFAT32に配置せず、そのまま書き込みます |
 
-`--sha256=HASH`の形も使え、`--`でオプションが終わります。環境変数`VERIFY`、`DELETE`、`AGAIN`、`REINSERT`、`ZERO_TAIL`、`SHA256`、`ALLOW_INTERNAL`、`KEEP_GUARD`、`MODE=raw`も`y`か`n`で同じ設定になり、コマンドラインのオプションが優先されます。
+`--sha256=HASH`の形も使え、`--`でオプションが終わります。環境変数`KAKIKOMI_VERIFY`、`KAKIKOMI_DELETE`、`KAKIKOMI_AGAIN`、`KAKIKOMI_REINSERT`、`KAKIKOMI_ZERO_TAIL`、`KAKIKOMI_SHA256`、`KAKIKOMI_ALLOW_INTERNAL`、`KAKIKOMI_KEEP_GUARD`、`KAKIKOMI_MODE=raw`も`y`か`n`で同じ設定になり、コマンドラインのオプションが優先されます。
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once
@@ -246,7 +247,7 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 | コマンド | 説明 |
 |:--------|:------------|
 | `make lint` | すべてのスクリプトと補完にShellCheck、manページにmandocを実行し、関数が二重に定義されていないことを確認します |
-| `make test` | システムの`sh`で297件の`bats`テスト |
+| `make test` | システムの`sh`で305件の`bats`テスト |
 | `make test-all` | インストール済みのすべてのシェルで同じテスト |
 | `make test-linux` | Macから、特権付きUbuntuコンテナで同じテスト |
 | `make coverage` | このMacと同じコンテナでbashcovによる行カバレッジを測定して統合します。CIは100%を必須にします |

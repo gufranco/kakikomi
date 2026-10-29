@@ -116,7 +116,7 @@ media_error="printf 'dd: error writing: Input/output error\\n' >&2; exit 1"
   pass_write "sleep 5"
 
   # Act
-  run writing "DEADLINE_CAP_MS=2000"
+  run writing "KAKIKOMI_DEADLINE_CAP_MS=2000"
 
   # Assert
   [[ "${status}" -eq 1 ]]
@@ -203,7 +203,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi bypasses the page cache when direct I/O works" {
   # Arrange
-  [[ "${DISK_TEST_OS}" == "Linux" ]] || skip "macOS reads the raw device, which never caches"
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "macOS reads the raw device, which never caches"
   disk_test_shim dd "set -- \$(printf '%s\\n' \"\$@\" | sed '/^iflag=direct\$/d; /^oflag=direct\$/d')
 exec \"\$REAL\" \"\$@\""
 
@@ -217,7 +217,7 @@ exec \"\$REAL\" \"\$@\""
 
 @test "kakikomi waits on every transfer when the deadline cap is zero" {
   # Arrange
-  local settings="DEADLINE_CAP_MS=0"
+  local settings="KAKIKOMI_DEADLINE_CAP_MS=0"
 
   # Act
   run writing "${settings}"

@@ -43,7 +43,7 @@ disk_write_fits() {
     disk_error "stopped: the image needs ${disk_wf_need} bytes and $1 holds ${disk_wf_size}."
     return 1
   fi
-  if [ "${disk_wf_need}" -lt "${disk_wf_size}" ] && [ "${ZERO_TAIL:-}" != "y" ] && [ "${DISK_QUIET_TAIL}" != "1" ]; then
+  if [ "${disk_wf_need}" -lt "${disk_wf_size}" ] && [ "${KAKIKOMI_ZERO_TAIL:-}" != "y" ] && [ "${DISK_QUIET_TAIL}" != "1" ]; then
     disk_wf_extra="$(disk_human $((disk_wf_size - disk_wf_need)))"
     disk_warning "$1 is ${disk_wf_extra} larger than the image. that space keeps its old contents; --zero-tail blanks it."
   fi
@@ -128,7 +128,7 @@ disk_write_summary() {
     disk_ws_parts="$(disk_partitions_text "${disk_ws_target}")"
     if [ -n "${disk_ws_parts}" ]; then
       disk_info "        Everything on it is replaced, including:"
-      printf '%s\n' "${disk_ws_parts}"
+      disk_say 10 "${disk_ws_parts}"
     fi
   done
   printf '\n'
@@ -159,9 +159,9 @@ disk_write_run() {
     disk_write_target "$1" "${disk_wr_id}"
     return "$?"
   fi
-  if [ "${REINSERT:-}" = "y" ]; then
+  if [ "${KAKIKOMI_REINSERT:-}" = "y" ]; then
     disk_warning "--reinsert checks one disk at a time, so it is skipped when writing several."
-    REINSERT=n
+    KAKIKOMI_REINSERT=n
   fi
   disk_wr_pids=""
   for disk_wr_target in $1; do

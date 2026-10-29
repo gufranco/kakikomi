@@ -48,24 +48,24 @@ write_with() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ ! -s "${DISK_FSTAB}" ]]
+  [[ ! -s "${KAKIKOMI_FSTAB}" ]]
 }
 
-@test "kakikomi keeps the fstab guard with KEEP_GUARD and --release removes it" {
+@test "kakikomi keeps the fstab guard with KAKIKOMI_KEEP_GUARD and --release removes it" {
   # Arrange
-  write_with "${NAME}" "KEEP_GUARD=y" "${IMAGE}" "${DEVICE}" >/dev/null 2>&1
+  write_with "${NAME}" "KAKIKOMI_KEEP_GUARD=y" "${IMAGE}" "${DEVICE}" >/dev/null 2>&1
   local kept
-  kept="$(cat "${DISK_FSTAB}")"
+  kept="$(cat "${KAKIKOMI_FSTAB}")"
 
   # Act
   run disk_test_run kakikomi --release
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  if [[ "${DISK_TEST_OS}" == "Darwin" ]]; then
+  if [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]]; then
     [[ "${kept}" == *"UUID="*" none msdos rw,noauto"* ]]
   fi
-  [[ ! -s "${DISK_FSTAB}" ]]
+  [[ ! -s "${KAKIKOMI_FSTAB}" ]]
 }
 
 @test "kakikomi refuses an image one byte larger than the disk" {
@@ -100,9 +100,9 @@ write_with() {
   [[ "${bytes}" == "aa" ]] || { printf "found bytes: %s\n" "${bytes}"; false; }
 }
 
-@test "kakikomi blanks the rest of a larger disk with ZERO_TAIL" {
+@test "kakikomi blanks the rest of a larger disk with KAKIKOMI_ZERO_TAIL" {
   # Arrange
-  local settings="ZERO_TAIL=y"
+  local settings="KAKIKOMI_ZERO_TAIL=y"
 
   # Act
   run write_with "${NAME}" "${settings}" "${IMAGE}" "${DEVICE}"
@@ -114,7 +114,7 @@ write_with() {
   [[ "${tail_bytes}" == "00" ]] || { printf "found bytes: %s\n" "${tail_bytes}"; false; }
 }
 
-@test "kakikomi leaves the old contents past the image without ZERO_TAIL" {
+@test "kakikomi leaves the old contents past the image without KAKIKOMI_ZERO_TAIL" {
   # Arrange
   local settings=""
 
@@ -137,7 +137,7 @@ write_with() {
   disk_test_random_file "${big}" 2
   disk_test_shim dd "case \"\$*\" in */chunk\\ of=*${NAME}*) : >'${inside}'; sleep 1 ;; esac
 exec \"\$REAL\" \"\$@\""
-  printf '%s\n' "${NAME}" | disk_test_run_env "CHUNK_TARGET_MS=1 SLOW_FACTOR=1000" kakikomi "${big}" "${DEVICE}" >"${log}" 2>&1 &
+  printf '%s\n' "${NAME}" | disk_test_run_env "KAKIKOMI_CHUNK_TARGET_MS=1 KAKIKOMI_SLOW_FACTOR=1000" kakikomi "${big}" "${DEVICE}" >"${log}" 2>&1 &
   local runner="$!"
   local tries=0
   until [[ -e "${inside}" || "${tries}" -ge 6000 ]]; do
@@ -173,9 +173,9 @@ exec \"\$REAL\" \"\$@\""
   [[ "${output}" == *"stopped: ${boot} holds the running system, so it is never a target."* ]]
 }
 
-@test "kakikomi skips the read-back and keeps the image when VERIFY=n" {
+@test "kakikomi skips the read-back and keeps the image when KAKIKOMI_VERIFY=n" {
   # Arrange
-  local settings="VERIFY=n DELETE=y"
+  local settings="KAKIKOMI_VERIFY=n KAKIKOMI_DELETE=y"
 
   # Act
   run write_with "${NAME}" "${settings}" "${IMAGE}" "${DEVICE}"
@@ -186,9 +186,9 @@ exec \"\$REAL\" \"\$@\""
   [[ -f "${IMAGE}" ]]
 }
 
-@test "kakikomi moves the image to the Trash after it validated with DELETE=y" {
+@test "kakikomi moves the image to the Trash after it validated with KAKIKOMI_DELETE=y" {
   # Arrange
-  local settings="DELETE=y"
+  local settings="KAKIKOMI_DELETE=y"
 
   # Act
   run write_with "${NAME}" "${settings}" "${IMAGE}" "${DEVICE}"
@@ -219,7 +219,7 @@ exec \"\$REAL\" \"\$@\""
   mountable="$(disk_test_attach "${WORK}/mountable.img")"
 
   # Act
-  run disk_test_call call_breach "${mountable}" "${DISK_TESTS_DIR}/mounter.sh"
+  run disk_test_call call_breach "${mountable}" "${KAKIKOMI_TESTS_DIR}/mounter.sh"
 
   # Assert
   disk_test_detach "${mountable}"

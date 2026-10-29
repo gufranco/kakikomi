@@ -40,8 +40,8 @@ call_breach() {
 call_changed_source() {
   disk_source_open "$1" || return 1
   DISK_SRC_SHA="0000"
-  DELETE=y
-  VERIFY=y
+  KAKIKOMI_DELETE=y
+  KAKIKOMI_VERIFY=y
   disk_delete_source
 }
 

@@ -21,7 +21,7 @@ lint:
 	mandoc -T lint man/kakikomi.1
 
 test:
-	DISK_SHELLS=sh sh test/run-matrix.sh test
+	KAKIKOMI_TEST_SHELLS=sh sh test/run-matrix.sh test
 
 test-all:
 	sh test/run-matrix.sh test
