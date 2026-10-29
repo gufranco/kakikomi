@@ -148,8 +148,6 @@ Every member runs on the five toolsets in common use, and CI runs the whole suit
 
 ## Layout and tooling
 
-Being adopted (as of 2026-10-28): fusho is moving to this layout, and `shfmt`, the single `scripts/coverage-gate.py` and the single `scripts/bashcov-run.rb` are being added to every member. Everything else here already holds in all six.
-
 - `bin/<tool>` is the entry point and sources `lib/*.sh`. There is no build step; `share/` holds data files only.
 - POSIX `sh` without `local`: every global carries the tool's internal prefix, such as `JM_`, and every function-scoped variable carries its function's prefix, such as `jm_fe_`. Variables are written `${name}`.
 - `shfmt -i 2` formats every script, and `make lint` fails on unformatted code.
@@ -181,6 +179,6 @@ Being adopted (as of 2026-10-28): fusho is moving to this layout, and `shfmt`, t
 
 kakikomi has several jobs, so a bare `kakikomi` on a terminal opens the menu. `kakikomi format` takes the same options as a write, since a format is written and verified the same way.
 
-Gaps against the family standard (as of 2026-10-27):
+Gaps against the family standard (as of 2026-10-29):
 
 - `--release` is an action written as an option. It stays for the scripts that already call it.
