@@ -137,7 +137,7 @@ write_with() {
   disk_test_random_file "${big}" 2
   disk_test_shim dd "case \"\$*\" in */chunk\\ of=*${NAME}*) : >'${inside}'; sleep 1 ;; esac
 exec \"\$REAL\" \"\$@\""
-  printf '%s\n' "${NAME}" | disk_test_run_env "CHUNK_TARGET_MS=1 SLOW_FACTOR=100" kakikomi "${big}" "${DEVICE}" >"${log}" 2>&1 &
+  printf '%s\n' "${NAME}" | disk_test_run_env "CHUNK_TARGET_MS=1 SLOW_FACTOR=1000" kakikomi "${big}" "${DEVICE}" >"${log}" 2>&1 &
   local runner="$!"
   local tries=0
   until [[ -e "${inside}" || "${tries}" -ge 6000 ]]; do
