@@ -37,14 +37,14 @@ disk_gpt_starts() {
     disk_gs_at=$((disk_gs_lba * 512 + disk_gs_index * disk_gs_size))
     disk_gs_type="$(disk_magic_hex "$1" "${disk_gs_at}" 16)"
     case "${disk_gs_type}" in
-      '' | 00000000000000000000000000000000) ;;
-      ef57347c0000aa11aa1100306543ecac)
-        DISK_GUARD_UNSUPPORTED="APFS"
-        ;;
-      *)
-        disk_gs_first="$(disk_le_uint "$1" $((disk_gs_at + 32)) 8)"
-        printf '%s\n' "$((disk_gs_first * 512))"
-        ;;
+    '' | 00000000000000000000000000000000) ;;
+    ef57347c0000aa11aa1100306543ecac)
+      DISK_GUARD_UNSUPPORTED="APFS"
+      ;;
+    *)
+      disk_gs_first="$(disk_le_uint "$1" $((disk_gs_at + 32)) 8)"
+      printf '%s\n' "$((disk_gs_first * 512))"
+      ;;
     esac
     disk_gs_index=$((disk_gs_index + 1))
   done
@@ -81,11 +81,11 @@ disk_partition_starts() {
     disk_ps_type="$(disk_hex_byte "$1" $((disk_ps_entry + 4)))"
     disk_ps_lba="$(disk_le_uint "$1" $((disk_ps_entry + 8)) 4)"
     case "${disk_ps_type}" in
-      00) ;;
-      ee) disk_gpt_starts "$1" ;;
-      05 | 0f | 85) disk_ebr_starts "$2" $((disk_ps_lba * 512)) ;;
-      af) DISK_GUARD_UNSUPPORTED="HFS+" ;;
-      *) printf '%s\n' "$((disk_ps_lba * 512))" ;;
+    00) ;;
+    ee) disk_gpt_starts "$1" ;;
+    05 | 0f | 85) disk_ebr_starts "$2" $((disk_ps_lba * 512)) ;;
+    af) DISK_GUARD_UNSUPPORTED="HFS+" ;;
+    *) printf '%s\n' "$((disk_ps_lba * 512))" ;;
     esac
     disk_ps_index=$((disk_ps_index + 1))
   done

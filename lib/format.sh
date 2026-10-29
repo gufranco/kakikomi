@@ -40,12 +40,12 @@ disk_format_ask() {
 
 disk_format_fs() {
   case "$1" in
-    '') disk_default_fs "$2" ;;
-    fat32 | exfat | fat | floppy) printf '%s\n' "$1" ;;
-    *)
-      disk_error "unknown filesystem: $1. use fat32, exfat, fat or floppy."
-      return 1
-      ;;
+  '') disk_default_fs "$2" ;;
+  fat32 | exfat | fat | floppy) printf '%s\n' "$1" ;;
+  *)
+    disk_error "unknown filesystem: $1. use fat32, exfat, fat or floppy."
+    return 1
+    ;;
   esac
 }
 
@@ -56,12 +56,12 @@ disk_format_label() {
 
 disk_format_tools() {
   case "$1" in
-    exfat) return 0 ;;
-    *)
-      disk_cmd_exists mformat && return 0
-      disk_error "stopped: FAT formatting needs mtools. install it: brew install mtools, or apt install mtools."
-      return 1
-      ;;
+  exfat) return 0 ;;
+  *)
+    disk_cmd_exists mformat && return 0
+    disk_error "stopped: FAT formatting needs mtools. install it: brew install mtools, or apt install mtools."
+    return 1
+    ;;
   esac
 }
 
@@ -84,11 +84,11 @@ disk_format_prefix() {
 
 disk_format_main() {
   case "${1:-}" in
-    help | -h | --help) disk_format_usage ;;
-    *)
-      DISK_PARSED=disk_format_entry
-      disk_parse "$@"
-      ;;
+  help | -h | --help) disk_format_usage ;;
+  *)
+    DISK_PARSED=disk_format_entry
+    disk_parse "$@"
+    ;;
   esac
 }
 

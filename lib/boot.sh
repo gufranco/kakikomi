@@ -25,28 +25,28 @@ disk_sparse_file() {
 disk_exfat_build() {
   disk_xb_os="$(disk_os)"
   case "${disk_xb_os}" in
-    Darwin)
-      disk_xb_attach="$(hdiutil attach -nomount -imagekey diskimage-class=CRawDiskImage "$1" 2>/dev/null)" || return 1
-      disk_xb_whole="$(printf '%s\n' "${disk_xb_attach}" | awk 'NR == 1 { print $1 }')"
-      disk_xb_part="$(printf '%s\n' "${disk_xb_attach}" | awk 'NR == 2 { print $1 }')"
-      [ -n "${disk_xb_part}" ] || disk_xb_part="${disk_xb_whole}"
-      disk_xb_status=0
-      newfs_exfat -v "$2" "/dev/r${disk_xb_part#/dev/}" >/dev/null 2>&1 || disk_xb_status=1
-      hdiutil detach "${disk_xb_whole}" >/dev/null 2>&1
-      return "${disk_xb_status}"
-      ;;
-    Linux)
-      disk_cmd_exists mkfs.exfat || {
-        disk_error "mkfs.exfat is not installed. install the exfatprogs package."
-        return 1
-      }
-      disk_xb_loop="$(sudo losetup -f --show -o 1048576 "$1")" || return 1
-      disk_xb_status=0
-      sudo mkfs.exfat -L "$2" "${disk_xb_loop}" >/dev/null 2>&1 || disk_xb_status=1
-      sudo losetup -d "${disk_xb_loop}"
-      return "${disk_xb_status}"
-      ;;
-    *) return 1 ;;
+  Darwin)
+    disk_xb_attach="$(hdiutil attach -nomount -imagekey diskimage-class=CRawDiskImage "$1" 2>/dev/null)" || return 1
+    disk_xb_whole="$(printf '%s\n' "${disk_xb_attach}" | awk 'NR == 1 { print $1 }')"
+    disk_xb_part="$(printf '%s\n' "${disk_xb_attach}" | awk 'NR == 2 { print $1 }')"
+    [ -n "${disk_xb_part}" ] || disk_xb_part="${disk_xb_whole}"
+    disk_xb_status=0
+    newfs_exfat -v "$2" "/dev/r${disk_xb_part#/dev/}" >/dev/null 2>&1 || disk_xb_status=1
+    hdiutil detach "${disk_xb_whole}" >/dev/null 2>&1
+    return "${disk_xb_status}"
+    ;;
+  Linux)
+    disk_cmd_exists mkfs.exfat || {
+      disk_error "mkfs.exfat is not installed. install the exfatprogs package."
+      return 1
+    }
+    disk_xb_loop="$(sudo losetup -f --show -o 1048576 "$1")" || return 1
+    disk_xb_status=0
+    sudo mkfs.exfat -L "$2" "${disk_xb_loop}" >/dev/null 2>&1 || disk_xb_status=1
+    sudo losetup -d "${disk_xb_loop}"
+    return "${disk_xb_status}"
+    ;;
+  *) return 1 ;;
   esac
 }
 
@@ -54,8 +54,8 @@ disk_fat_build() {
   disk_fb_sectors=$(($3 / 512))
   disk_fb_target="$1@@$4"
   case "$2" in
-    fat32) mformat -i "${disk_fb_target}" -F -T "${disk_fb_sectors}" -v "$5" :: >/dev/null 2>&1 ;;
-    *) mformat -i "${disk_fb_target}" -T "${disk_fb_sectors}" -v "$5" :: >/dev/null 2>&1 ;;
+  fat32) mformat -i "${disk_fb_target}" -F -T "${disk_fb_sectors}" -v "$5" :: >/dev/null 2>&1 ;;
+  *) mformat -i "${disk_fb_target}" -T "${disk_fb_sectors}" -v "$5" :: >/dev/null 2>&1 ;;
   esac
 }
 
@@ -70,24 +70,24 @@ disk_metadata_end() {
   disk_me_bps="$(disk_le_uint "$1" $(($2 + 11)) 2)"
   [ "${disk_me_bps}" -gt 0 ] || disk_me_bps=512
   case "${disk_me_fs}" in
-    4558464154202020)
-      disk_me_heap="$(disk_le_uint "$1" $(($2 + 88)) 4)"
-      disk_me_clusters="$(disk_le_uint "$1" $(($2 + 92)) 4)"
-      disk_me_shift="$(disk_le_uint "$1" $(($2 + 109)) 1)"
-      disk_me_csize=$((512 << disk_me_shift))
-      printf '%s\n' "$(($2 + disk_me_heap * 512 + (disk_me_clusters / 8 / disk_me_csize + 64) * disk_me_csize))"
-      ;;
-    *)
-      disk_me_reserved="$(disk_le_uint "$1" $(($2 + 14)) 2)"
-      disk_me_fats="$(disk_le_uint "$1" $(($2 + 16)) 1)"
-      disk_me_roots="$(disk_le_uint "$1" $(($2 + 17)) 2)"
-      disk_me_fat16="$(disk_le_uint "$1" $(($2 + 22)) 2)"
-      disk_me_fat32="$(disk_le_uint "$1" $(($2 + 36)) 4)"
-      disk_me_spc="$(disk_le_uint "$1" $(($2 + 13)) 1)"
-      disk_me_fatlen="${disk_me_fat16}"
-      [ "${disk_me_fatlen}" -gt 0 ] || disk_me_fatlen="${disk_me_fat32}"
-      printf '%s\n' "$(($2 + (disk_me_reserved + disk_me_fats * disk_me_fatlen) * disk_me_bps + disk_me_roots * 32 + 64 * disk_me_spc * disk_me_bps))"
-      ;;
+  4558464154202020)
+    disk_me_heap="$(disk_le_uint "$1" $(($2 + 88)) 4)"
+    disk_me_clusters="$(disk_le_uint "$1" $(($2 + 92)) 4)"
+    disk_me_shift="$(disk_le_uint "$1" $(($2 + 109)) 1)"
+    disk_me_csize=$((512 << disk_me_shift))
+    printf '%s\n' "$(($2 + disk_me_heap * 512 + (disk_me_clusters / 8 / disk_me_csize + 64) * disk_me_csize))"
+    ;;
+  *)
+    disk_me_reserved="$(disk_le_uint "$1" $(($2 + 14)) 2)"
+    disk_me_fats="$(disk_le_uint "$1" $(($2 + 16)) 1)"
+    disk_me_roots="$(disk_le_uint "$1" $(($2 + 17)) 2)"
+    disk_me_fat16="$(disk_le_uint "$1" $(($2 + 22)) 2)"
+    disk_me_fat32="$(disk_le_uint "$1" $(($2 + 36)) 4)"
+    disk_me_spc="$(disk_le_uint "$1" $(($2 + 13)) 1)"
+    disk_me_fatlen="${disk_me_fat16}"
+    [ "${disk_me_fatlen}" -gt 0 ] || disk_me_fatlen="${disk_me_fat32}"
+    printf '%s\n' "$(($2 + (disk_me_reserved + disk_me_fats * disk_me_fatlen) * disk_me_bps + disk_me_roots * 32 + 64 * disk_me_spc * disk_me_bps))"
+    ;;
   esac
 }
 
@@ -106,9 +106,9 @@ disk_default_fs() {
 
 disk_fs_type_byte() {
   case "$1" in
-    fat32) printf '12\n' ;;
-    exfat) printf '7\n' ;;
-    *) printf '14\n' ;;
+  fat32) printf '12\n' ;;
+  exfat) printf '7\n' ;;
+  *) printf '14\n' ;;
   esac
 }
 
@@ -127,8 +127,8 @@ disk_build_volume() {
   disk_mbr_write "${disk_bv_image}" "${disk_bv_type}" 2048 $((disk_bv_size / 512 - 2048)) || return 1
   DISK_VOLUME_OFFSET=1048576
   case "${disk_bv_fs}" in
-    exfat) disk_exfat_build "${disk_bv_image}" "${disk_bv_label}" ;;
-    *) disk_fat_build "${disk_bv_image}" "${disk_bv_fs}" $((disk_bv_size - 1048576)) 1M "${disk_bv_label}" ;;
+  exfat) disk_exfat_build "${disk_bv_image}" "${disk_bv_label}" ;;
+  *) disk_fat_build "${disk_bv_image}" "${disk_bv_fs}" $((disk_bv_size - 1048576)) 1M "${disk_bv_label}" ;;
   esac
 }
 

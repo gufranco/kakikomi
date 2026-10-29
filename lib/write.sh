@@ -48,9 +48,9 @@ disk_write_chunk() {
         DISK_OUTCOME="$?"
     fi
     case "${DISK_OUTCOME}" in
-      0) return 0 ;;
-      2 | 3 | 4 | 5) return 1 ;;
-      *) DISK_ATTEMPT=$((DISK_ATTEMPT + 1)) ;;
+    0) return 0 ;;
+    2 | 3 | 4 | 5) return 1 ;;
+    *) DISK_ATTEMPT=$((DISK_ATTEMPT + 1)) ;;
     esac
   done
   DISK_ATTEMPTS="${disk_wc_attempts}"
@@ -255,19 +255,19 @@ disk_write_target() {
 disk_finish_eject() {
   disk_info "Ejecting $1..."
   case "${DISK_FAMILY}" in
-    floppy | superdisk)
-      disk_release "$1" >/dev/null 2>&1
-      disk_success "Done. This drive has no software eject, so take the disk out now."
+  floppy | superdisk)
+    disk_release "$1" >/dev/null 2>&1
+    disk_success "Done. This drive has no software eject, so take the disk out now."
+    disk_wait_removal "$1"
+    ;;
+  *)
+    if disk_bounded 30 sudo diskutil eject "$1" >/dev/null 2>&1 || disk_bounded 30 sudo eject "$1" >/dev/null 2>&1; then
+      disk_success "Ejected. $1 is safe to remove."
+    else
+      disk_warning "$1 did not eject; it stays unmounted and guarded. remove it once the light stops."
       disk_wait_removal "$1"
-      ;;
-    *)
-      if disk_bounded 30 sudo diskutil eject "$1" >/dev/null 2>&1 || disk_bounded 30 sudo eject "$1" >/dev/null 2>&1; then
-        disk_success "Ejected. $1 is safe to remove."
-      else
-        disk_warning "$1 did not eject; it stays unmounted and guarded. remove it once the light stops."
-        disk_wait_removal "$1"
-      fi
-      ;;
+    fi
+    ;;
   esac
   return 0
 }

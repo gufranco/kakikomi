@@ -7,8 +7,8 @@ done
 
 disk_self="$0"
 case "${disk_self}" in
-  */*) ;;
-  *) disk_self="$(command -v -- "${disk_self}")" ;;
+*/*) ;;
+*) disk_self="$(command -v -- "${disk_self}")" ;;
 esac
 DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 
@@ -108,18 +108,18 @@ USAGE
 
 disk_option_flag() {
   case "$1" in
-    --verify) KAKIKOMI_VERIFY=y ;;
-    --no-verify) KAKIKOMI_VERIFY=n ;;
-    --delete) KAKIKOMI_DELETE=y ;;
-    --no-delete) KAKIKOMI_DELETE=n ;;
-    --again) KAKIKOMI_AGAIN=y ;;
-    --reinsert) KAKIKOMI_REINSERT=y ;;
-    --no-reinsert) KAKIKOMI_REINSERT=n ;;
-    --zero-tail) KAKIKOMI_ZERO_TAIL=y ;;
-    --allow-internal) KAKIKOMI_ALLOW_INTERNAL=y ;;
-    --keep-guard) KAKIKOMI_KEEP_GUARD=y ;;
-    --raw) KAKIKOMI_MODE=raw ;;
-    *) return 1 ;;
+  --verify) KAKIKOMI_VERIFY=y ;;
+  --no-verify) KAKIKOMI_VERIFY=n ;;
+  --delete) KAKIKOMI_DELETE=y ;;
+  --no-delete) KAKIKOMI_DELETE=n ;;
+  --again) KAKIKOMI_AGAIN=y ;;
+  --reinsert) KAKIKOMI_REINSERT=y ;;
+  --no-reinsert) KAKIKOMI_REINSERT=n ;;
+  --zero-tail) KAKIKOMI_ZERO_TAIL=y ;;
+  --allow-internal) KAKIKOMI_ALLOW_INTERNAL=y ;;
+  --keep-guard) KAKIKOMI_KEEP_GUARD=y ;;
+  --raw) KAKIKOMI_MODE=raw ;;
+  *) return 1 ;;
   esac
   export KAKIKOMI_VERIFY KAKIKOMI_DELETE KAKIKOMI_AGAIN KAKIKOMI_REINSERT KAKIKOMI_ZERO_TAIL
   export KAKIKOMI_ALLOW_INTERNAL KAKIKOMI_KEEP_GUARD KAKIKOMI_MODE
@@ -159,13 +159,13 @@ disk_write_menu() {
   printf '%s\n' "What would you like to do?" "  1) write an image to a disk" "  2) quick format a disk" "  3) check this machine" >&2
   disk_wn_choice="$(disk_prompt "Choice" 1)" || return 1
   case "${disk_wn_choice}" in
-    1) disk_write_ask_image ;;
-    2) disk_format_main ;;
-    3) disk_doctor ;;
-    *)
-      disk_cli_hint "unknown choice '${disk_wn_choice}'"
-      return 1
-      ;;
+  1) disk_write_ask_image ;;
+  2) disk_format_main ;;
+  3) disk_doctor ;;
+  *)
+    disk_cli_hint "unknown choice '${disk_wn_choice}'"
+    return 1
+    ;;
   esac
 }
 
@@ -202,21 +202,21 @@ disk_write_start() {
 
 disk_write_main() {
   case "${1:-}" in
-    format)
-      shift
-      disk_format_main "$@"
-      ;;
-    --release)
-      DISK_TMPDIR="${TMPDIR:-/tmp}"
-      disk_fstab_release_all
-      ;;
-    help | -h | --help) disk_write_usage ;;
-    version | -V | --version) disk_cli_version ;;
-    doctor) disk_doctor ;;
-    *)
-      DISK_PARSED=disk_write_entry
-      disk_parse "$@"
-      ;;
+  format)
+    shift
+    disk_format_main "$@"
+    ;;
+  --release)
+    DISK_TMPDIR="${TMPDIR:-/tmp}"
+    disk_fstab_release_all
+    ;;
+  help | -h | --help) disk_write_usage ;;
+  version | -V | --version) disk_cli_version ;;
+  doctor) disk_doctor ;;
+  *)
+    DISK_PARSED=disk_write_entry
+    disk_parse "$@"
+    ;;
   esac
 }
 

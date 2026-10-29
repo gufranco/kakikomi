@@ -280,23 +280,23 @@ disk_measure() {
   fi
 
   case "${disk_ms_status}" in
-    0)
-      DISK_MEASURED=1
-      ;;
-    2)
-      disk_fault "${disk_ms_disk}" "the disk failed while being measured, before $4 started."
+  0)
+    DISK_MEASURED=1
+    ;;
+  2)
+    disk_fault "${disk_ms_disk}" "the disk failed while being measured, before $4 started."
+    return 1
+    ;;
+  *)
+    if disk_fragile; then
+      disk_error "stopped: this disk could not be timed, so nothing would be watching for a stall."
+      disk_error "on ${DISK_FAMILY} media the clock is what catches a failing head before it scores the surface."
+      disk_error "running blind would risk the cartridge and the drive, so this stops here."
+      disk_eject_now "${disk_ms_disk}"
       return 1
-      ;;
-    *)
-      if disk_fragile; then
-        disk_error "stopped: this disk could not be timed, so nothing would be watching for a stall."
-        disk_error "on ${DISK_FAMILY} media the clock is what catches a failing head before it scores the surface."
-        disk_error "running blind would risk the cartridge and the drive, so this stops here."
-        disk_eject_now "${disk_ms_disk}"
-        return 1
-      fi
-      disk_warning "speed is not being watched on this disk. only the byte-for-byte verify decides."
-      ;;
+    fi
+    disk_warning "speed is not being watched on this disk. only the byte-for-byte verify decides."
+    ;;
   esac
 
   if [ "${DISK_MEASURED}" = "1" ]; then

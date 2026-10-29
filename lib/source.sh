@@ -14,23 +14,23 @@ disk_source_kind() {
     return 0
   fi
   case "$1" in
-    http://* | https://*)
-      printf 'url\n'
-      return 0
-      ;;
-    *) ;;
+  http://* | https://*)
+    printf 'url\n'
+    return 0
+    ;;
+  *) ;;
   esac
   disk_sk_head="$(disk_magic_hex "$1" 0 8)"
   case "${disk_sk_head}" in
-    1f8b*) printf 'gzip\n' ;;
-    fd377a585a00*) printf 'xz\n' ;;
-    28b52ffd*) printf 'zstd\n' ;;
-    425a68*) printf 'bzip2\n' ;;
-    504b0304*) printf 'zip\n' ;;
-    514649fb*) printf 'qcow2\n' ;;
-    4b444d56*) printf 'vmdk\n' ;;
-    7668647866696c65*) printf 'vhdx\n' ;;
-    *) disk_source_trailer_kind "$1" ;;
+  1f8b*) printf 'gzip\n' ;;
+  fd377a585a00*) printf 'xz\n' ;;
+  28b52ffd*) printf 'zstd\n' ;;
+  425a68*) printf 'bzip2\n' ;;
+  504b0304*) printf 'zip\n' ;;
+  514649fb*) printf 'qcow2\n' ;;
+  4b444d56*) printf 'vmdk\n' ;;
+  7668647866696c65*) printf 'vhdx\n' ;;
+  *) disk_source_trailer_kind "$1" ;;
   esac
 }
 
@@ -39,38 +39,38 @@ disk_source_trailer_kind() {
   if [ "${disk_st_size}" -ge 512 ]; then
     disk_st_tail="$(disk_magic_hex "$1" $((disk_st_size - 512)) 8)"
     case "${disk_st_tail}" in
-      636f6e6563746978*)
-        printf 'vhd\n'
-        return 0
-        ;;
-      6b6f6c79*)
-        printf 'dmg\n'
-        return 0
-        ;;
-      *) ;;
+    636f6e6563746978*)
+      printf 'vhd\n'
+      return 0
+      ;;
+    6b6f6c79*)
+      printf 'dmg\n'
+      return 0
+      ;;
+    *) ;;
     esac
   fi
   disk_st_text="$(disk_magic_hex "$1" 0 21)"
   case "${disk_st_text}" in
-    23204469736b2044657363726970746f7246696c65*) printf 'vmdk\n' ;;
-    *) printf 'raw\n' ;;
+  23204469736b2044657363726970746f7246696c65*) printf 'vmdk\n' ;;
+  *) printf 'raw\n' ;;
   esac
 }
 
 disk_decompressor() {
   case "$1" in
-    gzip) printf 'gzip\n' ;;
-    xz) printf 'xz\n' ;;
-    zstd) printf 'zstd\n' ;;
-    bzip2) printf 'bzip2\n' ;;
-    *) return 1 ;;
+  gzip) printf 'gzip\n' ;;
+  xz) printf 'xz\n' ;;
+  zstd) printf 'zstd\n' ;;
+  bzip2) printf 'bzip2\n' ;;
+  *) return 1 ;;
   esac
 }
 
 disk_stream_source() {
   case "$2" in
-    zip) bsdtar -xOf "$1" "${DISK_ZIP_MEMBER}" ;;
-    *) "$3" -dc "$1" ;;
+  zip) bsdtar -xOf "$1" "${DISK_ZIP_MEMBER}" ;;
+  *) "$3" -dc "$1" ;;
   esac
 }
 
@@ -94,15 +94,15 @@ disk_zip_member() {
 
 disk_stream_size() {
   case "$2" in
-    xz)
-      disk_ss_robot="$(xz --robot -l "$1" 2>/dev/null)"
-      disk_ss_bytes="$(printf '%s\n' "${disk_ss_robot}" | awk -F'\t' '$1 == "totals" { print $5; exit }')"
-      if disk_is_uint "${disk_ss_bytes}"; then
-        printf '%s\n' "${disk_ss_bytes}"
-        return 0
-      fi
-      ;;
-    *) ;;
+  xz)
+    disk_ss_robot="$(xz --robot -l "$1" 2>/dev/null)"
+    disk_ss_bytes="$(printf '%s\n' "${disk_ss_robot}" | awk -F'\t' '$1 == "totals" { print $5; exit }')"
+    if disk_is_uint "${disk_ss_bytes}"; then
+      printf '%s\n' "${disk_ss_bytes}"
+      return 0
+    fi
+    ;;
+  *) ;;
   esac
   disk_info "Reading the whole compressed image once to learn its exact size." >&2
   disk_ss_bytes="$({ disk_stream_source "$1" "$2" "$3" 2>/dev/null || true; } | wc -c)"
@@ -155,14 +155,14 @@ disk_free_bytes() {
 disk_convert() {
   disk_cv_out="${DISK_SRC_WORK}/converted.img"
   case "$2" in
-    dmg)
-      disk_cv_tool="hdiutil"
-      disk_cv_hint="hdiutil ships with macOS only; convert the .dmg on a Mac"
-      ;;
-    *)
-      disk_cv_tool="qemu-img"
-      disk_cv_hint="install qemu: brew install qemu, or apt install qemu-utils"
-      ;;
+  dmg)
+    disk_cv_tool="hdiutil"
+    disk_cv_hint="hdiutil ships with macOS only; convert the .dmg on a Mac"
+    ;;
+  *)
+    disk_cv_tool="qemu-img"
+    disk_cv_hint="install qemu: brew install qemu, or apt install qemu-utils"
+    ;;
   esac
   if ! disk_cmd_exists "${disk_cv_tool}"; then
     disk_error "stopped: a $2 image needs ${disk_cv_tool} to become a raw image: ${disk_cv_hint}." >&2
@@ -217,36 +217,36 @@ disk_source_open() {
 
 disk_source_prepare() {
   case "${DISK_SRC_KIND}" in
-    gzip | xz | zstd | bzip2)
-      DISK_SRC_TOOL="$(disk_decompressor "${DISK_SRC_KIND}")"
-      if ! disk_cmd_exists "${DISK_SRC_TOOL}"; then
-        disk_error "stopped: ${DISK_SRC_TOOL} is needed to read this ${DISK_SRC_KIND} image."
-        return 1
-      fi
-      DISK_SRC_STREAM=1
-      DISK_SRC_SIZE="$(disk_stream_size "${DISK_SRC_PATH}" "${DISK_SRC_KIND}" "${DISK_SRC_TOOL}")" || return 1
-      ;;
-    zip)
-      disk_cmd_exists bsdtar || {
-        disk_error "stopped: bsdtar is needed to read a zip image. install libarchive-tools."
-        return 1
-      }
-      disk_zip_member "${DISK_SRC_PATH}" || return 1
-      DISK_SRC_STREAM=1
-      DISK_SRC_SIZE="$(disk_stream_size "${DISK_SRC_PATH}" zip "")" || return 1
-      ;;
-    dmg | vhd | vhdx | vmdk | qcow2)
-      DISK_SRC_PATH="$(disk_convert "${DISK_SRC_PATH}" "${DISK_SRC_KIND}")" || return 1
-      DISK_SRC_KIND="raw"
-      DISK_SRC_SIZE="$(disk_file_size "${DISK_SRC_PATH}")"
-      ;;
-    device)
-      DISK_SRC_PATH="$(disk_resolve "${DISK_SRC_PATH}")" || return 1
-      DISK_SRC_SIZE="$(disk_size_bytes "${DISK_SRC_PATH}")"
-      ;;
-    *)
-      DISK_SRC_SIZE="$(disk_file_size "${DISK_SRC_PATH}")"
-      ;;
+  gzip | xz | zstd | bzip2)
+    DISK_SRC_TOOL="$(disk_decompressor "${DISK_SRC_KIND}")"
+    if ! disk_cmd_exists "${DISK_SRC_TOOL}"; then
+      disk_error "stopped: ${DISK_SRC_TOOL} is needed to read this ${DISK_SRC_KIND} image."
+      return 1
+    fi
+    DISK_SRC_STREAM=1
+    DISK_SRC_SIZE="$(disk_stream_size "${DISK_SRC_PATH}" "${DISK_SRC_KIND}" "${DISK_SRC_TOOL}")" || return 1
+    ;;
+  zip)
+    disk_cmd_exists bsdtar || {
+      disk_error "stopped: bsdtar is needed to read a zip image. install libarchive-tools."
+      return 1
+    }
+    disk_zip_member "${DISK_SRC_PATH}" || return 1
+    DISK_SRC_STREAM=1
+    DISK_SRC_SIZE="$(disk_stream_size "${DISK_SRC_PATH}" zip "")" || return 1
+    ;;
+  dmg | vhd | vhdx | vmdk | qcow2)
+    DISK_SRC_PATH="$(disk_convert "${DISK_SRC_PATH}" "${DISK_SRC_KIND}")" || return 1
+    DISK_SRC_KIND="raw"
+    DISK_SRC_SIZE="$(disk_file_size "${DISK_SRC_PATH}")"
+    ;;
+  device)
+    DISK_SRC_PATH="$(disk_resolve "${DISK_SRC_PATH}")" || return 1
+    DISK_SRC_SIZE="$(disk_size_bytes "${DISK_SRC_PATH}")"
+    ;;
+  *)
+    DISK_SRC_SIZE="$(disk_file_size "${DISK_SRC_PATH}")"
+    ;;
   esac
   if ! disk_is_uint "${DISK_SRC_SIZE}" || [ "${DISK_SRC_SIZE}" -eq 0 ]; then
     disk_error "stopped: ${DISK_SRC_ORIGIN} is empty or its size could not be read."

@@ -115,7 +115,10 @@ write_compressed() {
   [[ "${output}" == *"second.img"* ]]
   local bytes
   bytes="$(disk_test_unique_bytes "${TARGET_IMG}")"
-  [[ "${bytes}" == "aa" ]] || { printf "found bytes: %s\n" "${bytes}"; false; }
+  [[ "${bytes}" == "aa" ]] || {
+    printf "found bytes: %s\n" "${bytes}"
+    false
+  }
 }
 
 @test "kakikomi converts a qcow2 image to raw before writing it" {
@@ -157,7 +160,10 @@ write_compressed() {
   [[ "${output}" == *"stopped: the image does not match the expected SHA-256."* ]]
   local bytes
   bytes="$(disk_test_unique_bytes "${TARGET_IMG}")"
-  [[ "${bytes}" == "aa" ]] || { printf "found bytes: %s\n" "${bytes}"; false; }
+  [[ "${bytes}" == "aa" ]] || {
+    printf "found bytes: %s\n" "${bytes}"
+    false
+  }
 }
 
 @test "kakikomi accepts an image whose sibling .sha256 file matches" {

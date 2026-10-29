@@ -6,21 +6,21 @@
 disk_whole_of() {
   disk_wo_os="$(disk_os)"
   case "${disk_wo_os}" in
-    Darwin)
-      disk_wo_whole="$(disk_plist_value "$1" ParentWholeDisk)"
-      [ -n "${disk_wo_whole}" ] || return 0
-      printf '/dev/%s\n' "${disk_wo_whole}"
-      disk_wo_store="$(disk_plist_value "${disk_wo_whole}" APFSPhysicalStores.0.APFSPhysicalStore)"
-      if [ -n "${disk_wo_store}" ]; then
-        disk_wo_parent="$(disk_plist_value "${disk_wo_store}" ParentWholeDisk)"
-        [ -n "${disk_wo_parent}" ] && printf '/dev/%s\n' "${disk_wo_parent}"
-      fi
-      ;;
-    Linux)
-      disk_wo_tree="$(lsblk -nrso NAME,TYPE "$1" 2>/dev/null)"
-      printf '%s\n' "${disk_wo_tree}" | awk '$2 == "disk" || $2 == "loop" { print "/dev/" $1 }'
-      ;;
-    *) ;;
+  Darwin)
+    disk_wo_whole="$(disk_plist_value "$1" ParentWholeDisk)"
+    [ -n "${disk_wo_whole}" ] || return 0
+    printf '/dev/%s\n' "${disk_wo_whole}"
+    disk_wo_store="$(disk_plist_value "${disk_wo_whole}" APFSPhysicalStores.0.APFSPhysicalStore)"
+    if [ -n "${disk_wo_store}" ]; then
+      disk_wo_parent="$(disk_plist_value "${disk_wo_store}" ParentWholeDisk)"
+      [ -n "${disk_wo_parent}" ] && printf '/dev/%s\n' "${disk_wo_parent}"
+    fi
+    ;;
+  Linux)
+    disk_wo_tree="$(lsblk -nrso NAME,TYPE "$1" 2>/dev/null)"
+    printf '%s\n' "${disk_wo_tree}" | awk '$2 == "disk" || $2 == "loop" { print "/dev/" $1 }'
+    ;;
+  *) ;;
   esac
   return 0
 }
@@ -48,8 +48,8 @@ disk_holder_disks() {
   [ -n "${disk_hd_dir}" ] || disk_hd_dir="/"
   disk_hd_dev="$(disk_path_device "${disk_hd_dir}")"
   case "${disk_hd_dev}" in
-    /dev/*) disk_whole_of "${disk_hd_dev}" ;;
-    *) ;;
+  /dev/*) disk_whole_of "${disk_hd_dev}" ;;
+  *) ;;
   esac
   return 0
 }
@@ -61,19 +61,19 @@ disk_listed() {
 disk_is_internal() {
   disk_ii_os="$(disk_os)"
   case "${disk_ii_os}" in
-    Darwin)
-      disk_ii_internal="$(disk_plist_value "$1" Internal)"
-      disk_ii_eject="$(disk_plist_value "$1" Ejectable)"
-      [ "${disk_ii_internal}" = "true" ] && [ "${disk_ii_eject}" != "true" ]
-      ;;
-    Linux)
-      disk_ii_flags="$(lsblk -dnro RM,HOTPLUG,TRAN "$1" 2>/dev/null)"
-      case "${disk_ii_flags}" in
-        1\ * | ?\ 1* | *usb* | *mmc*) return 1 ;;
-        *) return 0 ;;
-      esac
-      ;;
+  Darwin)
+    disk_ii_internal="$(disk_plist_value "$1" Internal)"
+    disk_ii_eject="$(disk_plist_value "$1" Ejectable)"
+    [ "${disk_ii_internal}" = "true" ] && [ "${disk_ii_eject}" != "true" ]
+    ;;
+  Linux)
+    disk_ii_flags="$(lsblk -dnro RM,HOTPLUG,TRAN "$1" 2>/dev/null)"
+    case "${disk_ii_flags}" in
+    1\ * | ?\ 1* | *usb* | *mmc*) return 1 ;;
     *) return 0 ;;
+    esac
+    ;;
+  *) return 0 ;;
   esac
 }
 
@@ -113,15 +113,15 @@ disk_human() {
 disk_candidates() {
   disk_cn_os="$(disk_os)"
   case "${disk_cn_os}" in
-    Darwin)
-      disk_cn_list="$(diskutil list 2>/dev/null)"
-      printf '%s\n' "${disk_cn_list}" | awk '/^\/dev\/disk[0-9]+ / && !/synthesized/ { print $1 }'
-      ;;
-    Linux)
-      disk_cn_list="$(lsblk -dnro NAME,TYPE,SIZE -b 2>/dev/null)"
-      printf '%s\n' "${disk_cn_list}" | awk '($2 == "disk" || $2 == "loop") && $3 > 0 { print "/dev/" $1 }'
-      ;;
-    *) ;;
+  Darwin)
+    disk_cn_list="$(diskutil list 2>/dev/null)"
+    printf '%s\n' "${disk_cn_list}" | awk '/^\/dev\/disk[0-9]+ / && !/synthesized/ { print $1 }'
+    ;;
+  Linux)
+    disk_cn_list="$(lsblk -dnro NAME,TYPE,SIZE -b 2>/dev/null)"
+    printf '%s\n' "${disk_cn_list}" | awk '($2 == "disk" || $2 == "loop") && $3 > 0 { print "/dev/" $1 }'
+    ;;
+  *) ;;
   esac
   return 0
 }
@@ -182,15 +182,15 @@ disk_pick_one() {
 disk_partitions_text() {
   disk_pa_os="$(disk_os)"
   case "${disk_pa_os}" in
-    Darwin)
-      disk_pa_list="$(diskutil list "$1" 2>/dev/null)"
-      printf '%s\n' "${disk_pa_list}" | awk 'NR > 2 && NF > 3 { $1 = ""; sub(/^ +/, ""); print "          " $0 }'
-      ;;
-    Linux)
-      disk_pa_list="$(lsblk -nro NAME,SIZE,FSTYPE,LABEL "$1" 2>/dev/null)"
-      printf '%s\n' "${disk_pa_list}" | awk 'NR > 1 { print "          " $0 }'
-      ;;
-    *) ;;
+  Darwin)
+    disk_pa_list="$(diskutil list "$1" 2>/dev/null)"
+    printf '%s\n' "${disk_pa_list}" | awk 'NR > 2 && NF > 3 { $1 = ""; sub(/^ +/, ""); print "          " $0 }'
+    ;;
+  Linux)
+    disk_pa_list="$(lsblk -nro NAME,SIZE,FSTYPE,LABEL "$1" 2>/dev/null)"
+    printf '%s\n' "${disk_pa_list}" | awk 'NR > 1 { print "          " $0 }'
+    ;;
+  *) ;;
   esac
   return 0
 }

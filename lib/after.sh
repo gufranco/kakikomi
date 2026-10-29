@@ -8,9 +8,9 @@ disk_ask() {
   printf '%s ' "$1" >&2
   IFS= read -r disk_ak_answer || disk_ak_answer=""
   case "${disk_ak_answer}" in
-    y | Y | yes | YES) printf 'y\n' ;;
-    n | N | no | NO) printf 'n\n' ;;
-    *) printf '%s\n' "$2" ;;
+  y | Y | yes | YES) printf 'y\n' ;;
+  n | N | no | NO) printf 'n\n' ;;
+  *) printf '%s\n' "$2" ;;
   esac
 }
 

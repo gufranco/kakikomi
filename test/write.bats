@@ -82,7 +82,10 @@ write_with() {
   [[ "${output}" == *"stopped: the image needs 16777728 bytes and ${DEVICE} holds 16777216."* ]]
   local first
   first="$(disk_test_range_bytes "${TARGET_IMG}" 0 512)"
-  [[ "${first}" == "aa" ]] || { printf "found bytes: %s\n" "${first}"; false; }
+  [[ "${first}" == "aa" ]] || {
+    printf "found bytes: %s\n" "${first}"
+    false
+  }
 }
 
 @test "kakikomi writes nothing when the confirmation is not the disk name" {
@@ -97,7 +100,10 @@ write_with() {
   [[ "${output}" == *"cancelled, nothing was touched."* ]]
   local bytes
   bytes="$(disk_test_unique_bytes "${TARGET_IMG}")"
-  [[ "${bytes}" == "aa" ]] || { printf "found bytes: %s\n" "${bytes}"; false; }
+  [[ "${bytes}" == "aa" ]] || {
+    printf "found bytes: %s\n" "${bytes}"
+    false
+  }
 }
 
 @test "kakikomi blanks the rest of a larger disk with KAKIKOMI_ZERO_TAIL" {
@@ -111,7 +117,10 @@ write_with() {
   [[ "${status}" -eq 0 ]]
   local tail_bytes
   tail_bytes="$(disk_test_range_bytes "${TARGET_IMG}" 8388608 8388608)"
-  [[ "${tail_bytes}" == "00" ]] || { printf "found bytes: %s\n" "${tail_bytes}"; false; }
+  [[ "${tail_bytes}" == "00" ]] || {
+    printf "found bytes: %s\n" "${tail_bytes}"
+    false
+  }
 }
 
 @test "kakikomi leaves the old contents past the image without KAKIKOMI_ZERO_TAIL" {
@@ -126,7 +135,10 @@ write_with() {
   [[ "${output}" == *"--zero-tail blanks it."* ]]
   local tail_bytes
   tail_bytes="$(disk_test_range_bytes "${TARGET_IMG}" 8388608 8388608)"
-  [[ "${tail_bytes}" == "aa" ]] || { printf "found bytes: %s\n" "${tail_bytes}"; false; }
+  [[ "${tail_bytes}" == "aa" ]] || {
+    printf "found bytes: %s\n" "${tail_bytes}"
+    false
+  }
 }
 
 @test "kakikomi stopped mid-run leaves the first sectors blank" {
@@ -152,11 +164,17 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status_code}" -ne 0 ]]
-  grep -q "stopped: interrupted during write chunk" "${log}" || { cat "${log}"; false; }
+  grep -q "stopped: interrupted during write chunk" "${log}" || {
+    cat "${log}"
+    false
+  }
   disk_test_detach "${DEVICE}"
   local head_bytes
   head_bytes="$(disk_test_range_bytes "${TARGET_IMG}" 0 1048576)"
-  [[ "${head_bytes}" == "00" ]] || { printf "found bytes: %s\n" "${head_bytes}"; false; }
+  [[ "${head_bytes}" == "00" ]] || {
+    printf "found bytes: %s\n" "${head_bytes}"
+    false
+  }
 }
 
 @test "kakikomi refuses a target that holds the running system" {

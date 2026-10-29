@@ -59,26 +59,25 @@ disk_chunk_failed() {
   disk_cf_where="$2 chunk $3 of $4"
   disk_log_lines disk_error "${DISK_BITS}"
   case "${DISK_OUTCOME}" in
-    4)
-      disk_error "stopped: interrupted during ${disk_cf_where}."
-      disk_error "nothing else will be written. ejecting so the head leaves the surface."
-      disk_eject_now "${disk_cf_disk}"
-      ;;
-    3)
-      disk_cf_shown="$(disk_duration "${DISK_DEADLINE}")"
-      disk_fault "${disk_cf_disk}" "${disk_cf_where} went silent for ${disk_cf_shown} at offset $5." stall
-      ;;
-    2)
-      disk_fault "${disk_cf_disk}" "${disk_cf_where} stopped answering at offset $5."
-      ;;
-    *)
-      if [ "${DISK_OUTCOME}" -eq 5 ] || disk_head_crash_family; then
-        disk_fault "${disk_cf_disk}" "${disk_cf_where} did not come back clean at offset $5." fatal
-      else
-        disk_fault "${disk_cf_disk}" "${disk_cf_where} failed ${DISK_ATTEMPTS:-1} times at offset $5."
-      fi
-      ;;
+  4)
+    disk_error "stopped: interrupted during ${disk_cf_where}."
+    disk_error "nothing else will be written. ejecting so the head leaves the surface."
+    disk_eject_now "${disk_cf_disk}"
+    ;;
+  3)
+    disk_cf_shown="$(disk_duration "${DISK_DEADLINE}")"
+    disk_fault "${disk_cf_disk}" "${disk_cf_where} went silent for ${disk_cf_shown} at offset $5." stall
+    ;;
+  2)
+    disk_fault "${disk_cf_disk}" "${disk_cf_where} stopped answering at offset $5."
+    ;;
+  *)
+    if [ "${DISK_OUTCOME}" -eq 5 ] || disk_head_crash_family; then
+      disk_fault "${disk_cf_disk}" "${disk_cf_where} did not come back clean at offset $5." fatal
+    else
+      disk_fault "${disk_cf_disk}" "${disk_cf_where} failed ${DISK_ATTEMPTS:-1} times at offset $5."
+    fi
+    ;;
   esac
   return 1
 }
-

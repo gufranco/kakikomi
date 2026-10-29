@@ -53,12 +53,12 @@ disk_write_fits() {
 
 disk_geometry_warning() {
   case "$1:$2" in
-    368640:737280 | 368640:1474560 | 737280:1474560 | 1228800:1474560 | 1474560:2949120 | 737280:2949120)
-      disk_gw_image="$(disk_human "$1")"
-      disk_gw_media="$(disk_human "$2")"
-      disk_warning "a ${disk_gw_image} floppy image on ${disk_gw_media} media will not read in a drive built for the smaller format."
-      ;;
-    *) ;;
+  368640:737280 | 368640:1474560 | 737280:1474560 | 1228800:1474560 | 1474560:2949120 | 737280:2949120)
+    disk_gw_image="$(disk_human "$1")"
+    disk_gw_media="$(disk_human "$2")"
+    disk_warning "a ${disk_gw_image} floppy image on ${disk_gw_media} media will not read in a drive built for the smaller format."
+    ;;
+  *) ;;
   esac
   return 0
 }
