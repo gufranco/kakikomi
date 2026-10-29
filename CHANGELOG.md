@@ -1,5 +1,22 @@
 # Changelog
 
+# [3.0.0](https://github.com/gufranco/kakikomi/compare/v2.2.0...v3.0.0) (2026-10-29)
+
+
+* feat!: prefix every setting with KAKIKOMI_ ([513fe56](https://github.com/gufranco/kakikomi/commit/513fe568f3404054cedeac8bb4c161868cfc6160))
+
+
+### Bug Fixes
+
+* poll a bounded command within milliseconds ([2b8d386](https://github.com/gufranco/kakikomi/commit/2b8d386f0c2b476cb50017b290177917f52cd0b8))
+
+
+### BREAKING CHANGES
+
+* VERIFY, DELETE, AGAIN, REINSERT, ZERO_TAIL, SHA256,
+ALLOW_INTERNAL, KEEP_GUARD, MODE and the tuning variables are no longer
+read. Use their KAKIKOMI_ forms, such as KAKIKOMI_VERIFY.
+
 # [2.2.0](https://github.com/gufranco/kakikomi/compare/v2.1.0...v2.2.0) (2026-10-28)
 
 
