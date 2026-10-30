@@ -160,12 +160,24 @@ fat_target() {
   [[ ! -s "${KAKIKOMI_FSTAB}" ]]
 }
 
-@test "kakikomi --release says when no guard is left" {
+@test "--release is no longer an option" {
+  # Arrange
+  local option=--release
+
+  # Act
+  run disk_test_run kakikomi "${option}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"kakikomi: unknown option '--release'. run 'kakikomi help' for usage."* ]]
+}
+
+@test "kakikomi release says when no guard is left" {
   # Arrange
   printf 'LABEL=OTHER none msdos rw,noauto\n' >"${KAKIKOMI_FSTAB}"
 
   # Act
-  run disk_test_run kakikomi --release
+  run disk_test_run kakikomi release
 
   # Assert
   [[ "${status}" -eq 0 ]]
@@ -261,7 +273,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"the mount guard for ${DEVICE} stays in place. run kakikomi --release once the disk is out."* ]]
+  [[ "${output}" == *"the mount guard for ${DEVICE} stays in place. run kakikomi release once the disk is out."* ]]
   grep -q "# kakikomi ${DEVICE##*/} begin" "${KAKIKOMI_FSTAB}"
 }
 

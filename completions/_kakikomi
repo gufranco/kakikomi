@@ -4,6 +4,7 @@ _kakikomi() {
   local -a commands
   commands=(
     'format:quick format a disk'
+    'release:remove mount guards a run left behind'
     'doctor:check the tools kakikomi needs'
     'version:print the version'
     'help:print usage'
@@ -27,7 +28,6 @@ _kakikomi() {
     '--allow-internal[allow an internal disk]' \
     '--keep-guard[keep macOS from ever mounting the disk again]' \
     '--raw[write a Windows ISO as is]' \
-    '--release[remove mount guards a run left behind]' \
     '*:file:_files'
 }
 

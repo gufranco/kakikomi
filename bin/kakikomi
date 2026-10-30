@@ -52,7 +52,7 @@ usage:
                                write an image to one or more disks
   kakikomi format [options] [target] [fat32|exfat|fat|floppy] [label]
                                quick format a disk
-  kakikomi --release           remove mount guards a run left behind
+  kakikomi release             remove mount guards a run left behind
   kakikomi doctor              check the tools kakikomi needs
   kakikomi version             print the version
   kakikomi help                print this page
@@ -206,7 +206,7 @@ disk_write_main() {
     shift
     disk_format_main "$@"
     ;;
-  --release)
+  release)
     DISK_TMPDIR="${TMPDIR:-/tmp}"
     disk_fstab_release_all
     ;;

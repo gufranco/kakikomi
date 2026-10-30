@@ -116,7 +116,7 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `kakikomi [options] <image\|url\|device> [target...]` | Write an image to one or more disks. With no target, lists the removable disks to pick from |
 | `kakikomi <windows.iso> <target>` | Lay a Windows installer ISO out as a UEFI-bootable FAT32 stick |
 | `kakikomi format [options] <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | Quick format: write only the new filesystem's structures |
-| `kakikomi --release` | Remove the mount guards a run left behind |
+| `kakikomi release` | Remove the mount guards a run left behind |
 | `kakikomi` with no arguments | Ask what to do, then for each value, when run in a terminal |
 | `kakikomi doctor` | List the tools kakikomi needs and whether they are installed |
 | `kakikomi version`, `kakikomi help` | Print the version or the full usage page |

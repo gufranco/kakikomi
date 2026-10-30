@@ -116,7 +116,7 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `kakikomi [options] <image\|url\|device> [target...]` | 把镜像写入一个或多个磁盘。不指定目标时，列出可选的可移动磁盘 |
 | `kakikomi <windows.iso> <target>` | 把 Windows 安装 ISO 布置成可 UEFI 启动的 FAT32 U 盘 |
 | `kakikomi format [options] <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | 快速格式化：只写入新文件系统的结构 |
-| `kakikomi --release` | 移除某次运行遗留的挂载防护 |
+| `kakikomi release` | 移除某次运行遗留的挂载防护 |
 | 不带参数的 `kakikomi` | 在终端中运行时，先询问要做什么，再依次询问每个值 |
 | `kakikomi doctor` | 列出 kakikomi 需要的工具以及是否已安装 |
 | `kakikomi version`、`kakikomi help` | 显示版本或完整用法 |

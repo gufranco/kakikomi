@@ -116,7 +116,7 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `kakikomi [options] <image\|url\|device> [target...]` | イメージを1台以上のディスクに書き込みます。書き込み先を省くと、選べるリムーバブルディスクを一覧表示します |
 | `kakikomi <windows.iso> <target>` | WindowsのインストールISOを、UEFIで起動できるFAT32のUSBメモリとして配置します |
 | `kakikomi format [options] <target> [fat32\|exfat\|fat\|floppy] [LABEL]` | クイックフォーマット。新しいファイルシステムの構造だけを書き込みます |
-| `kakikomi --release` | 実行時に残ったマウント防止の設定を取り除きます |
+| `kakikomi release` | 実行時に残ったマウント防止の設定を取り除きます |
 | 引数なしの`kakikomi` | ターミナルで実行すると、何をするかを尋ね、続けて必要な値を順に尋ねます |
 | `kakikomi doctor` | kakikomiが必要とするツールと、インストール状況を一覧表示します |
 | `kakikomi version`、`kakikomi help` | バージョンまたは使い方の全文を表示します |

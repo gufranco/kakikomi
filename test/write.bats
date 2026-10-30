@@ -51,14 +51,14 @@ write_with() {
   [[ ! -s "${KAKIKOMI_FSTAB}" ]]
 }
 
-@test "kakikomi keeps the fstab guard with KAKIKOMI_KEEP_GUARD and --release removes it" {
+@test "kakikomi keeps the fstab guard with KAKIKOMI_KEEP_GUARD and release removes it" {
   # Arrange
   write_with "${NAME}" "KAKIKOMI_KEEP_GUARD=y" "${IMAGE}" "${DEVICE}" >/dev/null 2>&1
   local kept
   kept="$(cat "${KAKIKOMI_FSTAB}")"
 
   # Act
-  run disk_test_run kakikomi --release
+  run disk_test_run kakikomi release
 
   # Assert
   [[ "${status}" -eq 0 ]]

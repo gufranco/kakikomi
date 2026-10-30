@@ -244,7 +244,7 @@ disk_write_target() {
     disk_reinsert_check "${disk_wt_disk}" "${disk_wt_raw}" "$2" || disk_wt_status=1
   elif [ -n "${DISK_GUARD_DECLARED}" ]; then
     KAKIKOMI_KEEP_GUARD=y
-    disk_warning "the mount guard for ${disk_wt_disk} stays in place. run kakikomi --release once the disk is out."
+    disk_warning "the mount guard for ${disk_wt_disk} stays in place. run kakikomi release once the disk is out."
   fi
   disk_breach_stop "${disk_wt_disk}" || disk_wt_status=1
   disk_guard_off
@@ -282,7 +282,7 @@ disk_wait_removal() {
   done
   if [ "${KAKIKOMI_KEEP_GUARD:-}" != "y" ]; then
     KAKIKOMI_KEEP_GUARD=y
-    disk_warning "$1 is still attached, so the mount guard stays. run kakikomi --release after removing it."
+    disk_warning "$1 is still attached, so the mount guard stays. run kakikomi release after removing it."
   fi
   return 0
 }

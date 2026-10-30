@@ -5,7 +5,7 @@ _kakikomi() {
   local cur prev words options
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD - 1]}"
-  options="--verify --no-verify --delete --no-delete --again --reinsert --no-reinsert --zero-tail --sha256 --allow-internal --keep-guard --raw --release"
+  options="--verify --no-verify --delete --no-delete --again --reinsert --no-reinsert --zero-tail --sha256 --allow-internal --keep-guard --raw"
 
   if [[ "${prev}" == "--sha256" ]]; then
     COMPREPLY=()
@@ -17,7 +17,7 @@ _kakikomi() {
   fi
   words="$(compgen -f -- "${cur}" || true)"
   if [[ "${COMP_CWORD}" -eq 1 ]]; then
-    words="format doctor version help ${words}"
+    words="format release doctor version help ${words}"
   elif [[ "${COMP_WORDS[1]}" == "format" && "${COMP_CWORD}" -ge 3 ]]; then
     words="fat32 exfat fat floppy ${words}"
   fi

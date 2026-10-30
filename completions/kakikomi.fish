@@ -1,4 +1,5 @@
 complete -c kakikomi -n __fish_use_subcommand -a format -d 'quick format a disk'
+complete -c kakikomi -n __fish_use_subcommand -a release -d 'remove mount guards a run left behind'
 complete -c kakikomi -n __fish_use_subcommand -a doctor -d 'check the tools kakikomi needs'
 complete -c kakikomi -n __fish_use_subcommand -a version -d 'print the version'
 complete -c kakikomi -n __fish_use_subcommand -a help -d 'print usage'
@@ -16,4 +17,3 @@ complete -c kakikomi -l sha256 -x -d 'stop unless the image matches this SHA-256
 complete -c kakikomi -l allow-internal -d 'allow an internal disk'
 complete -c kakikomi -l keep-guard -d 'keep macOS from ever mounting the disk again'
 complete -c kakikomi -l raw -d 'write a Windows ISO as is'
-complete -c kakikomi -l release -d 'remove mount guards a run left behind'
