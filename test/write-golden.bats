@@ -7,6 +7,7 @@ setup() {
   WORK="$(mktemp -d "${BATS_TMPDIR:-/tmp}/kakikomi-golden.XXXXXX")"
   WORK="$(cd "${WORK}" && pwd -P)"
   disk_test_setup_env
+  export KAKIKOMI_CHUNK_TARGET_MS=600000
   TARGET_IMG="${WORK}/target.img"
   disk_test_fill "${TARGET_IMG}" 16 '\252'
   DEVICE="$(disk_test_attach "${TARGET_IMG}")"
