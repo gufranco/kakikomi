@@ -28,6 +28,7 @@ _kakikomi() {
     '--allow-internal[allow an internal disk]' \
     '--keep-guard[keep macOS from ever mounting the disk again]' \
     '--raw[write a Windows ISO as is]' \
+    '--json[print the result as one JSON object, for scripts]' \
     '*:file:_files'
 }
 

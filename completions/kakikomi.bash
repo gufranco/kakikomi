@@ -5,7 +5,7 @@ _kakikomi() {
   local cur prev words options
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD - 1]}"
-  options="--verify --no-verify --delete --no-delete --again --reinsert --no-reinsert --zero-tail --sha256 --allow-internal --keep-guard --raw"
+  options="--verify --no-verify --delete --no-delete --again --reinsert --no-reinsert --zero-tail --sha256 --allow-internal --keep-guard --raw --json"
 
   if [[ "${prev}" == "--sha256" ]]; then
     COMPREPLY=()

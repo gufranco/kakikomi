@@ -141,8 +141,9 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `--allow-internal` | 内蔵ディスクを許可します。動作中のシステムがあるディスクは常に拒否されます |
 | `--keep-guard` | 実行後もfstabの設定を残し、このMacがそのディスクを今後もマウントしないようにします |
 | `--raw` | WindowsのISOをFAT32に配置せず、そのまま書き込みます |
+| `--json` | 結果を1つのJSONオブジェクトとして出力します（スクリプト向け） |
 
-`--sha256=HASH`の形も使え、`--`でオプションが終わります。環境変数`KAKIKOMI_VERIFY`、`KAKIKOMI_DELETE`、`KAKIKOMI_AGAIN`、`KAKIKOMI_REINSERT`、`KAKIKOMI_ZERO_TAIL`、`KAKIKOMI_SHA256`、`KAKIKOMI_ALLOW_INTERNAL`、`KAKIKOMI_KEEP_GUARD`、`KAKIKOMI_MODE=raw`も`y`か`n`で同じ設定になり、コマンドラインのオプションが優先されます。
+`--sha256=HASH`の形も使え、`--`でオプションが終わります。環境変数`KAKIKOMI_VERIFY`、`KAKIKOMI_DELETE`、`KAKIKOMI_AGAIN`、`KAKIKOMI_REINSERT`、`KAKIKOMI_ZERO_TAIL`、`KAKIKOMI_SHA256`、`KAKIKOMI_ALLOW_INTERNAL`、`KAKIKOMI_KEEP_GUARD`、`KAKIKOMI_JSON`、`KAKIKOMI_MODE=raw`も`y`か`n`で同じ設定になり、コマンドラインのオプションが優先されます。
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once

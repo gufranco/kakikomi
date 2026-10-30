@@ -225,6 +225,8 @@ disk_write_target() {
   DISK_ACTION_NOUN="write"
   disk_make_tmpdir kakikomi || return 1
   disk_wt_status=0
+  disk_wt_written=false
+  disk_wt_verified=false
   disk_wt_raw="$(disk_size_bytes "${disk_wt_disk}")"
   disk_guard_on "${disk_wt_disk}" || {
     disk_error "stopped: could not stop the system from mounting ${disk_wt_disk}."
@@ -236,8 +238,10 @@ disk_write_target() {
     disk_wt_size="$(cat "${DISK_TMPDIR}/size")"
     disk_write_stages "${disk_wt_disk}" "${disk_wt_size}" || disk_wt_status=1
   fi
+  [ "${disk_wt_status}" -ne 0 ] || disk_wt_written=true
   if [ "${disk_wt_status}" -eq 0 ] && [ "${KAKIKOMI_VERIFY:-y}" != "n" ]; then
     disk_validate_target "${disk_wt_disk}" "${DISK_SRC_SIZE}" "${DISK_SRC_SHA}" || disk_wt_status=1
+    [ "${disk_wt_status}" -ne 0 ] || disk_wt_verified=true
   fi
   if [ "${disk_wt_status}" -eq 0 ]; then
     disk_finish_eject "${disk_wt_disk}"
@@ -249,6 +253,9 @@ disk_write_target() {
   disk_breach_stop "${disk_wt_disk}" || disk_wt_status=1
   disk_guard_off
   disk_drop_tmpdir
+  disk_wt_device="$(disk_json_string "${disk_wt_disk}")"
+  printf '{"device":%s,"written":%s,"verified":%s}\n' "${disk_wt_device}" "${disk_wt_written}" "${disk_wt_verified}" \
+    >"${DISK_SRC_WORK}/result.${disk_wt_disk##*/}"
   return "${disk_wt_status}"
 }
 

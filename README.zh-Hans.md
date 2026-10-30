@@ -141,8 +141,9 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `--allow-internal` | 允许内置磁盘。运行中系统所在的磁盘始终被拒绝 |
 | `--keep-guard` | 运行后保留 fstab 防护，让这台 Mac 永不挂载该磁盘 |
 | `--raw` | 按字节原样写入 Windows ISO，而不是布置成 FAT32 |
+| `--json` | 以一个 JSON 对象输出结果，供脚本使用 |
 
-也可以写成 `--sha256=HASH`，`--` 表示选项结束。环境变量 `KAKIKOMI_VERIFY`、`KAKIKOMI_DELETE`、`KAKIKOMI_AGAIN`、`KAKIKOMI_REINSERT`、`KAKIKOMI_ZERO_TAIL`、`KAKIKOMI_SHA256`、`KAKIKOMI_ALLOW_INTERNAL`、`KAKIKOMI_KEEP_GUARD` 和 `KAKIKOMI_MODE=raw` 以 `y` 或 `n` 设置同样的选项，命令行上的选项优先。
+也可以写成 `--sha256=HASH`，`--` 表示选项结束。环境变量 `KAKIKOMI_VERIFY`、`KAKIKOMI_DELETE`、`KAKIKOMI_AGAIN`、`KAKIKOMI_REINSERT`、`KAKIKOMI_ZERO_TAIL`、`KAKIKOMI_SHA256`、`KAKIKOMI_ALLOW_INTERNAL`、`KAKIKOMI_KEEP_GUARD`、`KAKIKOMI_JSON` 和 `KAKIKOMI_MODE=raw` 以 `y` 或 `n` 设置同样的选项，命令行上的选项优先。
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once

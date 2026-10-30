@@ -141,8 +141,9 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `--allow-internal` | Allow an internal disk. The disk holding the running system is always refused |
 | `--keep-guard` | Keep the fstab guard after the run, so this Mac never mounts that disk |
 | `--raw` | Write a Windows ISO byte for byte instead of laying it out as FAT32 |
+| `--json` | Print the result as one JSON object, for scripts |
 
-`--sha256=HASH` works too, and `--` ends the options. The environment variables `KAKIKOMI_VERIFY`, `KAKIKOMI_DELETE`, `KAKIKOMI_AGAIN`, `KAKIKOMI_REINSERT`, `KAKIKOMI_ZERO_TAIL`, `KAKIKOMI_SHA256`, `KAKIKOMI_ALLOW_INTERNAL`, `KAKIKOMI_KEEP_GUARD` and `KAKIKOMI_MODE=raw` set the same options, with `y` or `n`; an option on the command line wins.
+`--sha256=HASH` works too, and `--` ends the options. The environment variables `KAKIKOMI_VERIFY`, `KAKIKOMI_DELETE`, `KAKIKOMI_AGAIN`, `KAKIKOMI_REINSERT`, `KAKIKOMI_ZERO_TAIL`, `KAKIKOMI_SHA256`, `KAKIKOMI_ALLOW_INTERNAL`, `KAKIKOMI_KEEP_GUARD`, `KAKIKOMI_JSON` and `KAKIKOMI_MODE=raw` set the same options, with `y` or `n`; an option on the command line wins.
 
 ```bash
 kakikomi debian.img.xz /dev/disk4 /dev/disk5     # two sticks at once

@@ -115,6 +115,7 @@ disk_write_checksum() {
 }
 
 disk_write_summary() {
+  [ "${KAKIKOMI_JSON:-n}" != y ] || return 0
   printf '\n'
   disk_info "Image:  ${DISK_SRC_ORIGIN}"
   disk_ws_human="$(disk_human "${DISK_SRC_SIZE}")"
@@ -196,5 +197,22 @@ disk_write_once() {
   disk_ask_options
   disk_confirm_names "${disk_wo_targets}" write || return 1
   disk_require_sudo || return 1
-  disk_write_run "${disk_wo_targets}"
+  disk_wo_status=0
+  disk_write_run "${disk_wo_targets}" || disk_wo_status=1
+  disk_write_report_json "${disk_wo_targets}"
+  return "${disk_wo_status}"
+}
+
+disk_write_report_json() {
+  [ "${KAKIKOMI_JSON:-n}" = y ] || return 0
+  disk_rj_targets=""
+  for disk_rj_target in $1; do
+    disk_rj_file="${DISK_SRC_WORK}/result.${disk_rj_target##*/}"
+    [ -f "${disk_rj_file}" ] || continue
+    disk_rj_one="$(cat "${disk_rj_file}")"
+    disk_rj_targets="${disk_rj_targets}${disk_rj_targets:+,}${disk_rj_one}"
+  done
+  disk_rj_image="$(disk_json_string "${DISK_SRC_ORIGIN}")"
+  printf '{"image":%s,"bytes":%s,"sha256":"%s","targets":[%s]}\n' \
+    "${disk_rj_image}" "${DISK_SRC_SIZE}" "${DISK_SRC_SHA}" "${disk_rj_targets}"
 }

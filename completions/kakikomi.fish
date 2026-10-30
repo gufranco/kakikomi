@@ -17,3 +17,4 @@ complete -c kakikomi -l sha256 -x -d 'stop unless the image matches this SHA-256
 complete -c kakikomi -l allow-internal -d 'allow an internal disk'
 complete -c kakikomi -l keep-guard -d 'keep macOS from ever mounting the disk again'
 complete -c kakikomi -l raw -d 'write a Windows ISO as is'
+complete -c kakikomi -l json -d 'print the result as one JSON object, for scripts'

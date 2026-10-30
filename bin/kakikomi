@@ -74,12 +74,13 @@ options:
   --keep-guard                 keep macOS from ever mounting that disk again
   --raw                        write a Windows ISO as is instead of as a FAT32
                                installer
+  --json                       print the result as one JSON object, for scripts
 
 environment:
   KAKIKOMI_VERIFY, KAKIKOMI_DELETE, KAKIKOMI_AGAIN, KAKIKOMI_REINSERT,
   KAKIKOMI_ZERO_TAIL, KAKIKOMI_SHA256, KAKIKOMI_ALLOW_INTERNAL,
-  KAKIKOMI_KEEP_GUARD and KAKIKOMI_MODE=raw set the same options, with y or n
-  for yes or no. an option on the command line wins.
+  KAKIKOMI_KEEP_GUARD, KAKIKOMI_JSON and KAKIKOMI_MODE=raw set the same
+  options, with y or n for yes or no. an option on the command line wins.
 
 notes:
   A disk is named by its device, such as /dev/disk4, or by any volume mounted
@@ -119,10 +120,11 @@ disk_option_flag() {
   --allow-internal) KAKIKOMI_ALLOW_INTERNAL=y ;;
   --keep-guard) KAKIKOMI_KEEP_GUARD=y ;;
   --raw) KAKIKOMI_MODE=raw ;;
+  --json) KAKIKOMI_JSON=y ;;
   *) return 1 ;;
   esac
   export KAKIKOMI_VERIFY KAKIKOMI_DELETE KAKIKOMI_AGAIN KAKIKOMI_REINSERT KAKIKOMI_ZERO_TAIL
-  export KAKIKOMI_ALLOW_INTERNAL KAKIKOMI_KEEP_GUARD KAKIKOMI_MODE
+  export KAKIKOMI_ALLOW_INTERNAL KAKIKOMI_KEEP_GUARD KAKIKOMI_MODE KAKIKOMI_JSON
   return 0
 }
 

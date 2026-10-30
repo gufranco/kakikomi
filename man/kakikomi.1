@@ -89,6 +89,11 @@ Keep macOS from ever mounting the disk again.
 .TP
 .B \-\-raw
 Write a Windows ISO as is instead of as a FAT32 installer.
+.TP
+.B \-\-json
+Print the result of a write as one JSON object on stdout, for scripts: the
+image, its size and SHA-256, and for each target whether it was written and
+verified.
 .PP
 Every option that takes a value also takes the form
 .IR \-\-name = value ,
@@ -137,7 +142,8 @@ signed list is not verified.
 .BR KAKIKOMI_ZERO_TAIL ,
 .BR KAKIKOMI_SHA256 ,
 .BR KAKIKOMI_ALLOW_INTERNAL ,
-.B KAKIKOMI_KEEP_GUARD
+.BR KAKIKOMI_KEEP_GUARD ,
+.B KAKIKOMI_JSON
 and
 .B KAKIKOMI_MODE=raw
 set the same options, with
