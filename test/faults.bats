@@ -124,6 +124,35 @@ media_error="printf 'dd: error writing: Input/output error\\n' >&2; exit 1"
   [[ "${output}" == *"the drive stopped answering mid-transfer"* ]]
 }
 
+@test "kakikomi writes through a dd that reports only record counts" {
+  # Arrange
+  disk_test_shim dd "err=\"\$(mktemp)\"
+\"\$REAL\" \"\$@\" 2>\"\$err\"
+status=\$?
+grep -v bytes \"\$err\" >&2
+rm -f \"\$err\"
+exit \"\$status\""
+
+  # Act
+  run writing
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Wrote and verified every chunk of the image."* ]]
+}
+
+@test "kakikomi does not trust a dd whose only record count came up short" {
+  # Arrange
+  pass_write "\"\$REAL\" \"\$@\" 2>/dev/null; printf '0+1 records in\\n0+1 records out\\n' >&2; exit 0"
+
+  # Act
+  run writing
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"moved 0 of"* ]]
+}
+
 @test "kakikomi stops at once when a transfer is interrupted" {
   # Arrange
   pass_write "exit 130"
