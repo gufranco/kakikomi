@@ -62,7 +62,7 @@ Ejected. /dev/disk6 is safe to remove.
 |:-----|:----|:--------|
 | POSIX `sh`、`dd`、`cmp`、`od` | 工具本身 | macOS 和 Linux 已預裝，不需要 `bash` |
 | `gzip`、`xz`、`zstd`、`bzip2` | 壓縮映像 | 只在寫入對應格式時需要 |
-| `bsdtar` 或 `7z` | `.zip` 映像和 Windows ISO | Linux 上為 `libarchive-tools` 或 `p7zip-full` |
+| `bsdtar`、`7z` 或 `7zz` | `.zip` 映像和 Windows ISO | Linux 上為 `libarchive-tools` 或 `7zip` |
 | `qemu-img` | `.vhd`、`.vhdx`、`.vmdk`、`.qcow2` | `brew install qemu` 或 `apt install qemu-utils` |
 | `mtools`、`wimlib` | Windows ISO 和 `kakikomi format` | 隨 Homebrew formula 安裝；`apt install mtools wimtools` |
 

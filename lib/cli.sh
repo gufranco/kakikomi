@@ -134,7 +134,8 @@ disk_doctor_formats() {
   disk_doctor_tool xz optional "needed for .xz images"
   disk_doctor_tool zstd optional "needed for .zst images"
   disk_doctor_tool bzip2 optional "needed for .bz2 images"
-  disk_doctor_either bsdtar 7z optional "needed for .zip images and Windows ISOs"
+  disk_dfm_seven="$(disk_sevenzip)" || disk_dfm_seven=7z
+  disk_doctor_either bsdtar "${disk_dfm_seven}" optional "needed for .zip images and Windows ISOs"
   disk_doctor_tool qemu-img optional "needed for .vhd, .vhdx, .vmdk and .qcow2 images"
   disk_doctor_tool mcopy optional "mtools, needed for Windows ISOs and format"
   disk_doctor_tool wimlib-imagex optional "wimlib, needed for Windows ISOs over 4 GiB"

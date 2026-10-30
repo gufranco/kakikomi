@@ -350,7 +350,7 @@ esac"
 @test "doctor passes with only optional tools missing" {
   # Arrange
   local farm
-  farm="$(disk_test_farm xz bsdtar 7z)"
+  farm="$(disk_test_farm xz bsdtar 7z 7zz)"
 
   # Act
   run disk_test_run_path "${farm}" kakikomi doctor
@@ -359,6 +359,20 @@ esac"
   [[ "${status}" -eq 0 ]]
   [[ "${output}" =~ (^|$'\n')xz\ +missing\ +needed ]]
   [[ "${output}" =~ (^|$'\n')bsdtar\|7z\ +missing\ +needed ]]
+}
+
+@test "doctor finds 7-Zip installed only as 7zz" {
+  # Arrange
+  local farm
+  farm="$(disk_test_farm bsdtar 7z 7zz)"
+  disk_test_shim 7zz "exit 0"
+
+  # Act
+  run disk_test_run_path "${SHIMS}:${farm}" kakikomi doctor
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" =~ (^|$'\n')bsdtar\|7zz\ +ok ]]
 }
 
 @test "kakikomi refuses a path that is neither a device nor a mount point" {

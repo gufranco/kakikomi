@@ -94,11 +94,28 @@ laying_out_on() {
   [[ "${output}" == *"laid out as a UEFI-bootable FAT32 drive"* ]]
 }
 
+@test "kakikomi lists and extracts an ISO with 7zz when bsdtar and 7z are missing" {
+  # Arrange
+  local seven
+  seven="$(command -v 7zz || command -v 7z)" || skip "7-Zip is not installed"
+  windows_iso
+  local farm
+  farm="$(disk_test_farm bsdtar 7z 7zz)"
+  disk_test_shim 7zz "exec '${seven}' \"\$@\""
+
+  # Act
+  run laying_out_on "${SHIMS}:${farm}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"laid out as a UEFI-bootable FAT32 drive"* ]]
+}
+
 @test "kakikomi says when nothing can list an ISO" {
   # Arrange
   windows_iso
   local farm
-  farm="$(disk_test_farm bsdtar 7z)"
+  farm="$(disk_test_farm bsdtar 7z 7zz)"
 
   # Act
   run laying_out_on "${farm}"
@@ -112,7 +129,7 @@ laying_out_on() {
   command -v bsdtar >/dev/null || skip "bsdtar is not installed"
   windows_iso
   local farm
-  farm="$(disk_test_farm 7z)"
+  farm="$(disk_test_farm 7z 7zz)"
 
   # Act
   run laying_out_on "${farm}"

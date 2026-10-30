@@ -62,7 +62,7 @@ Ejected. /dev/disk6 is safe to remove.
 |:-----|:----|:--------|
 | POSIX `sh`, `dd`, `cmp`, `od` | The tools themselves | Preinstalled on macOS and Linux. `bash` is not required |
 | `gzip`, `xz`, `zstd`, `bzip2` | Compressed images | Only for the formats you write |
-| `bsdtar` or `7z` | `.zip` images and Windows ISOs | `libarchive-tools` or `p7zip-full` on Linux |
+| `bsdtar`, `7z` or `7zz` | `.zip` images and Windows ISOs | `libarchive-tools` or `7zip` on Linux |
 | `qemu-img` | `.vhd`, `.vhdx`, `.vmdk`, `.qcow2` | `brew install qemu` or `apt install qemu-utils` |
 | `mtools`, `wimlib` | Windows ISOs and `kakikomi format` | Installed with the Homebrew formula; `apt install mtools wimtools` |
 

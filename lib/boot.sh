@@ -142,12 +142,22 @@ disk_is_windows_iso() {
   printf '%s\n' "${disk_wi_list}" | grep -Eiq '(^|[[:space:]/])sources/install\.(wim|esd)$'
 }
 
+disk_sevenzip() {
+  for disk_seven_name in 7z 7zz; do
+    if disk_cmd_exists "${disk_seven_name}"; then
+      printf '%s\n' "${disk_seven_name}"
+      return 0
+    fi
+  done
+  return 1
+}
+
 disk_iso_list() {
   if disk_cmd_exists bsdtar; then
     bsdtar -tf "$1" 2>/dev/null && return 0
   fi
-  if disk_cmd_exists 7z; then
-    disk_il_listing="$(7z l -ba -slt "$1" 2>/dev/null)" || return 1
+  if disk_il_seven="$(disk_sevenzip)"; then
+    disk_il_listing="$("${disk_il_seven}" l -ba -slt "$1" 2>/dev/null)" || return 1
     printf '%s\n' "${disk_il_listing}" | sed -n 's/^Path = //p'
     return 0
   fi
@@ -163,8 +173,8 @@ disk_iso_label() {
 
 disk_iso_extract() {
   mkdir -p "$2" || return 1
-  if disk_cmd_exists 7z; then
-    7z x -y -bd -o"$2" "$1" >/dev/null 2>&1 && return 0
+  if disk_ie_seven="$(disk_sevenzip)"; then
+    "${disk_ie_seven}" x -y -bd -o"$2" "$1" >/dev/null 2>&1 && return 0
   fi
   bsdtar -xf "$1" -C "$2" 2>/dev/null
 }
