@@ -400,8 +400,9 @@ disk_test_matches_golden() {
   local golden="${KAKIKOMI_TESTS_DIR}/golden/${name}.${KAKIKOMI_TEST_OS}.txt"
   local normalized
 
-  normalized="$(printf '%s\n' "${actual}" | disk_test_normalize)" || return 1
+  normalized="$(printf '%s\n' "${actual//"${WORK}"/WORK}" | disk_test_normalize)" || return 1
   if [[ "${KAKIKOMI_TEST_RECORD:-}" == "1" ]]; then
+    mkdir -p "${KAKIKOMI_TESTS_DIR}/golden"
     printf '%s\n' "${normalized}" >"${golden}"
   fi
 

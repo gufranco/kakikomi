@@ -1,0 +1,20 @@
+Computing the image's SHA-256.
+kakikomi: warning: DEV is 8.0 MiB larger than the image. that space keeps its old contents; --zero-tail blanks it.
+
+Image:  WORK/fat.img
+        raw, 8.0 MiB (8388608 bytes)
+        SHA-256 SHA256
+Target: DEV, 16.0 MiB, unnamed device
+
+Type DISK to write, or anything else to stop: Unmounting DEV...
+Direct I/O is unavailable, so buffers are dropped before every verify.
+Measuring DEV before writing it, so every limit comes from this disk.
+Blanking the first 8.0 MiB so DEV cannot mount until the end.
+Writing the first 8.0 MiB last.
+Writing 100%  RATE  T left
+Wrote and verified every chunk of the image.
+Reading back all 8.0 MiB to compare with the image.
+Validated: DEV matches the image, SHA-256 SHA256
+Ejecting DEV...
+kakikomi: warning: DEV did not eject; it stays unmounted and guarded. remove it once the light stops.
+kakikomi: warning: DEV is still attached, so the mount guard stays. run kakikomi release after removing it.

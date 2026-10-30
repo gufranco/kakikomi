@@ -1,0 +1,22 @@
+Computing the image's SHA-256.
+kakikomi: warning: DEV is 8.0 MiB larger than the image. that space keeps its old contents; --zero-tail blanks it.
+
+Image:  WORK/fat.img
+        raw, 8.0 MiB (8388608 bytes)
+        SHA-256 SHA256
+Target: DEV, 16.0 MiB, DISK IMAGE
+        Everything on it is replaced, including:
+          +16.8 MB DISK
+
+Type DISK to write, or anything else to stop: Unmounting DEV...
+Disk unmounted
+Measuring DEV before writing it, so every limit comes from this disk.
+Blanking the first 8.0 MiB so DEV cannot mount until the end.
+Told macOS not to mount the 1 volume(s) in this image.
+Writing the first 8.0 MiB last.
+Writing 100%  RATE  T left
+Wrote and verified every chunk of the image.
+Reading back all 8.0 MiB to compare with the image.
+Validated: DEV matches the image, SHA-256 SHA256
+Ejecting DEV...
+Ejected. DEV is safe to remove.

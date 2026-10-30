@@ -6,6 +6,11 @@ sed -E \
   -e '/^.*Measured (read|write): /d' \
   -e 's#/dev/r?disk[0-9]+#DEV#g' \
   -e 's#/dev/loop[0-9]+#DEV#g' \
+  -e '/^Writing +[0-9]{1,2}%  /d' \
+  -e 's/[0-9a-f]{64}/SHA256/g' \
+  -e 's/[0-9.]+ (B|KiB|MiB|GiB)\/s/RATE/g' \
+  -e 's/[0-9]+m[0-9]{2}s left/T left/g' \
+  -e 's/(^| )(disk|loop)[0-9]+([ .,]|$)/\1DISK\3/g' \
   -e 's/[0-9]+ KiB\/s/N KiB\/s/g' \
   -e 's/[0-9]+m?s to reach/N to reach/g' \
   -e 's/allowing [0-9]+x/allowing Nx/g' \
