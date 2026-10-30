@@ -501,6 +501,21 @@ esac"
   [[ "${output}" == *"Target: ${DEVICE}"* ]]
 }
 
+@test "a partition node left with an old device number is not ready" {
+  # Arrange
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "only Linux tests make partition nodes by hand"
+  disk_test_fat_image "${WORK}/fat.img" 8 KKSTALE
+  DEVICE="$(disk_test_attach_partitioned "${WORK}/fat.img")"
+  local stale="${WORK}/${DEVICE##*/}p1"
+  sudo mknod -m 660 "${stale}" b 7 1048000
+
+  # Act
+  run disk_test_partition_ready "${stale}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+}
+
 @test "kakikomi writes a disk the system had mounted without calling it a breach" {
   # Arrange
   [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "Linux mounts are covered by the partition and whole-disk tests"
