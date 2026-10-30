@@ -124,6 +124,36 @@ media_error="printf 'dd: error writing: Input/output error\\n' >&2; exit 1"
   [[ "${output}" == *"the drive stopped answering mid-transfer"* ]]
 }
 
+@test "kakikomi stops a transfer past its deadline when timeout reports a terminate" {
+  # Arrange
+  disk_test_shim timeout "while [ \"\$#\" -gt 0 ]; do
+  case \"\$1\" in
+    -k | -s) shift 2 ;;
+    -*) shift ;;
+    *) break ;;
+  esac
+done
+limit=\"\$1\"
+shift
+\"\$@\" &
+child=\"\$!\"
+( sleep \"\${limit}\"; kill -TERM \"\${child}\" ) >/dev/null 2>&1 &
+watcher=\"\$!\"
+status=0
+wait \"\${child}\" || status=\"\$?\"
+kill \"\${watcher}\" 2>/dev/null
+exit \"\${status}\""
+  pass_write "sleep 5"
+
+  # Act
+  run writing "KAKIKOMI_DEADLINE_CAP_MS=2000"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"went silent for"* ]]
+  [[ "${output}" == *"the drive stopped answering mid-transfer"* ]]
+}
+
 @test "kakikomi writes through a dd that reports only record counts" {
   # Arrange
   disk_test_shim dd "err=\"\$(mktemp)\"
