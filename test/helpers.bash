@@ -72,24 +72,32 @@ disk_test_call() {
   PATH="${search_path}" "${shell_words[@]}" "${KAKIKOMI_TESTS_DIR}/call.sh" "$@"
 }
 
+disk_test_farm_wanted() {
+  local farm="$1"
+  local tool="$2"
+  local name="${2##*/}"
+  local excluded
+  shift 2
+  [[ -x "${tool}" && ! -e "${farm}/${name}" ]] || return 1
+  for excluded in "$@"; do
+    [[ "${name}" == "${excluded}" ]] && return 1
+  done
+  return 0
+}
+
 disk_test_farm() {
   local farm="${WORK:?}/farm"
-  local dir tool name excluded
+  local dir tool search_path
+  local -a dirs batch
   mkdir -p "${farm}"
-  local -a dirs
-  local search_path
   search_path="$(disk_test_path)"
   IFS=: read -r -a dirs <<<"${search_path}"
   for dir in "${dirs[@]}"; do
-    [[ -d "${dir}" ]] || continue
+    batch=()
     for tool in "${dir}"/*; do
-      name="${tool##*/}"
-      [[ -x "${tool}" && ! -e "${farm}/${name}" ]] || continue
-      for excluded in "$@"; do
-        [[ "${name}" == "${excluded}" ]] && continue 2
-      done
-      ln -s "${tool}" "${farm}/${name}"
+      disk_test_farm_wanted "${farm}" "${tool}" "$@" && batch+=("${tool}")
     done
+    [[ ${#batch[@]} -eq 0 ]] || ln -s "${batch[@]}" "${farm}/"
   done
   printf '%s\n' "${farm}"
 }
@@ -121,6 +129,14 @@ disk_test_hdiutil() {
   done
 }
 
+disk_test_darwin_ready() {
+  local device="$1"
+  local listing
+  diskutil info "${device}" >/dev/null 2>&1 || return 1
+  listing="$(diskutil list)" || return 1
+  awk -v dev="${device}" '$1 == dev { hit = 1 } END { exit !hit }' <<<"${listing}"
+}
+
 disk_test_attach() {
   local image="$1"
   local listing device tries=0
@@ -129,7 +145,7 @@ disk_test_attach() {
   Darwin)
     listing="$(disk_test_hdiutil attach -nomount -imagekey diskimage-class=CRawDiskImage "${image}")" || return 1
     device="${listing%%[[:space:]]*}"
-    until diskutil info "${device}" >/dev/null 2>&1 || [[ "${tries}" -ge 300 ]]; do
+    until disk_test_darwin_ready "${device}" || [[ "${tries}" -ge 300 ]]; do
       sleep 0.1
       tries=$((tries + 1))
     done
@@ -176,8 +192,9 @@ disk_test_partition_nodes_start() {
         [[ -e "${part}/dev" ]] || continue
         node="/dev/${part##*/}"
         IFS=: read -r major minor <"${part}/dev"
-        current="$(stat -c '%Hr:%Lr' "${node}" 2>/dev/null || true)"
-        [[ "${current}" == "${major}:${minor}" ]] && continue
+        current="$(stat -c '%t:%T' "${node}" 2>/dev/null || true)"
+        wanted="$(printf '%x:%x' "${major}" "${minor}")"
+        [[ "${current}" == "${wanted}" ]] && continue
         sudo rm -f "${node}"
         sudo mknod -m 660 "${node}" b "${major}" "${minor}" 2>/dev/null || true
       done

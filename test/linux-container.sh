@@ -7,7 +7,7 @@ image="${KAKIKOMI_TEST_IMAGE:-ubuntu:26.04}"
 docker run --rm --privileged \
   -v "${repo}:/repo" \
   -w /repo \
-  -e KAKIKOMI_TEST_SHELL="${KAKIKOMI_TEST_SHELL:-}" \
+  -e KAKIKOMI_TEST_SHELLS="${KAKIKOMI_TEST_SHELLS:-}" \
   -e KAKIKOMI_TEST_RECORD="${KAKIKOMI_TEST_RECORD:-}" \
   "${image}" \
   sh -c '
