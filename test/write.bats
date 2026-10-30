@@ -15,6 +15,7 @@ setup() {
 }
 
 teardown() {
+  disk_test_partition_nodes_stop
   disk_test_detach "${DEVICE}"
   rm -rf "${WORK}"
 }
@@ -234,7 +235,9 @@ exec \"\$REAL\" \"\$@\""
   # Arrange
   disk_test_fat_image "${WORK}/mountable.img" 8 BREACH
   local mountable
-  mountable="$(disk_test_attach "${WORK}/mountable.img")"
+  mountable="$(disk_test_attach_partitioned "${WORK}/mountable.img")"
+  disk_test_partition_nodes_start
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || disk_test_wait_partition "${mountable}p1"
 
   # Act
   run disk_test_call call_breach "${mountable}" "${KAKIKOMI_TESTS_DIR}/mounter.sh"

@@ -195,8 +195,10 @@ disk_test_partition_nodes_start() {
         current="$(stat -c '%t:%T' "${node}" 2>/dev/null || true)"
         wanted="$(printf '%x:%x' "${major}" "${minor}")"
         [[ "${current}" == "${wanted}" ]] && continue
-        sudo rm -f "${node}"
-        sudo mknod -m 660 "${node}" b "${major}" "${minor}" 2>/dev/null || true
+        sudo rm -f "${node}.new"
+        if sudo mknod -m 660 "${node}.new" b "${major}" "${minor}" 2>/dev/null; then
+          sudo mv -f "${node}.new" "${node}" || true
+        fi
       done
       sleep 0.2
       tries=$((tries + 1))

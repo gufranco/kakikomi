@@ -34,8 +34,12 @@ write_source_with() {
 write_compressed() {
   local tool="$1"
   local suffix="$2"
-  command -v "${tool}" >/dev/null || skip "${tool} is not installed"
-  "${tool}" -c "${IMAGE}" >"${IMAGE}.${suffix}"
+  local candidate candidates
+  candidates="$(type -ap "${tool}")" || skip "${tool} is not installed"
+  while IFS= read -r candidate; do
+    "${candidate}" -c "${IMAGE}" >"${IMAGE}.${suffix}" 2>/dev/null && break
+  done <<<"${candidates}"
+  [[ -s "${IMAGE}.${suffix}" ]] || skip "no ${tool} on PATH can compress"
   write_source "${IMAGE}.${suffix}"
 }
 
