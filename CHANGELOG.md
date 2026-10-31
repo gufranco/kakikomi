@@ -1,5 +1,28 @@
 # Changelog
 
+# [4.0.0](https://github.com/gufranco/kakikomi/compare/v3.0.0...v4.0.0) (2026-10-31)
+
+
+* feat!: turn --release into the release command ([f71fee3](https://github.com/gufranco/kakikomi/commit/f71fee3742538b2ed695e613536352e8d7413634))
+
+
+### Bug Fixes
+
+* count dd bytes from its record counts ([9241d48](https://github.com/gufranco/kakikomi/commit/9241d488ca2b1f5ea2c6f8b3c9f8841367a0d7cf))
+* read a BusyBox timeout 143 as a deadline ([9a83497](https://github.com/gufranco/kakikomi/commit/9a834976825ace3349271eb43ca86df5054aad8f))
+
+
+### Features
+
+* report a write as JSON with --json ([61276e1](https://github.com/gufranco/kakikomi/commit/61276e18dd29123253b3682124324bfa6e13fe53))
+* use 7zz when 7z is not installed ([a456cb2](https://github.com/gufranco/kakikomi/commit/a456cb2903d6c25bad3cfa385a496b39b57d12e9))
+
+
+### BREAKING CHANGES
+
+* kakikomi --release is gone and fails as an unknown
+option; run kakikomi release instead.
+
 # [3.0.0](https://github.com/gufranco/kakikomi/compare/v2.2.0...v3.0.0) (2026-10-29)
 
 
