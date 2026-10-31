@@ -501,6 +501,22 @@ esac"
   [[ "${output}" == *"Target: ${DEVICE}"* ]]
 }
 
+@test "the partition node helper leaves a devtmpfs /dev to the kernel" {
+  # Arrange
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "only Linux tests make partition nodes by hand"
+  local shims="${WORK}/devtmpfs-shims"
+  mkdir -p "${shims}"
+  printf '#!/bin/sh\necho devtmpfs\n' >"${shims}/findmnt"
+  chmod +x "${shims}/findmnt"
+  PATH="${shims}:${PATH}"
+
+  # Act
+  disk_test_partition_nodes_start
+
+  # Assert
+  [[ -z "${PARTITION_NODES_PID:-}" ]]
+}
+
 @test "a partition node left with an old device number is not ready" {
   # Arrange
   [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "only Linux tests make partition nodes by hand"
