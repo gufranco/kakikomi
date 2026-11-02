@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.0.1](https://github.com/gufranco/kakikomi/compare/v4.0.0...v4.0.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* read BusyBox from any line of its answer ([66e9c67](https://github.com/gufranco/kakikomi/commit/66e9c6701d58606c48fac49b60b1ab52aa230585))
+
 # [4.0.0](https://github.com/gufranco/kakikomi/compare/v3.0.0...v4.0.0) (2026-10-31)
 
 
