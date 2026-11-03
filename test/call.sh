@@ -17,8 +17,8 @@ DISK_LIB="$(cd "$(dirname "$0")/../lib" && pwd)" || exit 1
 . "${DISK_LIB}/checksum.sh"
 # shellcheck source=SCRIPTDIR/../lib/guard.sh
 . "${DISK_LIB}/guard.sh"
-# shellcheck source=SCRIPTDIR/../lib/ui.sh
-. "${DISK_LIB}/ui.sh"
+# shellcheck source=SCRIPTDIR/../lib/disk.sh
+. "${DISK_LIB}/disk.sh"
 # shellcheck source=SCRIPTDIR/../lib/write.sh
 . "${DISK_LIB}/write.sh"
 # shellcheck source=SCRIPTDIR/../lib/after.sh
