@@ -18,7 +18,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 391 tests, 16 shell modules, and no runtime dependency beyond a POSIX system and gum. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
+One command, 402 tests, 16 shell modules, and no runtime dependency beyond a POSIX system and gum. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
 
 ---
 

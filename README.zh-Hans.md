@@ -18,7 +18,7 @@
 
 </div>
 
-一个命令，391 个测试，16 个 shell 模块，除 POSIX 系统和 gum 外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
+一个命令，402 个测试，16 个 shell 模块，除 POSIX 系统和 gum 外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
 
 ---
 

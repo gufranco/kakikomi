@@ -18,7 +18,7 @@
 
 </div>
 
-一條指令，391 個測試，16 個 shell 模組，除了 POSIX 系統和 gum 之外沒有任何執行時依賴。`kakikomi` 是日文「書き込み」，意思是把資料寫入磁碟。姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 負責抹除磁碟並檢查出錯的位線。
+一條指令，402 個測試，16 個 shell 模組，除了 POSIX 系統和 gum 之外沒有任何執行時依賴。`kakikomi` 是日文「書き込み」，意思是把資料寫入磁碟。姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 負責抹除磁碟並檢查出錯的位線。
 
 ---
 
