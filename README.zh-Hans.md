@@ -18,9 +18,13 @@
 
 </div>
 
-一个命令，305 个测试，15 个 shell 模块，除 POSIX 系统外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
+一个命令，391 个测试，16 个 shell 模块，除 POSIX 系统和 gum 外没有任何运行时依赖。`kakikomi` 是日语"書き込み"，意为向磁盘写入数据。它的姊妹工具 [kiyome](https://github.com/gufranco/kiyome) 用来擦除磁盘并检查出错的位线。
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="在终端中运行的 kakikomi：从第一个输入到结果" width="800">
+</p>
 
 ```console
 $ kakikomi debian.img.xz /dev/disk6
@@ -60,6 +64,7 @@ Ejected. /dev/disk6 is safe to remove.
 
 | 工具 | 用途 | 安装 |
 |:-----|:----|:--------|
+| [`gum`](https://github.com/charmbracelet/gum) | 终端界面：菜单、输入、表格和配色 | `brew install gum`。Homebrew formula 会自动安装 |
 | POSIX `sh`、`dd`、`cmp`、`od` | 工具本身 | macOS 和 Linux 已预装，不需要 `bash` |
 | `gzip`、`xz`、`zstd`、`bzip2` | 压缩镜像 | 仅在写入对应格式时需要 |
 | `bsdtar`、`7z` 或 `7zz` | `.zip` 镜像和 Windows ISO | Linux 上为 `libarchive-tools` 或 `7zip` |
@@ -86,6 +91,7 @@ make install
 
 ```console
 $ kakikomi doctor
+gum                ok       /opt/homebrew/bin/gum
 dd                 ok       /bin/dd, bsd
 cmp                ok       /usr/bin/cmp, bsd
 od                 ok       /usr/bin/od, bsd
@@ -142,6 +148,7 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `--keep-guard` | 运行后保留 fstab 防护，让这台 Mac 永不挂载该磁盘 |
 | `--raw` | 按字节原样写入 Windows ISO，而不是布置成 FAT32 |
 | `--json` | 以一个 JSON 对象输出结果，供脚本使用 |
+| `--theme <name>` | 终端界面的配色 |
 
 也可以写成 `--sha256=HASH`，`--` 表示选项结束。环境变量 `KAKIKOMI_VERIFY`、`KAKIKOMI_DELETE`、`KAKIKOMI_AGAIN`、`KAKIKOMI_REINSERT`、`KAKIKOMI_ZERO_TAIL`、`KAKIKOMI_SHA256`、`KAKIKOMI_ALLOW_INTERNAL`、`KAKIKOMI_KEEP_GUARD`、`KAKIKOMI_JSON` 和 `KAKIKOMI_MODE=raw` 以 `y` 或 `n` 设置同样的选项，命令行上的选项优先。
 
@@ -158,6 +165,14 @@ kakikomi format /dev/disk4 exfat MEDIA
 磁盘可以用设备名指定，例如 `/dev/disk4`，也可以用它挂载出的任何卷指定，例如 `/Volumes/USB`；kakikomi 会找出卷背后的整个磁盘，来源、目标和 format 命令都一样。
 
 kakikomi 遵循同系列工具共用的命令行约定，详见 [FAMILY.md](FAMILY.md)。
+
+### 主题
+
+在装有 `gum` 的终端里，kakikomi 用 gum 绘制菜单、输入、表格和消息；在管道或脚本中，输出仍是纯文本。配色依次由 `--theme`、`KAKIKOMI_THEME`、`KODOUGU_THEME` 决定，最后一个由所有 kodougu 工具共用：`kodougu`（默认）、`catppuccin-mocha`、`catppuccin-latte`、`dracula`、`nord`、`gruvbox`、`tokyo-night` 或 `mono`。`KODOUGU_ACCENT=#RRGGBB` 只替换强调色，`NO_COLOR` 关闭颜色。
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 <a id="never-mounted"></a>
 
@@ -241,6 +256,39 @@ graph LR
 
 它能在五种常用工具集上运行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 自带的工具、Homebrew 中更新的版本或 Homebrew 的 uutils 工具。macOS 自带而 Homebrew 有更新版本的工具，从 bash 和 zsh 到 openssl、perl、bsdtar、gzip 和 bzip2，两个版本都会测试。CI 在每种工具集上运行全部测试，`kakikomi doctor` 会列出每个核心工具的类型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，让错误报告说明用的是哪些工具。
 
+<a id="screens"></a>
+
+## 界面
+
+<details>
+<summary>全部界面，均由 <code>make screens</code> 录自真实运行</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/verify.png" alt="kakikomi: 写入前的选项"><br><sub>写入前的选项</sub></td>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="kakikomi: 危险框下输入名称"><br><sub>危险框下输入名称</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/result.png" alt="kakikomi: 结果"><br><sub>结果</sub></td>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="kakikomi: 菜单"><br><sub>菜单</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/checksum.png" alt="kakikomi: 与 SHA-256 不匹配的镜像"><br><sub>与 SHA-256 不匹配的镜像</sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="kakikomi: 错误"><br><sub>错误</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="kakikomi: doctor 检查所需的每个工具"><br><sub>doctor 检查所需的每个工具</sub></td>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="kakikomi: 六种主题下的版本标记"><br><sub>六种主题下的版本标记</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help.png" alt="kakikomi: 帮助页"><br><sub>帮助页</sub></td>
+<td width="50%"></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## 开发
@@ -253,6 +301,7 @@ graph LR
 | `make test-all` | 在每种 shell 下运行同样的测试，macOS 上包括 bash 和 zsh 的两个版本 |
 | `make test-linux` | 在 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 合并这台 Mac 与 Ubuntu 容器中的 bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
+| `make screens` | 在 macOS 上用 VHS 从真实工具录制 README 的界面 |
 
 测试用 `hdiutil` 或 `losetup` 挂接以文件为后端的磁盘，真实写入，并在 Linux 上用 `dmsetup` 注入 I/O 错误。CI 在 Ubuntu 和 macOS 上运行。推送到 `main` 且 CI 通过后会运行 semantic-release：含 `feat` 或 `fix` 提交时会发布 release，更新 [`lib/core.sh`](lib/core.sh) 中的 `KAKIKOMI_VERSION` 和 CHANGELOG，并更新 Homebrew formula。
 

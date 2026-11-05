@@ -116,6 +116,13 @@ disk_write_checksum() {
 
 disk_write_summary() {
   [ "${KAKIKOMI_JSON:-n}" != y ] || return 0
+  if [ "${DISK_SUMMARY_BOXED}" = no ] && disk_ui_out; then
+    DISK_SUMMARY_BOXED=yes
+    disk_ws_text="$(disk_write_summary "$1")"
+    DISK_SUMMARY_BOXED=no
+    disk_summary_box "${disk_ws_text}"
+    return 0
+  fi
   printf '\n'
   disk_info "Image:  ${DISK_SRC_ORIGIN}"
   disk_ws_human="$(disk_human "${DISK_SRC_SIZE}")"
@@ -129,7 +136,7 @@ disk_write_summary() {
     disk_ws_parts="$(disk_partitions_text "${disk_ws_target}")"
     if [ -n "${disk_ws_parts}" ]; then
       disk_info "        Everything on it is replaced, including:"
-      disk_say 10 "${disk_ws_parts}"
+      disk_say "${disk_ws_parts}"
     fi
   done
   printf '\n'

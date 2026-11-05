@@ -19,12 +19,13 @@ Guidance for anyone, human or agent, changing kakikomi. What kakikomi is and how
 ## Names
 
 - Globals carry `DISK_`; function-scoped variables carry a per-function `disk_` prefix. kiyome uses the same names, see Domain rules.
-- Settings come from `KAKIKOMI_<NAME>`, such as `KAKIKOMI_VERIFY` or `KAKIKOMI_JSON`; test switches are `KAKIKOMI_TERMINAL`, `KAKIKOMI_TEST_SHELLS` and `KAKIKOMI_TEST_RECORD`.
-- Output goes through `disk_info`, `disk_say`, `disk_error` and `disk_warning`.
+- Settings come from `KAKIKOMI_<NAME>`, such as `KAKIKOMI_VERIFY`, `KAKIKOMI_JSON` or `KAKIKOMI_THEME`; test switches are `KAKIKOMI_TEST_SHELLS`, `KAKIKOMI_TEST_RECORD` and `KAKIKOMI_TEST_GUM`.
+- Output goes through `disk_info`, `disk_say`, `disk_error` and `disk_warning`, which hand over to the `disk_ui_` helpers in [`lib/ui.sh`](lib/ui.sh) where gum draws; a line from one of several disks written at once keeps its disk name. Disk listing, picking and progress live in [`lib/disk.sh`](lib/disk.sh).
 
 ## Behaviour
 
 - kakikomi has several jobs, so a bare `kakikomi` on a terminal opens the menu.
+- Where gum draws, the menu, the disks and the filesystem are picked from lists, each yes or no option keeps its default, the typed name is asked under a danger box, and the progress of a single disk is a bar. Several disks written at once keep their tagged progress lines, since one bar per disk would overwrite the others.
 - `kakikomi format` takes the same options as a write, since a format is written and verified the same way.
 - `kakikomi release` removes the mount guards an interrupted run left behind.
 - `--json` reports the image, its size and SHA-256, and for each target whether it was written and verified. Parallel writes record each target's result in the run's work folder, and the object is printed once every target finished.
@@ -40,7 +41,7 @@ Guidance for anyone, human or agent, changing kakikomi. What kakikomi is and how
 ## Release
 
 - `KAKIKOMI_VERSION` lives in [`lib/core.sh`](lib/core.sh).
-- The tap's `Formula/kakikomi.rb` depends on `mtools` and `wimlib`.
+- The tap's `Formula/kakikomi.rb` depends on `gum`, `mtools` and `wimlib`.
 
 ## Gaps against FAMILY.md
 

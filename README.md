@@ -18,9 +18,13 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-One command, 305 tests, 15 shell modules, and no runtime dependency beyond a POSIX system. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
+One command, 391 tests, 16 shell modules, and no runtime dependency beyond a POSIX system and gum. `kakikomi` is 書き込み, Japanese for writing data to a disk. Its companion [kiyome](https://github.com/gufranco/kiyome) wipes a disk and checks it for bad bit lines.
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="kakikomi running in a terminal, from the first prompt to the result" width="800">
+</p>
 
 ```console
 $ kakikomi debian.img.xz /dev/disk6
@@ -60,6 +64,7 @@ Ejected. /dev/disk6 is safe to remove.
 
 | Tool | Why | Install |
 |:-----|:----|:--------|
+| [`gum`](https://github.com/charmbracelet/gum) | The terminal interface: menus, prompts, tables and colours | `brew install gum`. Installed automatically by the Homebrew formula |
 | POSIX `sh`, `dd`, `cmp`, `od` | The tools themselves | Preinstalled on macOS and Linux. `bash` is not required |
 | `gzip`, `xz`, `zstd`, `bzip2` | Compressed images | Only for the formats you write |
 | `bsdtar`, `7z` or `7zz` | `.zip` images and Windows ISOs | `libarchive-tools` or `7zip` on Linux |
@@ -86,6 +91,7 @@ make install
 
 ```console
 $ kakikomi doctor
+gum                ok       /opt/homebrew/bin/gum
 dd                 ok       /bin/dd, bsd
 cmp                ok       /usr/bin/cmp, bsd
 od                 ok       /usr/bin/od, bsd
@@ -142,6 +148,7 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `--keep-guard` | Keep the fstab guard after the run, so this Mac never mounts that disk |
 | `--raw` | Write a Windows ISO byte for byte instead of laying it out as FAT32 |
 | `--json` | Print the result as one JSON object, for scripts |
+| `--theme <name>` | Colours of the terminal interface |
 
 `--sha256=HASH` works too, and `--` ends the options. The environment variables `KAKIKOMI_VERIFY`, `KAKIKOMI_DELETE`, `KAKIKOMI_AGAIN`, `KAKIKOMI_REINSERT`, `KAKIKOMI_ZERO_TAIL`, `KAKIKOMI_SHA256`, `KAKIKOMI_ALLOW_INTERNAL`, `KAKIKOMI_KEEP_GUARD`, `KAKIKOMI_JSON` and `KAKIKOMI_MODE=raw` set the same options, with `y` or `n`; an option on the command line wins.
 
@@ -158,6 +165,14 @@ kakikomi format /dev/disk4 exfat MEDIA
 A disk is named by its device, such as `/dev/disk4`, or by any volume mounted from it, such as `/Volumes/USB`; kakikomi works out the whole disk behind the volume, for the image, the target and the format command alike.
 
 kakikomi follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
+
+### Themes
+
+On a terminal with `gum` installed, kakikomi draws its menus, prompts, tables and messages with gum; in a pipe or a script the output stays plain text. `--theme`, else `KAKIKOMI_THEME`, else `KODOUGU_THEME` picks the colours, the last one shared by every kodougu tool: `kodougu` (default), `catppuccin-mocha`, `catppuccin-latte`, `dracula`, `nord`, `gruvbox`, `tokyo-night` or `mono`. `KODOUGU_ACCENT=#RRGGBB` replaces only the accent, and `NO_COLOR` turns colour off.
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 <a id="never-mounted"></a>
 
@@ -241,6 +256,39 @@ Everything is POSIX `sh` with ShellCheck `-o all` at zero findings and no disabl
 
 Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with the tools it ships, Homebrew's newer builds of them, or Homebrew's uutils tools. Every tool macOS ships that Homebrew also builds newer, from bash and zsh to openssl, perl, bsdtar, gzip and bzip2, is tested in both builds. CI runs the whole suite on each, and `kakikomi doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
 
+<a id="screens"></a>
+
+## Screens
+
+<details>
+<summary>Every screen, recorded from a real run with <code>make screens</code></summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/verify.png" alt="kakikomi: The options, before the write"><br><sub>The options, before the write</sub></td>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="kakikomi: The typed name, under the danger box"><br><sub>The typed name, under the danger box</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/result.png" alt="kakikomi: The result"><br><sub>The result</sub></td>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="kakikomi: The menu"><br><sub>The menu</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/checksum.png" alt="kakikomi: An image that does not match its SHA-256"><br><sub>An image that does not match its SHA-256</sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="kakikomi: An error"><br><sub>An error</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="kakikomi: doctor checks every tool it needs"><br><sub>doctor checks every tool it needs</sub></td>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="kakikomi: The version badge in six themes"><br><sub>The version badge in six themes</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help.png" alt="kakikomi: The help page"><br><sub>The help page</sub></td>
+<td width="50%"></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## Development
@@ -253,6 +301,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 | `make test-all` | The same tests under every shell, both builds of bash and zsh included on macOS |
 | `make test-linux` | The same tests in an Ubuntu container |
 | `make coverage` | bashcov line coverage on this Mac and in the Ubuntu container, merged, with the 100% gate CI enforces |
+| `make screens` | Record the README screens from the real tool with VHS, on macOS |
 
 The tests attach file-backed disks with `hdiutil` or `losetup`, write to them for real, and inject I/O errors with `dmsetup` on Linux. CI runs them on Ubuntu and macOS. Once CI passes on a push to `main`, semantic-release runs: a `feat` or `fix` commit publishes a release, updates `KAKIKOMI_VERSION` in [`lib/core.sh`](lib/core.sh) and the CHANGELOG, and bumps the Homebrew formula.
 

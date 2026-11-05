@@ -242,6 +242,31 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"could not stop the system from mounting ${DEVICE}, so its first sectors stay blank."* ]]
+  [[ "${output}" == *"kakikomi: cp: "* ]]
+  [[ $'\n'"${output}" != *$'\n'"cp: "* ]]
+}
+
+@test "kakikomi stops when a stale guard cannot be cleared from the fstab" {
+  # Arrange
+  [[ "${KAKIKOMI_TEST_OS}" == "Darwin" ]] || skip "the fstab guard exists only on macOS"
+  fat_target
+  local fstab="${WORK}/etc/fstab"
+  local stale="UUID=0000 none msdos rw,noauto"
+  mkdir -p "${WORK}/etc"
+  printf '# kakikomi %s begin\n%s\n# kakikomi %s end\n' "${DEVICE##*/}" "${stale}" "${DEVICE##*/}" >"${fstab}"
+  disk_test_shim sudo "while [ \"\$#\" -gt 0 ]; do case \"\$1\" in -n | -v | -E) shift ;; *) break ;; esac; done
+case \"\$*\" in *\"fstab.new ${fstab}\") echo \"cp: ${fstab}: Operation not permitted\" >&2; exit 1 ;; esac
+[ \"\$#\" -eq 0 ] && exit 0
+exec \"\$@\""
+
+  # Act
+  run writing "KAKIKOMI_FSTAB=${fstab}"
+
+  # Assert
+  [[ "${status}" -eq 1 ]]
+  [[ "${output}" == *"could not stop the system from mounting ${DEVICE}, so its first sectors stay blank."* ]]
+  [[ "${output}" == *"kakikomi: cp: ${fstab}: Operation not permitted"* ]]
+  grep -q -x -F "${stale}" "${fstab}"
 }
 
 @test "kakikomi refuses an image holding an HFS+ partition" {

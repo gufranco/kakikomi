@@ -4,6 +4,14 @@
 . "${DISK_LIB:?}/state.sh"
 
 disk_format_usage() {
+  if disk_ui_out; then
+    disk_format_usage_text | disk_ui_markdown | disk_gum format --theme "${DISK_UI_HELP}"
+    return 0
+  fi
+  disk_format_usage_text
+}
+
+disk_format_usage_text() {
   cat <<'USAGE'
 kakikomi format - quick format: write only the new filesystem's structures
 
@@ -33,9 +41,17 @@ disk_format_ask() {
   disk_fa_size="$(disk_size_bytes "${disk_fa_disk}")"
   disk_is_uint "${disk_fa_size}" || disk_fa_size=0
   disk_fa_default="$(disk_default_fs "${disk_fa_size}")"
-  disk_fa_fs="$(disk_prompt "Filesystem: fat32, exfat, fat or floppy" "${disk_fa_default}")" || return 1
+  disk_fa_fs="$(disk_format_ask_fs "${disk_fa_default}")" || return 1
   disk_fa_label="$(disk_prompt "Label" UNTITLED)" || return 1
   disk_format_run "${disk_fa_disk}" "${disk_fa_fs}" "${disk_fa_label}"
+}
+
+disk_format_ask_fs() {
+  if disk_ui_prompts; then
+    disk_ui_choose "Filesystem" --selected "$1" fat32 exfat fat floppy
+    return
+  fi
+  disk_prompt "Filesystem: fat32, exfat, fat or floppy" "$1"
 }
 
 disk_format_fs() {

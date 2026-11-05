@@ -1,0 +1,26 @@
+Source common.tape
+Output scratch.gif
+Set Height 1000
+Hide
+Type ". ./setup.sh"
+Enter
+Sleep 1s
+Show
+Sleep 800ms
+Type "kakikomi"
+Enter
+Sleep 3s
+Screenshot menu.png
+Sleep 1s
+Ctrl+C
+Sleep 1s
+Hide
+Type "clear"
+Enter
+Show
+Sleep 800ms
+Type "kakikomi --sha256 0000000000000000000000000000000000000000000000000000000000000000 retro-games.img /Volumes/STICK"
+Enter
+Sleep 8s
+Screenshot checksum.png
+Sleep 1s

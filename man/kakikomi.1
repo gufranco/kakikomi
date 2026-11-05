@@ -94,6 +94,20 @@ Write a Windows ISO as is instead of as a FAT32 installer.
 Print the result of a write as one JSON object on stdout, for scripts: the
 image, its size and SHA-256, and for each target whether it was written and
 verified.
+.TP
+.BI \-\-theme " name"
+Colours of the terminal interface:
+.BR kodougu ,
+.BR catppuccin\-mocha ,
+.BR catppuccin\-latte ,
+.BR dracula ,
+.BR nord ,
+.BR gruvbox ,
+.B tokyo\-night
+or
+.BR mono .
+The default is
+.BR kodougu .
 .PP
 Every option that takes a value also takes the form
 .IR \-\-name = value ,
@@ -151,6 +165,24 @@ set the same options, with
 or
 .B n
 for yes or no. An option on the command line wins over the environment.
+.TP
+.B KAKIKOMI_THEME
+The theme when
+.B \-\-theme
+is not given.
+.TP
+.B KODOUGU_THEME
+The theme of every kodougu tool, when neither
+.B \-\-theme
+nor
+.B KAKIKOMI_THEME
+is set.
+.TP
+.B KODOUGU_ACCENT
+A colour such as #CBA6F7 that replaces the accent of the theme.
+.TP
+.B NO_COLOR
+Turns colour off in every theme.
 .SH EXIT STATUS
 0 when every disk was written and verified, 1 on any failure or refusal.
 .SH SEE ALSO

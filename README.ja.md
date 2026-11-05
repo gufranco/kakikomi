@@ -18,9 +18,13 @@
 
 </div>
 
-コマンドは1つ、テストは305件、シェルのモジュールは15個で、POSIXシステム以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
+コマンドは1つ、テストは391件、シェルのモジュールは16個で、POSIXシステムとgum以外に実行時の依存はありません。`kakikomi`はディスクへの「書き込み」です。姉妹ツールの[kiyome](https://github.com/gufranco/kiyome)は、ディスクを消去して誤ったビット線を調べます。
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="ターミナルで実行した kakikomi：最初の入力から結果まで" width="800">
+</p>
 
 ```console
 $ kakikomi debian.img.xz /dev/disk6
@@ -60,6 +64,7 @@ Ejected. /dev/disk6 is safe to remove.
 
 | ツール | 用途 | インストール |
 |:-----|:----|:--------|
+| [`gum`](https://github.com/charmbracelet/gum) | 端末の画面：メニュー、入力、表、配色 | `brew install gum`。Homebrewのformulaが自動でインストールします |
 | POSIX `sh`、`dd`、`cmp`、`od` | ツール本体 | macOSとLinuxにプリインストールされています。`bash`は不要です |
 | `gzip`、`xz`、`zstd`、`bzip2` | 圧縮イメージ | 書き込む形式の分だけ必要です |
 | `bsdtar`、`7z`または`7zz` | `.zip`イメージとWindowsのISO | Linuxでは`libarchive-tools`または`7zip` |
@@ -86,6 +91,7 @@ make install
 
 ```console
 $ kakikomi doctor
+gum                ok       /opt/homebrew/bin/gum
 dd                 ok       /bin/dd, bsd
 cmp                ok       /usr/bin/cmp, bsd
 od                 ok       /usr/bin/od, bsd
@@ -142,6 +148,7 @@ b2sum|openssl      missing  checks a published BLAKE2b checksum
 | `--keep-guard` | 実行後もfstabの設定を残し、このMacがそのディスクを今後もマウントしないようにします |
 | `--raw` | WindowsのISOをFAT32に配置せず、そのまま書き込みます |
 | `--json` | 結果を1つのJSONオブジェクトとして出力します（スクリプト向け） |
+| `--theme <name>` | 端末の画面の配色 |
 
 `--sha256=HASH`の形も使え、`--`でオプションが終わります。環境変数`KAKIKOMI_VERIFY`、`KAKIKOMI_DELETE`、`KAKIKOMI_AGAIN`、`KAKIKOMI_REINSERT`、`KAKIKOMI_ZERO_TAIL`、`KAKIKOMI_SHA256`、`KAKIKOMI_ALLOW_INTERNAL`、`KAKIKOMI_KEEP_GUARD`、`KAKIKOMI_JSON`、`KAKIKOMI_MODE=raw`も`y`か`n`で同じ設定になり、コマンドラインのオプションが優先されます。
 
@@ -158,6 +165,14 @@ kakikomi format /dev/disk4 exfat MEDIA
 ディスクはデバイス名（`/dev/disk4` など）でも、そのディスクからマウントされたボリューム（`/Volumes/USB` など）でも指定できます。kakikomi はボリュームの背後にあるディスク全体を突き止めます。コピー元、書き込み先、format のどれでも同じです。
 
 kakikomiはファミリー共通のコマンドライン規約に従います。内容は[FAMILY.md](FAMILY.md)にあります。
+
+### テーマ
+
+`gum`がインストールされた端末では、kakikomiはメニュー、入力、表、メッセージをgumで描きます。パイプやスクリプトでは、出力はプレーンテキストのままです。配色は`--theme`、なければ`KAKIKOMI_THEME`、なければ`KODOUGU_THEME`で選びます。最後のものはkodouguのすべてのツールが共有します：`kodougu` （既定）、`catppuccin-mocha`、`catppuccin-latte`、`dracula`、`nord`、`gruvbox`、`tokyo-night`、`mono`。`KODOUGU_ACCENT=#RRGGBB`はアクセント色だけを置き換え、`NO_COLOR`は色を消します。
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 <a id="never-mounted"></a>
 
@@ -241,6 +256,39 @@ WindowsのISOはそのまま書いてもUSBからは起動しません。kakikom
 
 Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その新しい Homebrew 版、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。macOS 標準のツールのうち Homebrew に新しい版があるものは、bash と zsh から openssl、perl、bsdtar、gzip、bzip2 まで、両方の版でテストします。CI はそれぞれで全テストを実行し、`kakikomi doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
 
+<a id="screens"></a>
+
+## 画面
+
+<details>
+<summary><code>make screens</code> で実際の実行から録画したすべての画面</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/verify.png" alt="kakikomi: 書き込み前のオプション"><br><sub>書き込み前のオプション</sub></td>
+<td width="50%" valign="top"><img src="screens/confirm.png" alt="kakikomi: 危険ボックスの下での名前の入力"><br><sub>危険ボックスの下での名前の入力</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/result.png" alt="kakikomi: 結果"><br><sub>結果</sub></td>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="kakikomi: メニュー"><br><sub>メニュー</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/checksum.png" alt="kakikomi: SHA-256 が一致しないイメージ"><br><sub>SHA-256 が一致しないイメージ</sub></td>
+<td width="50%" valign="top"><img src="screens/error.png" alt="kakikomi: エラー"><br><sub>エラー</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="kakikomi: doctor が必要なツールをすべて確認"><br><sub>doctor が必要なツールをすべて確認</sub></td>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="kakikomi: 6 つのテーマでのバージョン表示"><br><sub>6 つのテーマでのバージョン表示</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/help.png" alt="kakikomi: ヘルプ"><br><sub>ヘルプ</sub></td>
+<td width="50%"></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## 開発
@@ -253,6 +301,7 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 | `make test-all` | すべてのシェルで同じテスト。macOS では bash と zsh の両方の版を含みます |
 | `make test-linux` | Ubuntu コンテナで同じテスト |
 | `make coverage` | この Mac と Ubuntu コンテナでの bashcov の行カバレッジを合算し、CI が強制する 100% のゲート |
+| `make screens` | macOS で、README の画面を実物のツールから VHS で録画します |
 
 テストは`hdiutil`や`losetup`でファイルを使ったディスクを接続して実際に書き込み、Linuxでは`dmsetup`でI/Oエラーを注入します。CIはUbuntuとmacOSで実行します。`main`へのpushでCIが通るとsemantic-releaseが動き、`feat`か`fix`のコミットがあればリリースを公開し、[`lib/core.sh`](lib/core.sh)の`KAKIKOMI_VERSION`とCHANGELOGを更新して、Homebrewのformulaも更新します。
 

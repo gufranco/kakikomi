@@ -138,7 +138,7 @@ disk_fstab_strip_locked() {
     !skip { print }
   ' "${disk_fsp_path}" >"${disk_fsp_tmp}" || return 1
   cmp -s "${disk_fsp_tmp}" "${disk_fsp_path}" && return 0
-  sudo cp -f "${disk_fsp_tmp}" "${disk_fsp_path}"
+  sudo cp -f "${disk_fsp_tmp}" "${disk_fsp_path}" 2>"${DISK_TMPDIR}/fstab.err"
 }
 
 disk_fstab_append() {
@@ -154,12 +154,18 @@ disk_fstab_append_locked() {
   disk_fa_tmp="${DISK_TMPDIR}/fstab.new"
   if [ -f "${disk_fa_path}" ]; then
     cp -f "${disk_fa_path}" "${disk_fa_tmp}" || return 1
-    [ -f "${disk_fa_path}.kakikomi.bak" ] || sudo cp -f "${disk_fa_path}" "${disk_fa_path}.kakikomi.bak"
+    [ -f "${disk_fa_path}.kakikomi.bak" ] || sudo cp -f "${disk_fa_path}" "${disk_fa_path}.kakikomi.bak" 2>"${DISK_TMPDIR}/fstab.err"
   else
     : >"${disk_fa_tmp}"
   fi
   printf '# kakikomi %s begin\n%s\n# kakikomi %s end\n' "$1" "$2" "$1" >>"${disk_fa_tmp}" || return 1
-  sudo cp -f "${disk_fa_tmp}" "${disk_fa_path}"
+  sudo cp -f "${disk_fa_tmp}" "${disk_fa_path}" 2>"${DISK_TMPDIR}/fstab.err"
+}
+
+disk_fstab_said() {
+  [ -s "${DISK_TMPDIR}/fstab.err" ] || return 0
+  disk_fsd_lines="$(cat "${DISK_TMPDIR}/fstab.err")"
+  disk_log_lines disk_error "${disk_fsd_lines}"
 }
 
 disk_attach_probe() {
@@ -237,13 +243,18 @@ disk_guard_declare() {
     return 1
   }
   rm -f "${disk_gd_probe}"
-  disk_fstab_strip "${disk_gd_tag}" || return 1
+  disk_fstab_strip "${disk_gd_tag}" || {
+    disk_error "stopped: could not stop the system from mounting $1, so its first sectors stay blank."
+    disk_fstab_said
+    return 1
+  }
   if [ -z "${disk_gd_lines}" ]; then
     disk_info "The image holds no volume macOS would mount."
     return 0
   fi
   disk_fstab_append "${disk_gd_tag}" "${disk_gd_lines}" || {
     disk_error "stopped: could not stop the system from mounting $1, so its first sectors stay blank."
+    disk_fstab_said
     return 1
   }
   DISK_GUARD_DECLARED="${disk_gd_tag}"

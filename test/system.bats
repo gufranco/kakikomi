@@ -720,11 +720,11 @@ exec \"\$REAL\" \"\$@\""
   # Arrange
   local -a shell_words
   read -r -a shell_words <<<"${KAKIKOMI_TEST_SHELL:-sh}"
-  local search_path
-  search_path="$(disk_test_path)"
+  local farm
+  farm="$(disk_test_farm gum)"
 
   # Act
-  run on_terminal env PATH="${search_path}" "${shell_words[@]}" "${KAKIKOMI_TESTS_DIR}/call.sh" disk_progress Writing 1048576 1048576 0
+  run on_terminal env PATH="${farm}" "${shell_words[@]}" "${KAKIKOMI_TESTS_DIR}/call.sh" disk_progress Writing 1048576 1048576 0
 
   # Assert
   [[ "${output}" == *"Writing 100%"* ]]
@@ -752,4 +752,28 @@ exec \"\$REAL\" \"\$@\""
   # Assert
   [[ "${status}" -eq 0 ]]
   [[ "${output}" == "" ]]
+}
+
+@test "a Zip, Jaz or PocketZip ejected after a fault is called a cartridge" {
+  # Arrange
+  local family=zip
+
+  # Act
+  DISK_FAMILY="${family}" run disk_test_call disk_ejected_line /dev/sdz
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Cartridge ejected."* ]]
+}
+
+@test "any other disk ejected after a fault is named by its device" {
+  # Arrange
+  local family=usb
+
+  # Act
+  DISK_FAMILY="${family}" run disk_test_call disk_ejected_line /dev/sdz
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"Ejected /dev/sdz."* ]]
 }

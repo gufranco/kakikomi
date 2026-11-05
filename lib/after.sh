@@ -4,12 +4,28 @@
 . "${DISK_LIB:?}/state.sh"
 
 disk_ask() {
+  if disk_ui_prompts; then
+    disk_ask_drawn "$1" "$2"
+    return
+  fi
   disk_ak_answer=""
   printf '%s ' "$1" >&2
   IFS= read -r disk_ak_answer || disk_ak_answer=""
   case "${disk_ak_answer}" in
   y | Y | yes | YES) printf 'y\n' ;;
   n | N | no | NO) printf 'n\n' ;;
+  *) printf '%s\n' "$2" ;;
+  esac
+}
+
+disk_ask_drawn() {
+  disk_ad_default=--default=true
+  [ "$2" = y ] || disk_ad_default=--default=false
+  disk_ad_status=0
+  disk_ui_confirm "${1% \[*}" "Yes" "No" "${disk_ad_default}" || disk_ad_status=$?
+  case "${disk_ad_status}" in
+  0) printf 'y\n' ;;
+  1) printf 'n\n' ;;
   *) printf '%s\n' "$2" ;;
   esac
 }
@@ -122,14 +138,22 @@ disk_again_allowed() {
   [ -f "${DISK_SRC_PATH}" ]
 }
 
+disk_next_disk() {
+  if disk_ui_prompts; then
+    disk_ui_confirm "Insert the next disk, then write it?" "Write" "Finish"
+    return
+  fi
+  printf 'Insert the next disk and press Enter, or type q to finish: ' >&2
+  disk_nd_answer=""
+  IFS= read -r disk_nd_answer || disk_nd_answer="q"
+  [ "${disk_nd_answer}" != "q" ]
+}
+
 disk_after_write() {
   [ "$1" -eq 0 ] || return 1
   disk_aw_round=1
   while disk_again_allowed "${disk_aw_round}"; do
-    printf 'Insert the next disk and press Enter, or type q to finish: ' >&2
-    disk_aw_answer=""
-    IFS= read -r disk_aw_answer || disk_aw_answer="q"
-    [ "${disk_aw_answer}" = "q" ] && break
+    disk_next_disk || break
     disk_write_once || return 1
     disk_aw_round=$((disk_aw_round + 1))
   done

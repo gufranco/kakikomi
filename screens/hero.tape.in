@@ -1,0 +1,27 @@
+Source common.tape
+Output hero.gif
+Set Height 1300
+Hide
+Type ". ./setup.sh"
+Enter
+Sleep 1s
+Show
+Sleep 800ms
+Type "kakikomi retro-games.img /Volumes/STICK"
+Sleep 400ms
+Enter
+Sleep 7s
+Screenshot verify.png
+Enter
+Sleep 1.5s
+Enter
+Sleep 1.5s
+Enter
+Sleep 2.5s
+Type "@DISK@"
+Sleep 500ms
+Screenshot confirm.png
+Enter
+Sleep 35s
+Screenshot result.png
+Sleep 2s

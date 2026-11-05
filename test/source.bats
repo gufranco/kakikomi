@@ -43,6 +43,35 @@ write_compressed() {
   write_source "${IMAGE}.${suffix}"
 }
 
+@test "a test payload is reproducible and never opens with a compression signature" {
+  # Arrange
+  disk_test_random_file "${WORK}/first.img" 1
+  DISK_TEST_RANDOM_CALLS=0
+
+  # Act
+  disk_test_random_file "${WORK}/payload.img" 1
+
+  # Assert
+  local lead size
+  lead="$(od -An -tx1 -N 1 "${WORK}/payload.img")"
+  size="$(wc -c <"${WORK}/payload.img")"
+  cmp -s "${WORK}/first.img" "${WORK}/payload.img"
+  [[ "${lead// /}" == "52" ]]
+  [[ "${size// /}" -eq 1048576 ]]
+}
+
+@test "two test payloads in one test differ" {
+  # Arrange
+  disk_test_random_file "${WORK}/first.img" 1
+
+  # Act
+  disk_test_random_file "${WORK}/second.img" 1
+
+  # Assert
+  run cmp -s "${WORK}/first.img" "${WORK}/second.img"
+  [[ "${status}" -eq 1 ]]
+}
+
 @test "kakikomi streams a gzip image and writes the decompressed bytes" {
   # Arrange
   local tool="gzip"

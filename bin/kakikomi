@@ -15,6 +15,8 @@ DISK_LIB="$(cd "${disk_self%/*}/../lib" && pwd)" || exit 1
 DISK_PROG=kakikomi
 # shellcheck source=SCRIPTDIR/../lib/core.sh
 . "${DISK_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/ui.sh
+. "${DISK_LIB}/ui.sh"
 # shellcheck source=SCRIPTDIR/../lib/cli.sh
 . "${DISK_LIB}/cli.sh"
 # shellcheck source=SCRIPTDIR/../lib/io.sh
@@ -43,6 +45,14 @@ DISK_PROG=kakikomi
 . "${DISK_LIB}/format.sh"
 
 disk_write_usage() {
+  if disk_ui_out; then
+    disk_write_usage_text | disk_ui_markdown | disk_gum format --theme "${DISK_UI_HELP}"
+    return 0
+  fi
+  disk_write_usage_text
+}
+
+disk_write_usage_text() {
   cat <<'USAGE'
 kakikomi - write disk images to removable media, verified, never mounted
 
@@ -75,6 +85,7 @@ options:
   --raw                        write a Windows ISO as is instead of as a FAT32
                                installer
   --json                       print the result as one JSON object, for scripts
+  --theme NAME                 colours of the terminal interface, see notes
 
 environment:
   KAKIKOMI_VERIFY, KAKIKOMI_DELETE, KAKIKOMI_AGAIN, KAKIKOMI_REINSERT,
@@ -94,6 +105,12 @@ notes:
   image, in any of the usual formats and algorithms. A mismatch stops the run
   before any disk is touched. For a URL, the same names are asked of its
   server.
+
+  On a terminal with gum installed, kakikomi draws its prompts, summary and
+  progress with gum. --theme, else KAKIKOMI_THEME, else KODOUGU_THEME picks
+  the colours: kodougu, catppuccin-mocha, catppuccin-latte, dracula, nord,
+  gruvbox, tokyo-night or mono. KODOUGU_ACCENT=#RRGGBB replaces only the
+  accent, and NO_COLOR turns colour off.
 
 examples:
   kakikomi debian.img.xz /dev/disk4
@@ -157,9 +174,19 @@ disk_parse() {
   "${DISK_PARSED}" "$@"
 }
 
-disk_write_menu() {
+disk_write_menu_choice() {
+  if disk_ui_prompts; then
+    disk_ui_header
+    printf '%s\n' "write an image to a disk|1" "quick format a disk|2" "check this machine|3" |
+      disk_ui_choose "What would you like to do?" --label-delimiter "|"
+    return
+  fi
   printf '%s\n' "What would you like to do?" "  1) write an image to a disk" "  2) quick format a disk" "  3) check this machine" >&2
-  disk_wn_choice="$(disk_prompt "Choice" 1)" || return 1
+  disk_prompt "Choice" 1
+}
+
+disk_write_menu() {
+  disk_wn_choice="$(disk_write_menu_choice)" || return 1
   case "${disk_wn_choice}" in
   1) disk_write_ask_image ;;
   2) disk_format_main ;;
@@ -203,6 +230,44 @@ disk_write_start() {
 }
 
 disk_write_main() {
+  disk_mn_count=$#
+  disk_mn_literal=no
+  while [ "${disk_mn_count}" -gt 0 ]; do
+    disk_mn_arg="$1"
+    shift
+    disk_mn_count=$((disk_mn_count - 1))
+    case "${disk_mn_literal}:${disk_mn_arg}" in
+    no:--) disk_mn_literal=yes ;;
+    no:--theme=*)
+      DISK_THEME="${disk_mn_arg#--theme=}"
+      continue
+      ;;
+    no:--theme)
+      [ "${disk_mn_count}" -gt 0 ] || disk_main_stop "option '--theme' needs a value"
+      DISK_THEME="$1"
+      shift
+      disk_mn_count=$((disk_mn_count - 1))
+      continue
+      ;;
+    *) ;;
+    esac
+    set -- "$@" "${disk_mn_arg}"
+  done
+  disk_ui_setup || disk_main_fail "${DISK_UI_PROBLEM}"
+  disk_write_route "$@"
+}
+
+disk_main_stop() {
+  disk_cli_hint "$1"
+  exit 1
+}
+
+disk_main_fail() {
+  disk_error "$1"
+  exit 1
+}
+
+disk_write_route() {
   case "${1:-}" in
   format)
     shift

@@ -6,61 +6,34 @@
 KAKIKOMI_VERSION="4.0.1"
 
 disk_version() {
-  printf '%s %s\n' "$1" "${KAKIKOMI_VERSION}"
-}
-
-disk_wrap() {
-  awk -v width="${DISK_WIDTH}" -v indent="$1" '
-    function pad(n,   s) {
-      s = ""
-      while (n-- > 0) { s = s " " }
-      return s
-    }
-    length($0) <= width { print; next }
-    {
-      match($0, /^ */)
-      n = split($0, word, " ")
-      out = substr($0, 1, RLENGTH) word[1]
-      for (i = 2; i <= n; i++) {
-        if (length(out) + 1 + length(word[i]) > width) {
-          print out
-          out = pad(indent) word[i]
-        } else {
-          out = out " " word[i]
-        }
-      }
-      print out
-    }'
-}
-
-disk_terminal() {
-  [ "${KAKIKOMI_TERMINAL:-}" = 1 ] || [ -t 1 ]
+  printf '%s %s\n' "${1:-${DISK_PROG}}" "${KAKIKOMI_VERSION}"
 }
 
 disk_say() {
-  disk_sy_text="$2"
-  if [ "${#disk_sy_text}" -le "${DISK_WIDTH}" ] || ! disk_terminal; then
-    printf '%s\n' "${disk_sy_text}"
-    return 0
-  fi
-  printf '%s\n' "${disk_sy_text}" | disk_wrap "$1"
+  printf '%s\n' "$1"
 }
 
 disk_log() {
   if [ -n "${DISK_LOG_TAG}" ]; then
-    disk_say "${3:-0}" "$1${DISK_LOG_TAG}: $2"
+    disk_say "$1${DISK_LOG_TAG}: $2"
   else
-    disk_say "${3:-0}" "$1$2"
+    disk_say "$1$2"
   fi
 }
 
 disk_info() {
+  disk_progress_close
   [ "${KAKIKOMI_JSON:-n}" != y ] || return 0
-  disk_log "" "$*" 8
+  disk_log "" "$*"
 }
 
 disk_success() {
+  disk_progress_close
   [ "${KAKIKOMI_JSON:-n}" != y ] || return 0
+  if disk_ui_out; then
+    disk_ui_done "${DISK_LOG_TAG:+${DISK_LOG_TAG}: }$*"
+    return 0
+  fi
   disk_log "" "$*"
 }
 
@@ -83,10 +56,20 @@ disk_json_string() {
 }
 
 disk_warning() {
+  disk_progress_close
+  if disk_ui_err; then
+    disk_ui_log WARN "${DISK_LOG_TAG:+${DISK_LOG_TAG}: }$*"
+    return 0
+  fi
   disk_log "${DISK_PROG}: warning: " "$*" >&2
 }
 
 disk_error() {
+  disk_progress_close
+  if disk_ui_err; then
+    disk_ui_log ERROR "${DISK_LOG_TAG:+${DISK_LOG_TAG}: }$*"
+    return 0
+  fi
   disk_log "${DISK_PROG}: " "$*" >&2
 }
 

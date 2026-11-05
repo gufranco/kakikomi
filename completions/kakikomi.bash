@@ -5,8 +5,12 @@ _kakikomi() {
   local cur prev words options
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD - 1]}"
-  options="--verify --no-verify --delete --no-delete --again --reinsert --no-reinsert --zero-tail --sha256 --allow-internal --keep-guard --raw --json"
+  options="--verify --no-verify --delete --no-delete --again --reinsert --no-reinsert --zero-tail --sha256 --allow-internal --keep-guard --raw --json --theme"
 
+  if [[ "${prev}" == "--theme" ]]; then
+    COMPREPLY=($(compgen -W "kodougu catppuccin-mocha catppuccin-latte dracula nord gruvbox tokyo-night mono" -- "${cur}"))
+    return
+  fi
   if [[ "${prev}" == "--sha256" ]]; then
     COMPREPLY=()
     return

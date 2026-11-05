@@ -4,6 +4,9 @@ KAKIKOMI_TESTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "${KAKIKOMI_TESTS_DIR}/.." && pwd)"
 KAKIKOMI_TEST_OS="$(uname -s)"
 export KAKIKOMI_TESTS_DIR REPO_DIR KAKIKOMI_TEST_OS
+PATH="${KAKIKOMI_TESTS_DIR}/bin:${PATH}"
+export PATH
+DISK_TEST_PAYLOAD_LEAD="R"
 
 disk_test_path() {
   local base="${PATH}"
@@ -295,8 +298,15 @@ disk_test_fat_image() {
 disk_test_random_file() {
   local file="$1"
   local mebibytes="$2"
+  local key
 
-  dd if=/dev/urandom of="${file}" bs=1048576 count="${mebibytes}" 2>/dev/null
+  DISK_TEST_RANDOM_CALLS=$((${DISK_TEST_RANDOM_CALLS:-0} + 1))
+  key="$(printf '%s:%s' "${BATS_TEST_NAME:-kakikomi}" "${DISK_TEST_RANDOM_CALLS}" | openssl dgst -md5 -r)"
+  {
+    printf '%s' "${DISK_TEST_PAYLOAD_LEAD}"
+    { head -c $((mebibytes * 1048576 - 1)) /dev/zero || true; } |
+      openssl enc -aes-128-ctr -nosalt -K "${key%% *}" -iv 00000000000000000000000000000000
+  } >"${file}"
 }
 
 disk_test_fill() {

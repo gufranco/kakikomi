@@ -153,7 +153,7 @@ exec \"\$REAL\" \"\$@\""
   [[ "${output}" == *"cut power to the drive before doing anything else with it."* ]]
 }
 
-@test "kakikomi ejects the cartridge after a fault on Linux" {
+@test "kakikomi ejects the disk after a fault on Linux" {
   # Arrange
   [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "a disk image on macOS ejects through diskutil"
   disk_test_shim eject "exit 0"
@@ -164,7 +164,7 @@ exec \"\$REAL\" \"\$@\""
 
   # Assert
   [[ "${status}" -eq 1 ]]
-  [[ "${output}" == *"Cartridge ejected."* ]]
+  [[ "${output}" == *"Ejected ${DEVICE}."* ]]
 }
 
 @test "kakikomi ejects the drive once the write is validated on Linux" {
