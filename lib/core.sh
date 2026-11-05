@@ -3,7 +3,7 @@
 # shellcheck source=SCRIPTDIR/state.sh
 . "${DISK_LIB:?}/state.sh"
 
-KAKIKOMI_VERSION="4.0.1"
+KAKIKOMI_VERSION="4.1.0"
 
 disk_version() {
   printf '%s %s\n' "${1:-${DISK_PROG}}" "${KAKIKOMI_VERSION}"

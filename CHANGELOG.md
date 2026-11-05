@@ -1,5 +1,12 @@
 # Changelog
 
+# [4.1.0](https://github.com/gufranco/kakikomi/compare/v4.0.1...v4.1.0) (2026-11-05)
+
+
+### Features
+
+* draw the terminal interface with gum ([b3e509f](https://github.com/gufranco/kakikomi/commit/b3e509ff0638df449d36edba6aca7505777c125a))
+
 ## [4.0.1](https://github.com/gufranco/kakikomi/compare/v4.0.0...v4.0.1) (2026-11-02)
 
 
