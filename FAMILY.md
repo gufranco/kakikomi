@@ -18,6 +18,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 | kiban | Runs Docker and the local databases a project needs, in a native VM on a Mac and with no VM on Linux | [gufranco/kiban](https://github.com/gufranco/kiban) |
 | kirisute | Cuts Game Boy Advance, DS, DSi and 3DS ROMs and PSP ISOs down to their real size, and renames them after their headers | [gufranco/kirisute](https://github.com/gufranco/kirisute) |
 | kiyome | Overwrites a disk with five verified patterns and names any failing bit line | [gufranco/kiyome](https://github.com/gufranco/kiyome) |
+| nazuke | Gives long names short, readable, unique ones, and renames a folder's files to them | [gufranco/nazuke](https://github.com/gufranco/nazuke) |
 | shiwake | Sorts the files of a folder into A to Z subfolders by their first letter | [gufranco/shiwake](https://github.com/gufranco/shiwake) |
 | yakitsuke | Turns any video into Video CD images, split across discs, with readable subtitles | [gufranco/yakitsuke](https://github.com/gufranco/yakitsuke) |
 
@@ -26,7 +27,7 @@ Nothing about the family lives anywhere else, so anyone with the repositories ha
 Copy this file in unchanged, write an `AGENTS.md` with the same headings as the other members', follow both, and add the repository to the table above in every member in the same task. With the members checked out side by side, this shows any drift:
 
 ```bash
-for member in fusho jimaku kakikomi katazuke kiban kirisute kiyome shiwake yakitsuke; do
+for member in fusho jimaku kakikomi katazuke kiban kirisute kiyome nazuke shiwake yakitsuke; do
   cmp FAMILY.md "../${member}/FAMILY.md"
 done
 ```
@@ -223,7 +224,7 @@ Every tool that can be installed in more than one version on a supported system 
 - A test that hides a tool runs the program with `<prefix>_test_farm`, a folder of links to every program on PATH except the hidden ones. It links one PATH folder per `ln -s` call: one call per program forks thousands of times on a Homebrew Mac and cost about 11 seconds per test.
 - `bats` tests drive the real tools on real files, disks or media, and inject faults only through small wrappers on `PATH`.
 - Golden transcripts guard the terminal output. A test runs a whole flow, replaces the values that change between runs, such as paths, sizes and rates, and compares the result with `test/golden/<flow>.<OS>.txt`. `<TOOL>_TEST_RECORD=1` rewrites them from a fresh run, on macOS and in the container; the diff is read before it is committed.
-- 100 percent bashcov line coverage, gated locally and in CI. `make coverage` runs bashcov on the Mac and in the Ubuntu container and merges both before the gate, so a Linux-only branch counts locally as it does in CI. Every `case` branch runs a command, because bashcov never counts a branch that holds only `;;`. The condition of an `if`, `elif`, `while` or `until` stays on one line, because bashcov 4.0.1 never marks a backslash-continued line of a condition as run; a long command whose output is assigned with `$(...)` moves into its own function for the same reason. `scripts/bashcov-run.rb` reads the trace one record at a time and skips a damaged record, because two traced processes writing at once on macOS can splice a record, and bashcov's own reader stops at the first damaged one and leaves every traced process blocked on a full pipe. `scripts/coverage.sh` feeds bashcov a damaged record before the suite and fails if it stops reading.
+- 100 percent bashcov line coverage, gated locally and in CI. `make coverage` runs bashcov on the Mac and in the Ubuntu container and merges both before the gate, so a Linux-only branch counts locally as it does in CI. Every `case` branch runs a command, because bashcov never counts a branch that holds only `;;`. The condition of an `if`, `elif`, `while` or `until` stays on one line, because bashcov 4.0.1 never marks a backslash-continued line of a condition as run; a long command whose output is assigned with `$(...)` moves into its own function for the same reason. `scripts/bashcov-run.rb` reads the trace one record at a time and skips a damaged record, because two traced processes writing at once on macOS can splice a record, and bashcov's own reader stops at the first damaged one and leaves every traced process blocked on a full pipe. `scripts/coverage.sh` feeds bashcov a damaged record before the suite and fails if it stops reading. Before that probe it loads the gems `Gemfile.lock` names and, when one is missing, stops with a message that says to run `bundle install`, so a gem bump that was never installed reads as what it is rather than as a damaged record.
 - Tests never write the member's version as a literal; they read it from `lib/core.sh`, so a release does not break them.
 - A wait loop polls from milliseconds upward, never with a fixed `sleep 1`. On a runner without `timeout`, a one-second poll per `dd` made two members ten times slower.
 - Every test is three blocks, opened by the bare markers `# Arrange`, `# Act` and `# Assert`.
