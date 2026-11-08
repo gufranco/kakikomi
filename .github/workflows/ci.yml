@@ -154,7 +154,7 @@ jobs:
           printf '%s  %s\n' "${GUM_SHA256}" "${RUNNER_TEMP}/${name}.tar.gz" | sha256sum -c -
           tar -xzf "${RUNNER_TEMP}/${name}.tar.gz" -C "${RUNNER_TEMP}"
           sudo install -m 0755 "${RUNNER_TEMP}/${name}/gum" /usr/local/bin/gum
-      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94  # v1.336.0
         if: matrix.coverage
         with:
           bundler-cache: true
@@ -218,7 +218,7 @@ jobs:
       - name: Install the uutils toolset
         if: matrix.toolset == 'uutils'
         run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
-      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
+      - uses: ruby/setup-ruby@de492cf36cbab201753d720ce4f4e336cd688c94  # v1.336.0
         if: matrix.coverage
         with:
           bundler-cache: true
