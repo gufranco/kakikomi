@@ -100,8 +100,8 @@ disk_fstab_lock() {
   disk_fl_lock="${TMPDIR:-/tmp}/kakikomi-fstab.lock"
   disk_fl_tries=0
   disk_fl_limit=$((${KAKIKOMI_FSTAB_LOCK_SECONDS:-60} * 10))
-  while ! mkdir "${disk_fl_lock}" 2>/dev/null; do
-    disk_fl_holder="$(cat "${disk_fl_lock}/pid" 2>/dev/null || true)"
+  while ! (set -C && printf '%s\n' "$$" >"${disk_fl_lock}") 2>/dev/null; do
+    disk_fl_holder="$(cat "${disk_fl_lock}" 2>/dev/null || cat "${disk_fl_lock}/pid" 2>/dev/null || true)"
     if [ -n "${disk_fl_holder}" ] && ! kill -0 "${disk_fl_holder}" 2>/dev/null; then
       rm -rf "${disk_fl_lock}"
       continue
@@ -113,7 +113,6 @@ disk_fstab_lock() {
     fi
     sleep 0.1
   done
-  printf '%s\n' "$$" >"${disk_fl_lock}/pid"
 }
 
 disk_fstab_unlock() {

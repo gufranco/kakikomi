@@ -134,6 +134,20 @@ fat_target() {
 @test "a lock left by a process that ended is taken over" {
   # Arrange
   export TMPDIR="${WORK}"
+  printf '999999\n' >"${WORK}/kakikomi-fstab.lock"
+
+  # Act
+  run disk_test_call call_fstab_append disk9 "UUID=1234 none msdos rw,noauto"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"# kakikomi disk9 end"* ]]
+  [[ ! -e "${WORK}/kakikomi-fstab.lock" ]]
+}
+
+@test "a lock folder left by an older kakikomi that ended is taken over" {
+  # Arrange
+  export TMPDIR="${WORK}"
   mkdir -p "${WORK}/kakikomi-fstab.lock"
   printf '999999\n' >"${WORK}/kakikomi-fstab.lock/pid"
 
@@ -148,8 +162,7 @@ fat_target() {
 @test "a lock held by a running kakikomi leaves the fstab untouched" {
   # Arrange
   export TMPDIR="${WORK}" KAKIKOMI_FSTAB_LOCK_SECONDS=1
-  mkdir -p "${WORK}/kakikomi-fstab.lock"
-  printf '%s\n' "$$" >"${WORK}/kakikomi-fstab.lock/pid"
+  printf '%s\n' "$$" >"${WORK}/kakikomi-fstab.lock"
 
   # Act
   run disk_test_call call_fstab_append disk9 "UUID=1234 none msdos rw,noauto"
@@ -158,6 +171,24 @@ fat_target() {
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"another kakikomi held ${WORK}/kakikomi-fstab.lock for 1s, so the fstab was left untouched."* ]]
   [[ ! -s "${KAKIKOMI_FSTAB}" ]]
+}
+
+@test "ten guards written at once all land in the fstab" {
+  # Arrange
+  export TMPDIR="${WORK}"
+  local index
+
+  # Act
+  for index in 0 1 2 3 4 5 6 7 8 9; do
+    disk_test_call call_fstab_append "disk${index}" "UUID=${index} none msdos rw,noauto" >/dev/null 2>&1 &
+  done
+  wait
+
+  # Assert
+  local begins
+  begins="$(grep -c '^# kakikomi disk[0-9] begin$' "${KAKIKOMI_FSTAB}")"
+  [[ "${begins}" -eq 10 ]]
+  [[ ! -e "${WORK}/kakikomi-fstab.lock" ]]
 }
 
 @test "--release is no longer an option" {
