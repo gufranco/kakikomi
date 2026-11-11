@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.1.1](https://github.com/gufranco/kakikomi/compare/v4.1.0...v4.1.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* drop NUL bytes when reading an ISO label ([eb30ebe](https://github.com/gufranco/kakikomi/commit/eb30ebee4234420bb64705587e2a08b739f47d90))
+* list stat in doctor ([e029e1a](https://github.com/gufranco/kakikomi/commit/e029e1abcef93435048c4b6c0f077c734f9e1ca4))
+* lock the fstab with set -C, not mkdir ([f2be08f](https://github.com/gufranco/kakikomi/commit/f2be08fbd5841cca2c5d2e1e85b9526501abe35b))
+* read file sizes past 4 GiB under BusyBox ([9688f9f](https://github.com/gufranco/kakikomi/commit/9688f9fc14e73c8237ad1be97ce1c4e686cd3526))
+* size a file whose name starts with a dash ([2ac1deb](https://github.com/gufranco/kakikomi/commit/2ac1debf30a44727ee83b437c664dc6bb6569cc0))
+
 # [4.1.0](https://github.com/gufranco/kakikomi/compare/v4.0.1...v4.1.0) (2026-11-05)
 
 
