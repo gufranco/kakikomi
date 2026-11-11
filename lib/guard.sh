@@ -37,7 +37,7 @@ disk_gpt_starts() {
     disk_gs_at=$((disk_gs_lba * 512 + disk_gs_index * disk_gs_size))
     disk_gs_type="$(disk_magic_hex "$1" "${disk_gs_at}" 16)"
     case "${disk_gs_type}" in
-    '' | 00000000000000000000000000000000) ;;
+    '' | 00000000000000000000000000000000) : ;;
     ef57347c0000aa11aa1100306543ecac)
       DISK_GUARD_UNSUPPORTED="APFS"
       ;;
