@@ -26,6 +26,8 @@ lint:
 	shellcheck -x -o all test/*.sh test/*.bash test/*.bats test/shim/sudo
 	shellcheck -s bash -o all completions/kakikomi.bash
 	mandoc -T lint man/kakikomi.1
+	yamllint -s -c .yamllint.yml .github .yamllint.yml
+	actionlint
 
 test:
 	KAKIKOMI_TEST_SHELLS=sh sh test/run-matrix.sh test
