@@ -1,4 +1,5 @@
 #!/usr/bin/env bats
+# shellcheck disable=SC2030,SC2031
 
 # shellcheck source=test/helpers.bash
 source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
@@ -122,4 +123,33 @@ mkdir -p '${WORK}/Gio' && mv -f \"\$2\" '${WORK}/Gio/'"
 
   # Assert
   [[ "${output}" == *"--reinsert checks one disk at a time, so it is skipped when writing several."* ]]
+}
+
+@test "kakikomi deletes the image for good when no Trash exists and the user types delete" {
+  # Arrange
+  local farm
+  farm="$(disk_test_farm trash gio)"
+  export KAKIKOMI_DELETE=y KAKIKOMI_TRASH=""
+
+  # Act
+  run write_on_path "${farm}" "${DEV1##*/}\ndelete\n" "${IMAGE}" "${DEV1}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"No Trash is available. Type delete to remove ${IMAGE} for good: "* ]]
+  [[ ! -e "${IMAGE}" ]]
+}
+
+@test "kakikomi keeps the image when no Trash exists and the user types anything else" {
+  # Arrange
+  local farm
+  farm="$(disk_test_farm trash gio)"
+  export KAKIKOMI_DELETE=y KAKIKOMI_TRASH=""
+
+  # Act
+  run write_on_path "${farm}" "${DEV1##*/}\nno\n" "${IMAGE}" "${DEV1}"
+
+  # Assert
+  [[ "${output}" == *"kept ${IMAGE}."* ]]
+  [[ -f "${IMAGE}" ]]
 }

@@ -240,3 +240,20 @@ write_compressed() {
   [[ "${status}" -eq 1 ]]
   [[ "${output}" == *"is the drive being copied, so it cannot also be the target."* ]]
 }
+
+@test "kakikomi deletes nothing when the source of a clone is a drive" {
+  # Arrange
+  local source_img="${WORK}/source-drive.img"
+  disk_test_fat_image "${source_img}" 8 CLONE
+  local source_dev
+  source_dev="$(disk_test_attach "${source_img}")"
+
+  # Act
+  run write_source_with "KAKIKOMI_DELETE=y" "${source_dev}"
+
+  # Assert
+  disk_test_detach "${source_dev}"
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"the source is a drive, so there is no image file to delete."* ]]
+  [[ -f "${source_img}" ]]
+}

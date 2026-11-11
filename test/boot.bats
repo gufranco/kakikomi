@@ -124,3 +124,17 @@ format_with() {
   [[ "${sources}" != *"install.wim"* ]]
   [[ "${boot}" == *"bootx64.efi"* ]]
 }
+
+@test "kakikomi format picks FAT for a 64 MB disk when no filesystem is given" {
+  # Arrange
+  local expected=fat16
+
+  # Act
+  run format_with
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  local fs
+  fs="$(disk_test_fs_type "${TARGET_IMG}" 1048576)"
+  [[ "${fs}" == "${expected}" ]]
+}
