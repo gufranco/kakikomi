@@ -179,10 +179,12 @@ fat_target() {
   local index
 
   # Act
+  local -a writers=()
   for index in 0 1 2 3 4 5 6 7 8 9; do
     disk_test_call call_fstab_append "disk${index}" "UUID=${index} none msdos rw,noauto" >/dev/null 2>&1 &
+    writers+=("$!")
   done
-  wait
+  wait "${writers[@]}"
 
   # Assert
   local begins
