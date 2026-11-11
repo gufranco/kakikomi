@@ -166,7 +166,7 @@ disk_iso_list() {
 }
 
 disk_iso_label() {
-  disk_il_raw="$(dd if="$1" bs=1 skip=32808 count=32 2>/dev/null)"
+  disk_il_raw="$(dd if="$1" bs=1 skip=32808 count=32 2>/dev/null | tr -d '\000')"
   disk_il_label="$(printf '%s' "${disk_il_raw}" | tr -cd 'A-Za-z0-9_' | tr '[:lower:]' '[:upper:]' | cut -c1-11)"
   printf '%s\n' "${disk_il_label:-WINUSB}"
 }
