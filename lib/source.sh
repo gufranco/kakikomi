@@ -104,11 +104,24 @@ disk_stream_size() {
     ;;
   *) ;;
   esac
-  disk_info "Reading the whole compressed image once to learn its exact size." >&2
-  disk_ss_bytes="$({ disk_stream_source "$1" "$2" "$3" 2>/dev/null || true; } | wc -c)"
-  disk_ss_bytes="$(printf '%s' "${disk_ss_bytes}" | tr -d '[:space:]')"
+  disk_info "Reading the whole compressed image to learn its exact size." >&2
+  disk_ss_bytes="$(disk_stream_count "$1" "$2" "$3")"
   disk_is_uint "${disk_ss_bytes}" || return 1
   printf '%s\n' "${disk_ss_bytes}"
+}
+
+disk_stream_count() {
+  disk_sn_flavor="$(disk_tool_flavor wc)"
+  case "${disk_sn_flavor}" in
+  busybox*) disk_stream_count_blocks "$@" ;;
+  *) { disk_stream_source "$@" 2>/dev/null || true; } | wc -c | tr -d '[:space:]' ;;
+  esac
+}
+
+disk_stream_count_blocks() {
+  disk_sk_full="$({ disk_stream_source "$@" 2>/dev/null || true; } | dd bs=1048576 iflag=fullblock of=/dev/null 2>&1 | sed -n 's/^\([0-9]*\)+[0-9]* records in$/\1/p')"
+  disk_sk_rest="$({ disk_stream_source "$@" 2>/dev/null || true; } | dd bs=1048576 skip="${disk_sk_full:-0}" iflag=fullblock 2>/dev/null | wc -c | tr -d '[:space:]')"
+  printf '%s\n' "$((${disk_sk_full:-0} * 1048576 + ${disk_sk_rest:-0}))"
 }
 
 disk_sha256_stdin() {

@@ -257,3 +257,43 @@ write_compressed() {
   [[ "${output}" == *"the source is a drive, so there is no image file to delete."* ]]
   [[ -f "${source_img}" ]]
 }
+
+@test "a file past 4 GiB reports its whole size" {
+  # Arrange
+  dd if=/dev/zero of="${WORK}/large.img" bs=1 count=0 seek=4915200123 2>/dev/null
+
+  # Act
+  run disk_test_call disk_file_size "${WORK}/large.img"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "4915200123" ]]
+}
+
+@test "a compressed image is measured exactly where wc is BusyBox's" {
+  # Arrange
+  [[ "${KAKIKOMI_TEST_OS}" == "Linux" ]] || skip "macOS dd has no full-block reads"
+  head -c 3145851 /dev/urandom >"${WORK}/raw.img"
+  gzip -c "${WORK}/raw.img" >"${WORK}/raw.img.gz"
+  disk_test_shim wc "case \"\$1\" in --version) printf 'BusyBox v1.37.0 multi-call binary.\\n'; exit 1 ;; esac; exec \"\${REAL}\" \"\$@\""
+
+  # Act
+  run disk_test_call disk_stream_size "${WORK}/raw.img.gz" gz gzip
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"3145851" ]]
+}
+
+@test "a compressed image is measured in one pass elsewhere" {
+  # Arrange
+  head -c 3145851 /dev/urandom >"${WORK}/raw.img"
+  gzip -c "${WORK}/raw.img" >"${WORK}/raw.img.gz"
+
+  # Act
+  run disk_test_call disk_stream_size "${WORK}/raw.img.gz" gz gzip
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"3145851" ]]
+}
